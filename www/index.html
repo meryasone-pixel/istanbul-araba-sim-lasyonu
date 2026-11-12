@@ -304,13 +304,18 @@ function aiStep(c,dt){const px=c.x,pz=c.z;
   {const da=wrap(hd(c)-c.a),dd=c.ax?L-c.z:0,de=c.ax?0:L-c.x,dt2=de*cs-dd*sn,sg=(da>.12||dt2>.6)?1:(da<-.12||dt2<-.6)?-1:0,bo=((performance.now()/350)|0)%2;c.sL.color.setHex(sg>0&&bo?0xffa000:0x4a2c00);c.sR.color.setHex(sg<0&&bo?0xffa000:0x4a2c00);}
   c.x+=sn*c.v*dt; c.z+=cs*c.v*dt;
   const s1=c.ax?c.x:c.z;
-  if(c.cd>0)c.cd-=dt; else for(const k of C){
-    if((s0-k)*(s1-k)<=0&&s0!==s1){
-      const out=(k>=297&&c.dir>0)||(k<=-297&&c.dir<0);
-      const tu=out||c.nt; c.nt=Math.random()<.3;
-      if(tu){const o=c.ax?c.z:c.x;c.ax=1-c.ax;c.dir=o>270?-1:o<-270?1:(Math.random()<.5?-1:1);c.rc=k;c.cd=3;c.ln=Math.random()<.5?1:0;}
-      break;
-    }
+  /* kavşak dönüşü: yön ve şerit kavşağa varmadan seçilir; araç, kavşağın ortasında değil yeni şeridin hizasında döner.
+     (eski hali ortada dönüp sonra karşı şeritleri keserek kendi şeridine geçiyordu — sağa dönenler sol şeride gidiyordu) */
+  if(c.cd>0)c.cd-=dt; else if(s0!==s1){
+    if(!c.pl||c.pl.d!==c.dir||(!c.pl.tu&&c.pl.k!==bk)){
+      const out=(bk>=297&&c.dir>0)||(bk<=-297&&c.dir<0),tu=out||c.nt;c.pl={k:bk,d:c.dir,tu,out};
+      if(tu){const o=c.ax?c.z:c.x,nd=o>270?-1:o<-270?1:(Math.random()<.5?-1:1),nl=Math.random()<.5?1:0;
+        c.pl.nd=nd;c.pl.nl=nl;c.pl.ts=lane({ax:1-c.ax,dir:nd,rc:bk,ln:nl});}}
+    const p=c.pl,hitK=(s0-p.k)*(s1-p.k)<=0,hitT=p.tu&&(s0-p.ts)*(s1-p.ts)<=0;
+    const late=p.tu&&!hitT&&(s1-p.ts)*p.d>2;   // dönüş noktası çoktan geçildiyse (ör. yeni doğan araç)
+    if(hitT||(late&&p.out)){c.ax=1-c.ax;c.dir=p.nd;c.rc=p.k;c.ln=p.nl;c.cd=3;c.pl=null;c.nt=Math.random()<.3;}
+    else if(late){c.pl=null;c.nt=false;}   // dönmeden düz devam et
+    else if(hitK&&!p.tu){c.pl=null;c.nt=Math.random()<.3;}
   }
   if(rectHit(c.x,c.z)&&!rectHit(px,pz)){c.x=px;c.z=pz;c.v=0;c.blk=(c.blk||0)+dt;if(c.blk>1.2){c.dir=-c.dir;c.blk=0;c.cd=2;}}
   c.m.position.set(c.x,0,c.z); c.m.rotation.y=c.a; c.m.visible=Math.abs(c.x-car.x)<200&&Math.abs(c.z-car.z)<200;
