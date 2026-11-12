@@ -716,6 +716,13 @@ function phOn(){if(phM||gOpen)return;phM=true;gOpen=true;car.v=0;phZ=1;document.
 function phOff(){if(!phM)return;phM=false;gOpen=false;document.body.classList.remove('photo');camT=performance.now();}
 async function phSave(){const pm=$('phmsg');try{const url=renderer.domElement.toDataURL('image/jpeg',.92),name='bogaz-drive-'+Date.now()+'.jpg';
   const native=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
+  /* Android uygulaması: fotoğraf önbelleğe yazılır, Android'in paylaş penceresi açılır (Galeri, WhatsApp, Drive...) */
+  const CP=native&&Capacitor.Plugins||{};
+  if(CP.Filesystem&&CP.Share){pm.textContent='Hazırlanıyor...';
+   const r=await CP.Filesystem.writeFile({path:name,data:url.split(',')[1],directory:'CACHE'});
+   try{await CP.Share.share({title:'Boğaz Drive',dialogTitle:'Fotoğrafı kaydet veya paylaş',files:[r.uri]});pm.textContent='Paylaşıldı ✓';}
+   catch(e){pm.textContent=/cancel/i.test((e&&e.message)||'')?'Paylaşım iptal edildi':'Paylaşılamadı — ekran görüntüsü alabilirsin';}
+   return;}
   if(navigator.canShare){const f=new File([await (await fetch(url)).blob()],name,{type:'image/jpeg'});if(navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'Boğaz Drive'});pm.textContent='Paylaşıldı ✓';return;}}
   if(!native){const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();pm.textContent='Fotoğraf indirildi ✓';return;}
   pm.textContent='Kaydetmek için telefonunun ekran görüntüsü tuşlarını kullan';}catch(e){pm.textContent='Kaydedilemedi — ekran görüntüsü alabilirsin';}}

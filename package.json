@@ -5,10 +5,12 @@
   "description": "Istanbul'da Surus - arac simulasyonu",
   "dependencies": {
     "@capacitor-community/admob": "^8.3.0",
-    "@capacitor/android": "^8.6.0",
-    "@capacitor/core": "^8.6.0"
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/core": "^8.6.2",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/share": "^8.0.3"
   },
   "devDependencies": {
-    "@capacitor/cli": "^8.6.0"
+    "@capacitor/cli": "^8.6.2"
   }
 }
