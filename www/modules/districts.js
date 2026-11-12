@@ -344,7 +344,15 @@
     /* bölge zinciri: unlock.after verilmişse önce o bölge açık olmalı (ilerlemeyle de altınla da) */
     const prevOk = d => !d.unlock.after || isUnlocked(d.unlock.after);
     const progressOk = d => prevOk(d) && (P.missions >= d.unlock.missions || P.earned >= d.unlock.earned);
-    const isUnlocked = id => IST.cfg.districts.devUnlockAll === true || !!P.unlocked[id] || progressOk(def(id));   // devUnlockAll: yalnızca denemek için
+    /* görev/kazançla açılan bölge de kalıcı kaydedilir: kurallar sonradan değişse bile oyuncu açtığı bölgeyi kaybetmez.
+       devUnlockAll (yalnızca deneme) açıkken hiçbir şey kaydedilmez. */
+    const isUnlocked = id => {
+      if (IST.cfg.districts.devUnlockAll === true) return true;
+      if (P.unlocked[id]) return true;
+      if (progressOk(def(id))) { P.unlocked[id] = true; save(); return true; }
+      return false;
+    };
+    const checkUnlocks = () => { try { DEFS.forEach(d => { if (IST.cfg.districts.devUnlockAll !== true && !P.unlocked[d.id] && isUnlocked(d.id)) IST.toast(d.icon + ' ' + d.name + ' açıldı!'); }); } catch (e) {} };
 
     /* ================= dünya değiştirme (Fatih'i bozmadan) ================= */
     const world = { cur: null, hidden: [], saved: null, group: {}, ret: null };
@@ -467,8 +475,9 @@
     /* oyunun mevcut fonksiyonlarına SARMALAYICI (kaynak dosya değişmez) */
     if (typeof window.reset === 'function') { const o = window.reset; window.reset = function () { if (world.cur) exit(true); return o.apply(this, arguments); }; }
     if (typeof window.area === 'function') { const o = window.area; window.area = function () { return world.cur ? (world.cur.area ? world.cur.area(car.x, car.z) : world.cur.name) : o.apply(this, arguments); }; }
-    if (typeof window.doneM === 'function') { const o = window.doneM; window.doneM = function () { const r = o.apply(this, arguments); P.missions++; save(); IST.bus.emit('mission:done'); refresh(); return r; }; }
-    IST.bus.on('gold:gain', e => { P.earned += e.amount; save(); });
+    if (typeof window.doneM === 'function') { const o = window.doneM; window.doneM = function () { const r = o.apply(this, arguments); P.missions++; save(); checkUnlocks(); IST.bus.emit('mission:done'); refresh(); return r; }; }
+    IST.bus.on('gold:gain', e => { P.earned += e.amount; save(); checkUnlocks(); });
+    checkUnlocks();   // mevcut ilerlemeyle açık olan bölgeleri açılışta da kalıcı kaydet
 
     /* ================= arayüz ================= */
     const panel = IST.ui.panel('ist-districts', '🏙 Bölgeler');
