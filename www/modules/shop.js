@@ -20,24 +20,24 @@
       { id: 'gold_12000', kind: 'c', title: '12000 Altın', desc: '+%20 bonus', gold: 12000 }
     ];
     const ITEMS = [
-      { id: 'lv_stripes', cat: 'livery', name: 'Yarış Şeritleri', cur: 'gold', price: 400, tex: 'stripes' },
-      { id: 'lv_checker', cat: 'livery', name: 'Damalı Bayrak', cur: 'gold', price: 600, tex: 'checker' },
-      { id: 'lv_camo', cat: 'livery', name: 'Kamuflaj', cur: 'gold', price: 600, tex: 'camo' },
-      { id: 'lv_flame', cat: 'livery', name: 'Alev', cur: 'gold', price: 900, tex: 'flame' },
+      { id: 'lv_stripes', cat: 'livery', name: 'Yarış Şeritleri', cur: 'gold', price: 800, tex: 'stripes' },
+      { id: 'lv_checker', cat: 'livery', name: 'Damalı Bayrak', cur: 'gold', price: 1200, tex: 'checker' },
+      { id: 'lv_camo', cat: 'livery', name: 'Kamuflaj', cur: 'gold', price: 1200, tex: 'camo' },
+      { id: 'lv_flame', cat: 'livery', name: 'Alev', cur: 'gold', price: 2000, tex: 'flame' },
       { id: 'lv_vipgold', cat: 'livery', name: 'VIP Altın', cur: 'gold', price: 0, vip: true, tex: 'gold' },
-      { id: 'ne_pink', cat: 'neon', name: 'Pembe Neon', cur: 'gold', price: 300, color: 0xff2fd2 },
-      { id: 'ne_cyan', cat: 'neon', name: 'Turkuaz Neon', cur: 'gold', price: 300, color: 0x19e0cf },
+      { id: 'ne_pink', cat: 'neon', name: 'Pembe Neon', cur: 'gold', price: 600, color: 0xff2fd2 },
+      { id: 'ne_cyan', cat: 'neon', name: 'Turkuaz Neon', cur: 'gold', price: 600, color: 0x19e0cf },
       { id: 'lv_sunset', cat: 'livery', name: 'Boğaz Gün Batımı', cur: 'gold', price: 0, pack: 'starter_pack', tex: 'sunset' },
       { id: 'ne_sunset', cat: 'neon', name: 'Gün Batımı Neonu', cur: 'gold', price: 0, pack: 'starter_pack', color: 0xff8a3d },
-      { id: 'ne_rainbow', cat: 'neon', name: 'Gökkuşağı', cur: 'gold', price: 800, rainbow: true },
-      { id: 'ri_gold', cat: 'rim', name: 'Altın Jant', cur: 'gold', price: 350, color: 0xffc400 },
-      { id: 'ri_red', cat: 'rim', name: 'Kırmızı Jant', cur: 'gold', price: 250, color: 0xd32f2f },
-      { id: 'ri_chrome', cat: 'rim', name: 'Krom Jant', cur: 'gold', price: 400, color: 0xf2f5f8, emissive: 0x333333 },
-      { id: 'ri_neon', cat: 'rim', name: 'Neon Mavi Jant', cur: 'gold', price: 500, color: 0x2979ff, emissive: 0x1144aa },
-      { id: 'hn_ship', cat: 'horn', name: 'Vapur Düdüğü', cur: 'gold', price: 500, horn: { f: [98, 147], type: 'sawtooth', lp: 700 } },
-      { id: 'hn_taxi', cat: 'horn', name: 'Taksi Bip-Bip', cur: 'gold', price: 250, horn: { f: [440, 554], type: 'square', lp: 1800, double: true } },
-      { id: 'hn_sport', cat: 'horn', name: 'Spor Korna', cur: 'gold', price: 400, horn: { f: [523, 659, 784], type: 'sawtooth', lp: 2400 } },
-      { id: 'hn_melody', cat: 'horn', name: 'Melodi', cur: 'gold', price: 500, horn: { seq: [392, 494, 587, 784], type: 'triangle', lp: 2200 } },
+      { id: 'ne_rainbow', cat: 'neon', name: 'Gökkuşağı', cur: 'gold', price: 2500, rainbow: true },
+      { id: 'ri_gold', cat: 'rim', name: 'Altın Jant', cur: 'gold', price: 700, color: 0xffc400 },
+      { id: 'ri_red', cat: 'rim', name: 'Kırmızı Jant', cur: 'gold', price: 500, color: 0xd32f2f },
+      { id: 'ri_chrome', cat: 'rim', name: 'Krom Jant', cur: 'gold', price: 800, color: 0xf2f5f8, emissive: 0x333333 },
+      { id: 'ri_neon', cat: 'rim', name: 'Neon Mavi Jant', cur: 'gold', price: 1000, color: 0x2979ff, emissive: 0x1144aa },
+      { id: 'hn_ship', cat: 'horn', name: 'Vapur Düdüğü', cur: 'gold', price: 800, horn: { f: [98, 147], type: 'sawtooth', lp: 700 } },
+      { id: 'hn_taxi', cat: 'horn', name: 'Taksi Bip-Bip', cur: 'gold', price: 400, horn: { f: [440, 554], type: 'square', lp: 1800, double: true } },
+      { id: 'hn_sport', cat: 'horn', name: 'Spor Korna', cur: 'gold', price: 600, horn: { f: [523, 659, 784], type: 'sawtooth', lp: 2400 } },
+      { id: 'hn_melody', cat: 'horn', name: 'Melodi', cur: 'gold', price: 800, horn: { seq: [392, 494, 587, 784], type: 'triangle', lp: 2200 } },
       { id: 'hn_vip', cat: 'horn', name: 'VIP Korna', cur: 'gold', price: 0, vip: true, horn: { seq: [523, 659, 784, 1047], type: 'sine', lp: 3000 } }
     ];
     const CATS = [['iap', '💰 Altın & VIP'], ['livery', '🎨 Kaplama'], ['neon', '✨ Neon'], ['rim', '🛞 Jant'], ['horn', '📯 Korna']];
@@ -138,13 +138,13 @@
     function applyAll() {
       try {
         if (typeof bodyM === 'undefined') return;
-        const free = gameFree(), eq = S.eq;
-        const lv = !free && eq.livery ? item(eq.livery) : null;
+        const eq = S.eq;   // süsler artık serbest sürüşte de görünür
+        const lv = eq.livery ? item(eq.livery) : null;
         bodyM.map = lv ? makeTex(lv.tex) : null; bodyM.needsUpdate = true;
-        const ri = !free && eq.rim ? item(eq.rim) : null;
+        const ri = eq.rim ? item(eq.rim) : null;
         if (ri && typeof rimP !== 'undefined') { rimP.color.setHex(ri.color); if (rimP.emissive) rimP.emissive.setHex(ri.emissive || 0); }
         else if (typeof rimP !== 'undefined' && rimP.emissive) rimP.emissive.setHex(0);
-        const ne = !free && eq.neon ? item(eq.neon) : null, R = R_();
+        const ne = eq.neon ? item(eq.neon) : null, R = R_();
         if (R && typeof shell !== 'undefined') {
           if (!neon) { neon = new R.Mesh(new R.PlaneGeometry(2.8, 6.2), new R.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .55, blending: R.AdditiveBlending, depthWrite: false })); neon.rotation.x = -Math.PI / 2; neon.position.y = .09; shell.add(neon); }
           neon.visible = !!ne; if (ne && !ne.rainbow) neon.material.color.setHex(ne.color);
@@ -186,7 +186,7 @@
     }
 
     /* VIP: tüm altın kazançlarına +%50 (oyun koduna dokunmadan, kazanç olayından) */
-    IST.bus.on('gold:gain', e => { if (isVip() && e.amount > 0) { const b = Math.floor(e.amount * .5); if (b > 0 && IST.gold.add(b)) IST.toast('VIP bonus +' + b + ' ₺'); } });
+    IST.bus.on('gold:gain', e => { if (isVip() && e.amount > 0) { const b = Math.floor(e.amount * .5); if (b > 0 && IST.gold.add(b)) IST.toast('VIP bonus +' + b + ' altın'); } });
 
     /* ---------------- arayüz ---------------- */
     const panel = IST.ui.panel('ist-shop', '🛒 Mağaza');
@@ -230,8 +230,9 @@
     IST.ui.menuButton('bShop', '🛒 Mağaza', () => panel.open());
     /* araba yenileme: mağazadan çıkarıldı, ana menüde ayrı düğme */
     if (typeof repairCar === 'function') {
-      const rb = IST.ui.menuButton('bRepair', '🔧 Arabayı yenile', () => { repairCar(); upRep(); }, { inGame: true, before: 'bEng' });
-      function upRep() { try { rb.textContent = needRp() ? '🔧 Arabayı yenile — ' + (repFree() ? 'ÜCRETSİZ' : RP + ' ₺') + ' (hasar %' + Math.round(dmg) + ')' : '🔧 Araba sağlam ✓'; } catch (e) {} }
+      const short = () => !repFree() && G.money < rpCost() && adOk();   // parası yetmiyor ama reklam var → reklamla ücretsiz tamir
+      const rb = IST.ui.menuButton('bRepair', '🔧 Arabayı yenile', () => { if (short()) adRepair().then(upRep); else { repairCar(); upRep(); } }, { inGame: true, before: 'bEng' });
+      function upRep() { try { rb.textContent = needRp() ? '🔧 Arabayı yenile — ' + (repFree() ? 'ÜCRETSİZ' : short() ? '📺 reklamla ücretsiz' : rpCost() + ' altın') + ' (hasar %' + Math.round(dmg) + ')' : '🔧 Araba sağlam ✓'; } catch (e) {} }
       upRep(); setInterval(upRep, 1000);
     }
     initProvider().then(refresh);

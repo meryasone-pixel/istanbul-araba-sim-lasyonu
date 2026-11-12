@@ -336,12 +336,14 @@
 
     /* ================= bölge tanımları ================= */
     const DEFS = [
-      { id: 'ortakoy', name: 'Ortaköy & Boğaziçi Köprüsü', icon: '🕌', unlock: { missions: 3, earned: 600, gold: 800 }, spawn: { x: -250, z: 169, a: Math.PI / 2 }, build: buildOrtakoy,
+      { id: 'ortakoy', name: 'Ortaköy & Boğaziçi Köprüsü', icon: '🕌', unlock: { missions: 5, earned: 3000, gold: 3000 }, spawn: { x: -250, z: 169, a: Math.PI / 2 }, build: buildOrtakoy,
         area: (x, z) => (Math.abs(x + 130) < 15 && z > -115 && z < 100 ? 'Boğaziçi Köprüsü' : z < -115 ? 'Anadolu Yakası' : 'Ortaköy') },
-      { id: 'caddebostan', name: 'Caddebostan Sahil Yolu', icon: '🏖', unlock: { missions: 6, earned: 2000, gold: 2500 }, spawn: { x: -270, z: 5, a: Math.PI / 2 }, build: buildCaddebostan }
+      { id: 'caddebostan', name: 'Caddebostan Sahil Yolu', icon: '🏖', unlock: { missions: 12, earned: 8000, gold: 6000, after: 'ortakoy' }, spawn: { x: -270, z: 5, a: Math.PI / 2 }, build: buildCaddebostan }
     ];
     const def = id => DEFS.find(d => d.id === id);
-    const progressOk = d => P.missions >= d.unlock.missions || P.earned >= d.unlock.earned;
+    /* bölge zinciri: unlock.after verilmişse önce o bölge açık olmalı (ilerlemeyle de altınla da) */
+    const prevOk = d => !d.unlock.after || isUnlocked(d.unlock.after);
+    const progressOk = d => prevOk(d) && (P.missions >= d.unlock.missions || P.earned >= d.unlock.earned);
     const isUnlocked = id => IST.cfg.districts.devUnlockAll === true || !!P.unlocked[id] || progressOk(def(id));   // devUnlockAll: yalnızca denemek için
 
     /* ================= dünya değiştirme (Fatih'i bozmadan) ================= */
@@ -451,12 +453,12 @@
       window.aiStep = function (c, dt) { if (c.dist && c.dist.net) return distStep(c, dt); return o.apply(this, arguments); };
     }
 
-    /* bölgedeki yayalar: yürür; araç çarparsa oyunun kendi kuralı (−15 puan, −50 ₺) uygulanır */
+    /* bölgedeki yayalar: yürür; araç çarparsa oyunun kendi kuralı (−15 puan, −50 altın) uygulanır */
     const gFree = () => typeof freeMode !== 'undefined' && freeMode === true;
     function hitPed(w) {
       if (typeof car === 'undefined' || Math.hypot(w.x - car.x, w.z - car.z) > 1.8 || Math.abs(car.v) < 2.5) return false;
       try { if (typeof pts === 'function') pts(-15); if (typeof fine === 'function') fine(50, 1); } catch (e) {}
-      IST.toast(gFree() ? 'Yayaya çarptın' : 'Yayaya çarptın −50 ₺'); car.v *= .85; return true;
+      IST.toast(gFree() ? 'Yayaya çarptın' : 'Yayaya çarptın −50 altın'); car.v *= .85; return true;
     }
     function tickPeds(dt) { const gr = world.cur && world.group[world.cur.id]; if (gr && gr.peds && !(typeof gOpen !== 'undefined' && gOpen)) gr.peds.update(dt, hitPed); }
     let lastT = 0;
@@ -471,20 +473,20 @@
     /* ================= arayüz ================= */
     const panel = IST.ui.panel('ist-districts', '🏙 Bölgeler');
     panel.onOpen = refresh;
-    function unlockWithGold(id) { const d = def(id); if (IST.gold.add(-d.unlock.gold)) { P.unlocked[id] = true; save(); IST.toast(d.name + ' açıldı'); refresh(); } else { IST.toast('Yetersiz altın'); try { panel.close(); if (IST.shop && IST.shop.openGold) IST.shop.openGold(); } catch (e) {} } }
+    function unlockWithGold(id) { const d = def(id); if (!prevOk(d)) return IST.toast('Önce ' + def(d.unlock.after).name + ' bölgesini aç'); if (IST.gold.add(-d.unlock.gold)) { P.unlocked[id] = true; save(); IST.toast(d.name + ' açıldı'); refresh(); } else { IST.toast('Yetersiz altın'); try { panel.close(); if (IST.shop && IST.shop.openGold) IST.shop.openGold(); } catch (e) {} } }
     function refresh() {
       const b = panel.body; if (!b || !panel.isOpen) return; b.textContent = '';
-      const info = document.createElement('small'); info.textContent = 'Görev: ' + P.missions + ' tamamlandı • Toplam kazanç: ' + P.earned + ' ₺'; b.appendChild(info);
+      const info = document.createElement('small'); info.textContent = 'Görev: ' + P.missions + ' tamamlandı • Toplam kazanç: ' + P.earned + ' altın'; b.appendChild(info);
       if (world.cur) { const row = document.createElement('div'); row.className = 'ist-row'; const t = document.createElement('div'); t.textContent = '📍 Şu an: ' + world.cur.name;
         const bt = document.createElement('button'); bt.className = 'ist-btn'; bt.textContent = "Fatih'e dön"; bt.onclick = () => { panel.close(); exit(); }; row.append(t, bt); b.appendChild(row); }
       DEFS.forEach(d => {
         const row = document.createElement('div'), un = isUnlocked(d.id); row.className = 'ist-row';
         const t = document.createElement('div'), nm = document.createElement('b'), sm = document.createElement('small'); nm.textContent = d.icon + ' ' + d.name; t.appendChild(nm);
-        sm.textContent = un ? 'Açık' : '🔒 ' + Math.min(P.missions, d.unlock.missions) + '/' + d.unlock.missions + ' görev  veya  ' + Math.min(P.earned, d.unlock.earned) + '/' + d.unlock.earned + ' ₺ kazanç'; t.appendChild(sm);
+        sm.textContent = un ? 'Açık' : !prevOk(d) ? '🔒 Önce ' + def(d.unlock.after).name + ' bölgesini aç' : '🔒 ' + Math.min(P.missions, d.unlock.missions) + '/' + d.unlock.missions + ' görev  veya  ' + Math.min(P.earned, d.unlock.earned) + '/' + d.unlock.earned + ' altın kazanç'; t.appendChild(sm);
         row.appendChild(t);
         const bt = document.createElement('button'); bt.className = 'ist-btn';
         if (un) { bt.textContent = world.cur && world.cur.id === d.id ? 'Buradasın' : 'Git'; bt.disabled = !!(world.cur && world.cur.id === d.id); bt.onclick = () => { const why = world.cur ? '' : canEnter(); if (why) return IST.toast(why); panel.close(); if (world.cur) exit(true); enter(d.id); }; }
-        else { bt.textContent = d.unlock.gold + ' altınla aç'; bt.onclick = () => unlockWithGold(d.id); }
+        else { bt.textContent = d.unlock.gold + ' altınla aç'; bt.disabled = !prevOk(d); bt.onclick = () => unlockWithGold(d.id); }
         row.appendChild(bt); b.appendChild(row);
       });
     }
