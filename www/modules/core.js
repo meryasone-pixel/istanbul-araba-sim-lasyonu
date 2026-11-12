@@ -52,7 +52,7 @@
   function injectCss() {
     if (cssDone || typeof document === 'undefined') return; cssDone = true;
     const s = document.createElement('style');
-    s.textContent = '.ist-panel{position:fixed;top:0;right:0;bottom:0;width:min(52vw,480px);display:none;z-index:32;font:15px system-ui;color:#fff;background:#15153cee;overflow-y:auto;overscroll-behavior:contain;padding:12px 14px 30px}' +
+    s.textContent = '.ist-panel{position:fixed;top:0;right:0;bottom:0;width:min(52vw,480px);display:none;z-index:32;font:15px system-ui;color:#fff;background:#15153c;overflow-y:auto;overscroll-behavior:contain;padding:12px 14px 30px}' +
       '.ist-panel h3{margin:0 0 8px;font-size:19px}.ist-x{position:absolute;right:10px;top:8px;border:0;border-radius:8px;background:#8a2b2b;color:#fff;padding:6px 10px;font:inherit}' +
       '.ist-row{display:flex;align-items:center;gap:8px;margin:6px 0;padding:8px;border-radius:10px;background:#ffffff14}.ist-row>div{flex:1}.ist-row small{opacity:.75;display:block}' +
       '.ist-btn{border:0;border-radius:9px;padding:8px 12px;background:#2b6cff;color:#fff;font:inherit}.ist-btn[disabled]{background:#555;opacity:.7}.ist-btn.ok{background:#2e7d32}' +
@@ -77,10 +77,12 @@
       return api;
     },
     /* oyun içi ☰ menüsüne (ve yoksa sayfaya) düğme ekler */
-    menuButton(id, label, fn) {
+    menuButton(id, label, fn, opts) {
       const b = document.createElement('button'); b.id = id; b.className = 'tb'; b.textContent = label; b.onclick = fn;
-      const anchor = document.getElementById('bG');
-      if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(b, anchor); else document.body.appendChild(b);
+      // oyun içi ☰ menüde yalnızca sürüş sırasında gereken düğmeler kalır; diğerleri başlangıç/oyun sonu ekranına gider
+      const inGame = opts && opts.inGame, sm = document.getElementById('smenu'), anchor = document.getElementById('bH');
+      if (!inGame && sm) { b.className = ''; sm.appendChild(b); }
+      else if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(b, anchor); else document.body.appendChild(b);
       return b;
     },
     esc: s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
