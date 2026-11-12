@@ -500,11 +500,25 @@ if(REPAIR_SHOP){const cv=document.createElement('canvas');cv.width=256;cv.height
  const bo=new R.Mesh(new R.BoxGeometry(2,2.6,2),mat(0x1565c0));bo.position.set(SH[0],1.3,SH[1]);scene.add(bo);
  const sg=new R.Mesh(new R.PlaneGeometry(4,1.5),new R.MeshBasicMaterial({map:new R.CanvasTexture(cv),side:R.DoubleSide}));sg.position.set(SH[0],3.4,SH[1]);sg.rotation.y=Math.atan2(-1,-1);scene.add(sg);
  rects.push([SH[0],SH[1],1.1,1.1]);}
-const MS=[['📦 Paket teslimi','Yeşil ışığa 90 sn içinde ulaş',80],['🧼 Temiz sürüş','2 km hasarsız sür (puan 90+)',100],['🪙 Para avı','90 sn içinde 8 altın topla',60],['🏁 Yarış arabası görevi','120 sn içinde 3 kontrol noktasından geç',0,'ödül: yarış arabası']];
+/* görevler: [ad, açıklama, temel ödül, (özel ödül yazısı)] — ödül yıldıza göre: 1⭐ temel, 2⭐ ×1.5, 3⭐ ×2 */
+const MS=[['📦 Paket teslimi','Yeşil ışığa 90 sn içinde ulaş',70],['🧼 Temiz sürüş','2 km yeni hasar almadan sür (puan 90+)',90],['🪙 Para avı','90 sn içinde 8 altın topla',50],['🏁 Yarış arabası görevi','120 sn içinde 3 kontrol noktasından geç',100,'ilk seferde: yarış arabası kilidi'],
+ ['🚕 Taksi','Yolcuyu al, 120 sn içinde hedefe bırak (yavaşla, dur)',90],['🅿 Park et','60 sn içinde işaretli yerde dur',70],['🗺 Şehir turu','Sultanahmet → Galata Kulesi → Sahil, 150 sn',110]];
+const MT=[90,0,90,120,120,60,150], SK=[[45,20],null,[40,15],[45,20],[50,20],[35,15],[50,20]], SM=[1,1.5,2];
+/* yıldız: kalan süreye göre (Temiz sürüş: puana göre); taksi yolculuğunda 10'dan fazla hasar alınırsa en fazla 2⭐ */
+const stars=(i,m)=>{if(i===1)return score>=100?3:score>=95?2:1;let s=m.t>=SK[i][0]?3:m.t>=SK[i][1]?2:1;if(i===4&&m.dmR!==undefined&&dmg-m.dmR>10)s=Math.min(s,2);return s;};
+const starTxt=n=>'⭐'.repeat(n)+'☆'.repeat(3-n);
+/* günlük hedefler: her gün sıfırlanır; her biri +100, hepsi bitince +150 bonus */
+const DG=[['m','Görev tamamla',3],['k','Km sür',5],['s','Yıldız topla',6]],DG_R=100,DG_B=150;let dLast=0;
+function dly(){const d=Math.floor((Date.now()-new Date().getTimezoneOffset()*6e4)/864e5);if(!G.dly||G.dly.d!==d)G.dly={d,p:{m:0,k:0,s:0},c:{}};return G.dly;}
+function dAdd(t,n){const D=dly();D.p[t]=(D.p[t]||0)+n;let ch=false;
+ for(const g of DG)if(!D.c[g[0]]&&D.p[g[0]]>=g[2]){D.c[g[0]]=1;G.money+=DG_R;ch=true;msg('🎯 Günlük hedef tamam: '+g[1]+' +'+DG_R+' altın');}
+ if(ch&&!D.c.all&&DG.every(g=>D.c[g[0]])){D.c.all=1;G.money+=DG_B;msg('🏆 Bugünkü tüm hedefler tamam! +'+DG_B+' altın bonus');}
+ if(ch){mon.textContent='💰 '+G.money;saveG();}}
+function dHtml(){const D=dly();return '<div style="margin:4px 0 8px;padding:8px 12px;border-radius:10px;background:var(--glass);color:var(--ink);font-size:13px"><b>🎯 Günlük hedefler</b> · her biri +'+DG_R+', hepsi +'+DG_B+' bonus<br>'+DG.map(g=>(D.c[g[0]]?'✅ ':'▫ ')+g[1]+' '+(g[0]==='k'?Math.min(g[2],D.p.k||0).toFixed(1):Math.min(g[2],D.p[g[0]]||0))+'/'+g[2]).join(' · ')+'</div>';}
 let selM=-1,cm=null;
 const beam=new R.Mesh(new R.CylinderGeometry(3,3,40,16,1,true),new R.MeshBasicMaterial({color:0x2ee06b,transparent:true,opacity:.25,side:R.DoubleSide,depthWrite:false}));beam.visible=false;scene.add(beam);
 const mh=document.createElement('div');mh.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:72px;z-index:5;color:#fff;font:700 15px system-ui;text-shadow:0 1px 3px #000;pointer-events:none';document.body.appendChild(mh);
-function drawMs(){$('ms').innerHTML=MS.map((m,i)=>'<button data-v="'+i+'" style="display:block;width:100%;text-align:left;margin:4px 0;padding:10px 12px;border-radius:10px;border:2px solid '+(selM===i?'#ffd54a':'transparent')+';background:var(--glass);color:var(--ink);font-size:14px">'+m[0]+' — '+m[1]+' · '+(m[3]||m[2]+' altın')+'</button>').join('');$('ms').querySelectorAll('button').forEach(b=>b.onclick=()=>{selM=+b.dataset.v;drawMs();});}
+function drawMs(){const mb=G.mb||{};$('ms').innerHTML=dHtml()+MS.map((m,i)=>'<button data-v="'+i+'" style="display:block;width:100%;text-align:left;margin:4px 0;padding:10px 12px;border-radius:10px;border:2px solid '+(selM===i?'#ffd54a':'transparent')+';background:var(--glass);color:var(--ink);font-size:14px">'+m[0]+(mb[i]?' '+starTxt(mb[i]):'')+' — '+m[1]+' · '+(m[3]&&!G.rc&&!own('m4')?m[3]:m[2]+'–'+m[2]*2+' altın')+(i===3&&G.rb?' · rekor '+G.rb.toFixed(1)+' sn':'')+'</button>').join('');$('ms').querySelectorAll('button').forEach(b=>b.onclick=()=>{selM=+b.dataset.v;drawMs();});}
 seg('md',v=>{const bs=$('md').children;if(v==='1'&&!G.unl){bs[0].classList.add('on');bs[1].classList.remove('on');freeMode=true;selM=-1;$('ms').style.display='block';$('ms').innerHTML='🔒 Görevleri açmak için serbest sürüşte şehrin üçte birini gez (%'+Math.min(100,Math.floor(visS.size/(RT*UNL_K)*100))+'). Gezdiğin her yeni sokak +'+FREE_SEG+' altın kazandırır ve haritada yeşil işaretlenir.';return;}
  freeMode=v!=='1';$('ms').style.display=freeMode?'none':'block';if(!freeMode){if(selM<0)selM=0;drawMs();}else selM=-1;});
 const DK=[300,27];
@@ -528,17 +542,34 @@ bk.onclick=()=>{if(!boatM){boatM=true;car.x=342;car.z=DK[1];car.a=Math.PI/2;car.
 function boatOff(){if(boatM){boatM=false;dockB.visible=true;applyLights();}}
 function refreshGo(){$('go').textContent=freeMode?(ended?'Yeniden oyna':'Sürmeye başla'):(selM>=0?'🎯 Görevi başlat':'Başla');}
 function endM(){cm=null;beam.visible=false;nav.style.display='none';bk.style.display='none';mh.textContent='';}
-function startM(){endM();if(selM<0)return;cm={i:selM,t:selM===1?0:90,p:0,d0:dist};
- if(selM===3){cm.t=120;cm.k=0;cm.cps=[];let px=car.x,pz=car.z;for(let n=0;n<3;n++){let x,z,tr=0;do{const k=C[(Math.random()*C.length)|0],q=rnd(-250,250);if(Math.random()<.5){x=q;z=k+1.75;}else{x=k+1.75;z=q;}tr++;}while((Math.hypot(x-px,z-pz)<120||Math.hypot(x-px,z-pz)>330)&&tr<80);cm.cps.push({x,z});px=x;pz=z;}beam.scale.set(1,4,1);beam.position.set(cm.cps[0].x,80,cm.cps[0].z);beam.visible=true;nav.style.display='block';}
- if(selM===0){let x,z;do{const k=C[(Math.random()*C.length)|0],q=rnd(-250,250);if(Math.random()<.5){x=q;z=k+1.75;}else{x=k+1.75;z=q;}}while(Math.hypot(x-car.x,z-car.z)<150);cm.x=x;cm.z=z;beam.scale.set(1,4,1);beam.position.set(x,80,z);beam.visible=true;nav.style.display='block';}}
-function doneM(i){let r=MS[i][2],t='Görev tamam! +'+r+' altın';if(i===3){if(!own('m4')&&!G.rc){G.rc=1;r=0;t='🏁 Yarış arabası kilidi açıldı! Garajdan '+GM[4][2]+' altına alabilirsin';}else{r=100;t='Görev tamam! +100 altın';}}G.money+=r;saveG();mon.textContent='💰 '+G.money;msg(t);endM();mh.textContent='✅ '+t;setTimeout(()=>{if(!cm)mh.textContent='';},4000);}
+/* dm0: görev başındaki hasar — Temiz sürüş yalnızca YENİ hasarda başarısız olur (eski hali hasarlı arabayla anında başarısızdı) */
+function startM(){endM();if(selM<0)return;cm={i:selM,t:MT[selM],p:0,d0:dist,dm0:dmg};
+ const rp=(ox,oz,mn,mx)=>{let x,z,tr=0;do{const k=C[(Math.random()*C.length)|0],q=rnd(-250,250);if(Math.random()<.5){x=q;z=k+1.75;}else{x=k+1.75;z=q;}tr++;}while((Math.hypot(x-ox,z-oz)<mn||Math.hypot(x-ox,z-oz)>mx)&&tr<80);return{x,z};};
+ const show=(p,s)=>{beam.scale.set(s||1,4,s||1);beam.position.set(p.x,80,p.z);beam.visible=true;nav.style.display='block';};
+ if(selM===3){cm.k=0;cm.cps=[];let px=car.x,pz=car.z;for(let n=0;n<3;n++){const p=rp(px,pz,120,330);cm.cps.push(p);px=p.x;pz=p.z;}show(cm.cps[0]);}
+ if(selM===0){const p=rp(car.x,car.z,150,1e9);cm.x=p.x;cm.z=p.z;show(p);}
+ if(selM===4){cm.pick=rp(car.x,car.z,60,180);cm.drop=rp(cm.pick.x,cm.pick.z,150,330);cm.ph=0;show(cm.pick);}
+ if(selM===5){const p=rp(car.x,car.z,80,220);cm.x=p.x;cm.z=p.z;show(p,.8);}
+ if(selM===6){cm.k=0;cm.cps=[{n:'Sultanahmet',x:-79.25,z:-108},{n:'Galata Kulesi',x:82.75,z:54},{n:'Sahil',x:298.75,z:-100}];show(cm.cps[0]);}}
+function doneM(i){const m=cm,st=m?stars(i,m):1;let r=Math.round(MS[i][2]*SM[st-1]),t;G.mb=G.mb||{};
+ if(i===3&&!own('m4')&&!G.rc){G.rc=1;r=0;t='🏁 Yarış arabası kilidi açıldı! Garajdan '+GM[4][2]+' altına alabilirsin';}
+ else t='Görev tamam! '+starTxt(st)+' +'+r+' altın';
+ if(i===3&&m){const tm=MT[3]-m.t;if(!G.rb||tm<G.rb){if(G.rb)t+=' · 🏆 Yeni rekor '+tm.toFixed(1)+' sn';G.rb=tm;}}
+ G.mb[i]=Math.max(G.mb[i]||0,st);G.money+=r;saveG();mon.textContent='💰 '+G.money;msg(t);endM();mh.textContent='✅ '+t;setTimeout(()=>{if(!cm)mh.textContent='';},4000);
+ setTimeout(()=>{dAdd('m',1);dAdd('s',st);},0);}   // günlük hedef ödülü, reklamla ikiye katlanan görev ödülüne karışmasın
 function failM(){msg('Görev başarısız');endM();mh.textContent='❌ Görev başarısız';setTimeout(()=>{if(!cm)mh.textContent='';},4000);}
 function arrow(tx,tz){const r0=Math.atan2(tx-car.x,tz-car.z)-car.a,rr=Math.atan2(Math.sin(r0),Math.cos(r0));$('na').style.transform='rotate('+(-rr*57.3)+'deg)';$('nd').textContent=Math.round(Math.hypot(tx-car.x,tz-car.z))+' m';}
-function mStep(dt){if(!cm)return;const m=cm;
- if(m.i===0){m.t-=dt;const d=Math.hypot(m.x-car.x,m.z-car.z);if(d<6)return doneM(0);if(m.t<=0)return failM();mh.textContent='📦 Teslimat · '+Math.ceil(m.t)+' sn';arrow(m.x,m.z);}
- else if(m.i===1){const km=(dist-m.d0)/1000;if(dmg>0||score<90)return failM();if(km>=2)return doneM(1);mh.textContent='🧼 Temiz sürüş · '+km.toFixed(1)+' / 2 km';}
- else if(m.i===2){m.t-=dt;if(m.p>=8)return doneM(2);if(m.t<=0)return failM();mh.textContent='🪙 '+m.p+' / 8 · '+Math.ceil(m.t)+' sn';}
- else{m.t-=dt;const c=m.cps[m.k];if(Math.hypot(c.x-car.x,c.z-car.z)<8){m.k++;if(m.k>=3)return doneM(3);beam.position.set(m.cps[m.k].x,80,m.cps[m.k].z);msg('Kontrol noktası '+m.k+'/3');}if(m.t<=0)return failM();mh.textContent='🏁 Kontrol '+(m.k+1)+'/3 · '+Math.ceil(m.t)+' sn';const c2=m.cps[m.k];arrow(c2.x,c2.z);}}
+function mStep(dt){if(!cm)return;const m=cm,i=m.i;
+ if(i===1){const km=(dist-m.d0)/1000;if(dmg>m.dm0+.01||score<90)return failM();if(km>=2)return doneM(1);mh.textContent='🧼 Temiz sürüş · '+km.toFixed(1)+' / 2 km';return;}
+ m.t-=dt;const sec=Math.ceil(Math.max(0,m.t))+' sn';
+ if(i===0){if(Math.hypot(m.x-car.x,m.z-car.z)<6)return doneM(0);if(m.t<=0)return failM();mh.textContent='📦 Teslimat · '+sec;arrow(m.x,m.z);}
+ else if(i===2){if(m.p>=8)return doneM(2);if(m.t<=0)return failM();mh.textContent='🪙 '+m.p+' / 8 · '+sec;}
+ else if(i===3||i===6){const c=m.cps[m.k];if(Math.hypot(c.x-car.x,c.z-car.z)<8){m.k++;if(m.k>=m.cps.length)return doneM(i);beam.position.set(m.cps[m.k].x,80,m.cps[m.k].z);msg(i===6?'📍 '+c.n+' ✓':'Kontrol noktası '+m.k+'/'+m.cps.length);}
+  if(m.t<=0)return failM();const c2=m.cps[m.k];mh.textContent=(i===6?'🗺 '+c2.n+' · ':'🏁 Kontrol '+(m.k+1)+'/'+m.cps.length+' · ')+sec;arrow(c2.x,c2.z);}
+ else if(i===4){const c=m.ph?m.drop:m.pick;if(Math.hypot(c.x-car.x,c.z-car.z)<6&&Math.abs(car.v)<3){if(!m.ph){m.ph=1;m.dmR=dmg;beam.position.set(m.drop.x,80,m.drop.z);msg('🧍 Yolcu bindi! Hedefe götür');}else return doneM(4);}
+  if(m.t<=0)return failM();mh.textContent=(m.ph?'🚕 Yolcuyu bırak':'🚕 Yolcuyu al')+' · yavaşla ve dur · '+sec;arrow(c.x,c.z);}
+ else if(i===5){const d=Math.hypot(m.x-car.x,m.z-car.z);if(d<2.5&&Math.abs(car.v)<.4){m.h=(m.h||0)+dt;if(m.h>=1)return doneM(5);}else m.h=0;
+  if(m.t<=0)return failM();mh.textContent='🅿 Park et · '+(d<2.5?'dur!':Math.round(d)+' m')+' · '+sec;arrow(m.x,m.z);}}
 const visS=new Set(),mx=document.createElement('div');mx.style.cssText=mon.style.cssText;document.body.appendChild(mx);
 const rlG=new R.PlaneGeometry(9,.6);rlG.rotateX(-Math.PI/2);
 const rl=new R.InstancedMesh(rlG,new R.MeshBasicMaterial({color:0xff2a2a,polygonOffset:true,polygonOffsetFactor:-8,polygonOffsetUnits:-8}),1728),rd=new R.Object3D();rl.frustumCulled=false;
@@ -560,7 +591,8 @@ function repairGuide(){const on=REPAIR_SHOP&&dmg>=80&&playing&&!gOpen&&!boatM&&S
  gd.style.display=on?'flex':'none';if(!on)return;const dx=SH[0]-car.x,dz=SH[1]-car.z,rel=Math.atan2(dx,dz)-(car.a+(camM===1?0:camYaw));
  $('gda').style.transform='rotate('+(-rel*180/Math.PI-90)+'deg)';$('gdt').textContent='🔧 Tamir dükkanı · '+Math.round(Math.hypot(dx,dz))+' m';}
 let lastM=G.money;
-function gStep(){if(G.money>lastM&&(G.debt||0)>0){const pay=Math.min(G.debt,G.money-lastM);G.money-=pay;G.debt-=pay;mon.textContent='💰 '+G.money;saveG();msg('🚚 Çekici borcu −'+pay+' altın');}lastM=G.money;const t=performance.now()/1000;boatCheck();
+function gStep(){{const dd=dist-dLast;dLast=dist;if(dd>0&&dd<200)dAdd('k',dd/1000);}   // günlük hedef: sürülen km
+ if(G.money>lastM&&(G.debt||0)>0){const pay=Math.min(G.debt,G.money-lastM);G.money-=pay;G.debt-=pay;mon.textContent='💰 '+G.money;saveG();msg('🚚 Çekici borcu −'+pay+' altın');}lastM=G.money;const t=performance.now()/1000;boatCheck();
  {let ch=false,nS=0;const T=q=>Math.floor((q+324)/9),px=car.x,pz=car.z;
   for(let j=0;j<12;j++)if(Math.abs(pz-C[j])<7.5){const u=T(px);if(rlOK(0,u)){const id=j*72+u;if(!visS.has(id)){visS.add(id);G.s2.push(id);ch=true;nS++;rlSet(id);}}}
   for(let i=0;i<12;i++)if(Math.abs(px-C[i])<7.5){const u=T(pz);if(rlOK(1,u)){const id=864+i*72+u;if(!visS.has(id)){visS.add(id);G.s2.push(id);ch=true;nS++;rlSet(id);}}}
