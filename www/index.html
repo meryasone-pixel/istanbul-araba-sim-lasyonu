@@ -26,7 +26,8 @@ canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
 #reset,#gear,.tb{pointer-events:auto;font-size:14px;padding:8px 14px;border-radius:12px;border:0;background:var(--glass);color:var(--ink);backdrop-filter:blur(6px);cursor:pointer}
 #msg{position:fixed;left:0;right:0;top:24%;text-align:center;font-size:clamp(20px,4.5vw,30px);font-weight:800;text-shadow:0 2px 12px rgba(0,0,0,.5);opacity:0;transition:opacity .3s;pointer-events:none;padding:0 16px}
 #start{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(#2b2d5bcc,#c2688acc 60%,#f7b267cc);padding:24px}
-#start .card{max-width:480px}
+#start{overflow-y:auto;align-items:flex-start!important}
+#start .card{max-width:480px;margin:auto}
 #start h1{font-size:clamp(38px,9vw,64px);line-height:1;margin:0 0 14px;font-weight:800}
 #start p{margin:0 0 10px;font-size:17px;line-height:1.45;max-width:44ch}
 #start small{display:block;opacity:.9;margin:14px 0 22px;font-size:14px;line-height:1.55}
@@ -65,36 +66,40 @@ body.mn .r .tb,body.mn #reset,body.mn #gear{display:block}
 </head>
 <body>
 <div id="hud"><div class="l"><div class="g" id="where">Beyoğlu</div><div class="g">Sürüş puanı<b id="score">100</b></div></div>
-<div class="r"><div id="speed"><b id="kmh">0</b><span>km/sa</span><span id="gr"> N</span><i><u id="dm"></u></i></div><button id="mn" aria-label="Menü">☰</button><button id="gear" aria-label="Ayarlar">⚙ Ayarlar</button><button class="tb" id="bEng">🔑 Motoru durdur</button><button class="tb" id="bM">🗺 Harita</button><button class="tb" id="bG">🔧 Garaj</button><button class="tb" id="bH">📢 Korna (H)</button><button class="tb" id="bL">💡 Far (L)</button><button class="tb" id="bN">🌆 Akşam (N)</button><button class="tb" id="bC">📷 Kamera (C)</button><button class="tb" id="bE">⏹ Oyunu bitir</button></div></div>
+<div class="r"><div id="speed"><b id="kmh">0</b><span>km/sa</span><span id="gr"> N</span><i><u id="dm"></u></i></div><button id="mn" aria-label="Menü">☰</button><button id="gear" aria-label="Ayarlar">⚙ Ayarlar</button><button class="tb" id="bEng">🔑 Motoru durdur</button><button class="tb" id="bM">🗺 Harita</button><button class="tb" id="bG">🔧 Garaj</button><button class="tb" id="bH">📢 Korna (H)</button><button class="tb" id="bL">💡 Far (L)</button><button class="tb" id="bN">🌆 Akşam (N)</button><button class="tb" id="bW">🌧 Hava (R)</button><button class="tb" id="bC">📷 Kamera (C)</button><button class="tb" id="bE">⏹ Oyunu bitir</button></div></div>
 <canvas id="mini" width="128" height="128"></canvas>
-<div id="panel"><label>Düğme boyutu<input type="range" id="sBs" min="0.8" max="2.2" step="0.1"></label><label>Düğme şeffaflığı<input type="range" id="sBo" min="0.3" max="1" step="0.05"></label><label><input type="checkbox" id="sSw"> Sol/sağ düğmeleri yer değiştir</label><label><input type="checkbox" id="sSh"> Bilgisayarda da göster</label><label>Grafik kalitesi<select id="sQ"><option value="0">Düşük</option><option value="1">Orta</option><option value="2">Yüksek</option></select></label></div>
+<div id="panel"><label>Düğme boyutu<input type="range" id="sBs" min="0.8" max="2.2" step="0.1"></label><label>Düğme şeffaflığı<input type="range" id="sBo" min="0.3" max="1" step="0.05"></label><label><input type="checkbox" id="sSw"> Sol/sağ düğmeleri yer değiştir</label><label><input type="checkbox" id="sSh"> Bilgisayarda da göster</label><label>Grafik kalitesi<select id="sQ"><option value="0">Düşük</option><option value="1">Orta</option><option value="2">Yüksek</option><option value="3">Ultra</option></select></label></div>
 <div id="msg"></div>
 <div class="pad"><div><button data-k="left" aria-label="Sol">◀</button><button data-k="right" aria-label="Sağ">▶</button></div><div><button data-k="horn" aria-label="Korna">📯</button><button data-k="down" aria-label="Fren">■</button><button data-k="up" aria-label="Gaz">▲</button></div></div>
 <div id="start"><div class="card">
 <h1 id="ttl">Boğaz Drive</h1>
 <p id="res" style="display:none;font-weight:800;font-size:20px"></p>
 <p>Trafik ışıklarına uy, yayalara dikkat et, diğer araçlara çarpma. Ağır çarpmalar arabanı parçalar.</p>
-<div class="menu"><div class="row"><span>Mod</span><div class="seg" id="md"><button data-v="0" class="on">Serbest sürüş</button><button data-v="1">Görevler</button></div></div><div id="ms" style="display:none"></div><div class="row" id="rc"><span>Araba rengi</span><div id="sw"></div><input type="color" id="cc" value="#19b3a6" aria-label="Özel renk"></div><div class="row"><span>Zaman</span><div class="seg" id="tm"><button data-v="day">Gündüz</button><button data-v="dusk" class="on">Akşam</button><button data-v="night">Gece</button></div></div><div class="row"><span>Trafik</span><div class="seg" id="tf"><button data-v="14">Az</button><button data-v="30" class="on">Orta</button><button data-v="46">Çok</button></div></div></div>
+<div class="menu"><div class="row"><span>Mod</span><div class="seg" id="md"><button data-v="0" class="on">Serbest sürüş</button><button data-v="1">Görevler</button></div></div><div id="ms" style="display:none"></div><div class="row" id="rc"><span>Araba rengi</span><div id="sw"></div><input type="color" id="cc" value="#19b3a6" aria-label="Özel renk"></div><div class="row"><span>Zaman</span><div class="seg" id="tm"><button data-v="day">Gündüz</button><button data-v="dusk" class="on">Akşam</button><button data-v="night">Gece</button></div></div><div class="row"><span>Hava</span><div class="seg" id="wx"><button data-v="dry">Kuru</button><button data-v="wet">Islak</button><button data-v="rain">Yağmur</button></div></div><div class="row"><span>Trafik</span><div class="seg" id="tf"><button data-v="14">Az</button><button data-v="30" class="on">Orta</button><button data-v="46">Çok</button></div></div></div>
 <small>Ekrandaki ◀ ▶ ile dön, ▲ gaz, ■ fren, 📯 korna. Ekranı parmağınla sürükleyerek kamerayı her yöne çevir. Far, gece/gündüz ve diğer ayarlar sol üstteki ☰ menüde.</small>
 <button id="rs" style="margin-right:10px;padding:12px 14px;border-radius:12px;border:0;background:var(--glass);color:var(--ink);font-size:14px;cursor:pointer">♻ Oyunu sıfırla</button><button id="gm" style="margin-right:10px;padding:14px 20px;border-radius:12px;border:0;background:var(--glass);color:var(--ink);font-size:16px;font-weight:700;cursor:pointer">🔧 Garaj</button><button id="go">Sürmeye başla</button>
 </div></div>
 <script src="three.min.js"></script>
+<script src="fx.js"></script>
+<script src="vehicles.js"></script>
+<script src="people.js"></script>
+<script src="city.js"></script>
 <script>
 const R=THREE,$=id=>document.getElementById(id),clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),rnd=(a,b)=>a+Math.random()*(b-a),wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
 const C=[];for(let k=-297;k<=297;k+=54)C.push(k);const BR_END=380;
-const renderer=new R.WebGLRenderer({antialias:true});
+const renderer=new R.WebGLRenderer({antialias:FX.Q===0,powerPreference:'high-performance'});
 let pr=Math.min(devicePixelRatio,1.15), prMax=1.15; renderer.setPixelRatio(pr);
-renderer.shadowMap.enabled=true; renderer.shadowMap.type=R.PCFShadowMap; renderer.shadowMap.autoUpdate=false;
+renderer.shadowMap.enabled=true; renderer.shadowMap.type=FX.Q>=2?R.PCFSoftShadowMap:R.PCFShadowMap; renderer.shadowMap.autoUpdate=false;
 document.body.prepend(renderer.domElement);
-const scene=new R.Scene(), cam=new R.PerspectiveCamera(58,1,.5,750);
+const scene=new R.Scene(), cam=new R.PerspectiveCamera(58,1,.5,1600);
 const sk=document.createElement('canvas'); sk.width=4; sk.height=256;
 const sx=sk.getContext('2d'), gr=sx.createLinearGradient(0,0,0,256);
 gr.addColorStop(0,'#2f3466'); gr.addColorStop(.5,'#b9648a'); gr.addColorStop(.85,'#f2a56b'); gr.addColorStop(1,'#f7c58a');
 sx.fillStyle=gr; sx.fillRect(0,0,4,256);
-scene.background=new R.CanvasTexture(sk); scene.fog=new R.Fog(0xeba46f,70,560);
+scene.background=new R.CanvasTexture(sk); scene.fog=new R.Fog(0xeba46f,70,560); FX.init(renderer,scene,cam); if(FX.Q>0)scene.background=null;
 const hemi=new R.HemisphereLight(0xffd9b0,0x4b3a4a,.85); scene.add(hemi);
 const sun=new R.DirectionalLight(0xffc98a,1.05);
-sun.castShadow=true; sun.shadow.mapSize.set(1024,1024);
+sun.castShadow=true; sun.shadow.mapSize.set(FX.Q>=2?2048:1024,FX.Q>=2?2048:1024); sun.shadow.bias=-.0006; sun.shadow.normalBias=.09;
 Object.assign(sun.shadow.camera,{left:-75,right:75,top:75,bottom:-75,near:10,far:300});
 scene.add(sun,sun.target);
 
@@ -104,7 +109,7 @@ const lc=document.createElement('canvas'); lc.width=lc.height=64; const lx=lc.ge
 for(let a=0;a<2;a++)for(let b=0;b<2;b++){const on=Math.random()<.4;wx.fillStyle=on?'#ffcf7a':'#3a4558';wx.fillRect(7+a*30,6+b*30,18,20);if(on){lx.fillStyle='#ffcf7a';lx.fillRect(7+a*30,6+b*30,18,20);}}
 const win=new R.CanvasTexture(wc); win.wrapS=win.wrapT=R.RepeatWrapping;
 const litT=new R.CanvasTexture(lc); litT.wrapS=litT.wrapT=R.RepeatWrapping;
-const mat=(c,o)=>new R.MeshLambertMaterial(Object.assign({color:c},o||{}));
+const mat=(c,o)=>FX.mat(c,o);
 const bas=c=>new R.MeshBasicMaterial({color:c});
 function slab(w,h,d,c,x,y,z,sh){const m=new R.Mesh(new R.BoxGeometry(w,h,d),mat(c));m.position.set(x,y,z);m.receiveShadow=true;m.castShadow=!!sh;scene.add(m);return m;}
 function inst(geo,m,n,fn){const im=new R.InstancedMesh(geo,m,n),o=new R.Object3D(),cc=new R.Color();let i=0;
@@ -117,27 +122,22 @@ const ter=(x,z)=>0;
  tg.setAttribute('color',new R.Float32BufferAttribute(col,3));tg.computeVertexNormals();
  const tm=new R.Mesh(tg,new R.MeshLambertMaterial({vertexColors:true}));tm.receiveShadow=true;scene.add(tm);}
 slab(4,1.4,3000,0xb5a58c,308,-.3,0);
-const sea=new R.Mesh(new R.PlaneGeometry(1500,3000),new R.MeshLambertMaterial({color:0x1d6b86}));
+const sea=new R.Mesh(new R.PlaneGeometry(1500,3000),FX.makeSea());
 sea.rotation.x=-Math.PI/2; sea.position.set(1060,-.8,0); scene.add(sea);
-const road=new R.Mesh(new R.PlaneGeometry(632,632),mat(0x3b3a42));
+const road=new R.Mesh(new R.PlaneGeometry(632,632),FX.makeRoad(79));
 road.rotation.x=-Math.PI/2; road.position.set(-8,.02,0); road.receiveShadow=true; scene.add(road);
 const dc=document.createElement('canvas'); dc.width=64; dc.height=8;
 const dx=dc.getContext('2d'); dx.fillStyle='#e9dfc9'; dx.fillRect(0,0,32,8);
 const dash=new R.CanvasTexture(dc); dash.wrapS=R.RepeatWrapping; dash.repeat.set(83,1);
 const dashM=new R.MeshBasicMaterial({map:dash,transparent:true});
 
-const dash2=new R.CanvasTexture(dc);dash2.wrapS=R.RepeatWrapping;dash2.repeat.set(5,1);const dashM2=new R.MeshBasicMaterial({map:dash2,transparent:true}),dg=new R.PlaneGeometry(38,.3);dg.rotateX(-Math.PI/2);
-for(const ang of[0,1])inst(dg,dashM2,C.length*(C.length-1)*3,p=>{for(const r of C)for(let i=0;i<C.length-1;i++){const m=(C[i]+C[i+1])/2;for(const o of[-3.5,0,3.5]){if(ang===0)p(m,.05,r+o,0);else p(r+o,.05,m,Math.PI/2);}}});
+const dash2=new R.CanvasTexture(dc);dash2.wrapS=R.RepeatWrapping;dash2.repeat.set(5,1);const dashM2=FX.Q>0?FX.wetify(new R.MeshStandardMaterial({map:dash2,transparent:true,color:0xe8e2d4,roughness:.5}),{pud:0,refl:.6}):new R.MeshBasicMaterial({map:dash2,transparent:true}),dg=new R.PlaneGeometry(38,.3);dg.rotateX(-Math.PI/2);
+for(const ang of[0,1])FX.reflHide.push(inst(dg,dashM2,C.length*(C.length-1)*3,p=>{for(const r of C)for(let i=0;i<C.length-1;i++){const m=(C[i]+C[i+1])/2;for(const o of[-3.5,0,3.5]){if(ang===0)p(m,.05,r+o,0);else p(r+o,.05,m,Math.PI/2);}}}));FX.reflHide.push(road);
 
 // Binalar
 const pal=[0xd9a066,0xe6c9a0,0xb86b4b,0xcdb08a,0xa8845f,0xe9d8bd,0xc77d5a,0x9aa3a8], rects=[], bm=[];
-const nm=c=>{const m=mat(c,{map:win,emissiveMap:litT,emissive:0x000000});bm.push(m);return m;};
-function bld(x,z,w,d,h){
-  const g=new R.BoxGeometry(w,h,d), uv=g.attributes.uv;
-  for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)*(w+d)/12,uv.getY(i)*h/6);
-  const m=new R.Mesh(g,nm(pal[(Math.random()*pal.length)|0]));
-  m.position.set(x,h/2+.3,z); m.castShadow=m.receiveShadow=true; scene.add(m); rects.push([x,z,w/2,d/2]);
-}
+const nm=c=>City.nm(c);
+function bld(x,z,w,d,h,tw){City.bld(x,z,w,d,h,tw);}
 const MOSQUE=[-2,-2], GALATA=[2,1];
 for(let u=-316;u<=316;u+=17){bld(-324,u,16,rnd(15,17),rnd(14,34));bld(u,-324,rnd(15,17),16,rnd(14,34));bld(u,324,rnd(15,17),16,rnd(14,34));}
 const far=[];for(let i=0;i<0;i++){const x=rnd(-1100,300),z=rnd(-900,900);if(Math.abs(x+8)<350&&Math.abs(z)<350)continue;far.push([x,z]);}
@@ -147,12 +147,11 @@ for(let i=-5;i<=5;i++)for(let j=-5;j<=5;j++)for(const t of[-13.5,-4.5,4.5,13.5])
 for(let i=0;i<0;i++){const x=rnd(-1100,300),z=rnd(-900,900);if(Math.abs(x+8)<350&&Math.abs(z)<350)continue;tl.push([x,z,ter(x,z),rnd(1,1.5)]);}
 const tc=[0x4f7a3a,0x5d8c43,0x3f6b34,0x6b9a4d,0xc77d3a,0x8a9a3e];
 inst(new R.CylinderGeometry(.13,.19,1.8,6),mat(0x5b4636),tl.length,p=>{for(const [x,z,y,s] of tl)p(x,y+.9*s,z,0,s,s,s);});
-inst(new R.IcosahedronGeometry(1,0),mat(0xffffff),tl.length,p=>{for(const [x,z,y,s] of tl)p(x,y+2.5*s,z,rnd(0,6),1.15*s,1.35*s,1.15*s,tc[(Math.random()*tc.length)|0]);});
+inst(City.treeGeo(),mat(0xffffff,{roughness:.9}),tl.length,p=>{for(const [x,z,y,s] of tl)p(x,y+2.5*s,z,rnd(0,6),1.15*s,1.35*s,1.15*s,tc[(Math.random()*tc.length)|0]);});
 const SB=[];inst(new R.BoxGeometry(1,1,1),mat(0xffffff),12,p=>{for(let i=0;i<12;i++){const x=rnd(340,640),z0=rnd(-320,320),z=Math.abs(z0)<16?z0+40:z0,ry=rnd(0,3),sx=rnd(2.5,4),sy=rnd(1,1.6),sz=rnd(7,12);SB.push([x,z,ry,sx,sz]);p(x,-.4,z,ry,sx,sy,sz,[0xf2f2f2,0xc0392b,0x1d4e89,0xf2cc8f][i%4]);}});
 for(let i=-5;i<=5;i++)for(let j=-5;j<=5;j++){
-  slab(40,.3,40,0x9c9288,i*54,.15,j*54);
   if((i===MOSQUE[0]&&j===MOSQUE[1])||(i===GALATA[0]&&j===GALATA[1]))continue;
-  for(const a of[-1,1])for(const b of[-1,1])bld(i*54+a*9.4,j*54+b*9.4,rnd(14.5,17),rnd(14.5,17),rnd(9,30));
+  for(const a of[-1,1])for(const b of[-1,1]){const tw=Math.random()<.09;bld(i*54+a*9.4,j*54+b*9.4,rnd(14.5,17),rnd(14.5,17),tw?rnd(38,74):rnd(9,30),tw);}
 }
 (function(){
   const cx=MOSQUE[0]*54, cz=MOSQUE[1]*54, stone=0xe0d6c3, lead=0x8791a0;
@@ -174,6 +173,7 @@ for(let i=-5;i<=5;i++)for(let j=-5;j<=5;j++){
   const c=new R.Mesh(new R.ConeGeometry(6.8,12,24),mat(0x46535c)); c.position.set(cx,47.3,cz); c.castShadow=true; scene.add(c);
   rects.push([cx,cz,6.9,6.9]);
 })();
+City.sidewalks();City.flush();City.skyline();City.lamps();
 
 // Trafik ışıkları ve yaya geçitleri
 const mNS=bas(0x2ee06b), mEW=bas(0xff3b30), LC={g:0x2ee06b,y:0xffc83a,r:0xff3b30};
@@ -187,7 +187,7 @@ inst(disc,mNS,AP.filter(a=>!a.ax).length,p=>{for(const a of AP)if(!a.ax)p(a.x-a.
 inst(disc,mEW,AP.filter(a=>a.ax).length,p=>{for(const a of AP)if(a.ax)p(a.x-a.fx*.31,4.6,a.z-a.fz*.31,ry0(a));});
 inst(new R.BoxGeometry(.34,.5,.34),mat(0x1b1b20),AP.length,p=>{for(const a of AP)p(a.x,2.7,a.z,ry0(a));});
 for(const [m,ax] of[[pNS,0],[pEW,1]])inst(dsm,m,AP.length,p=>{for(const a of AP)if(a.ax===ax)for(const sd of[1,-1]){p(a.x-a.fz*sd*.2,2.7,a.z+a.fx*sd*.2,Math.atan2(-a.fz*sd,a.fx*sd));}});
-inst(new R.BoxGeometry(.7,.04,3),bas(0xe9dfc9),ints.length*36,p=>{for(const [x,z] of ints)for(const s of[-1,1])for(let i=0;i<9;i++){const o=-5.6+i*1.4;p(x+o,.06,z+s*9.6,0);p(x+s*9.6,.06,z+o,Math.PI/2);}});
+City.crossings();FX.reflHide.push(...City.marks);if(City.pools)FX.reflHide.push(City.pools);
 
 // Köprü ve vapur
 rects.push([308,0,1.8,330]);
@@ -210,33 +210,10 @@ function mergeG(parts){const pos=[],nor=[],col=[],idx=[];let off=0;const c=new R
   const I=g.index.array;for(let i=0;i<I.length;i++)idx.push(I[i]+off);off+=P.count;g.dispose();}
  const out=new R.BufferGeometry();out.setAttribute('position',new R.Float32BufferAttribute(pos,3));out.setAttribute('normal',new R.Float32BufferAttribute(nor,3));out.setAttribute('color',new R.Float32BufferAttribute(col,3));out.setIndex(idx);return out;}
 const PP=(g,c,x,y,z,o)=>Object.assign({g,c,x,y,z},o||{});
-const hdM=bas(0xffe8a8),tlM=bas(0xff3b30),CT=[[4.5,1.85,1.5,-1.5,-.95,.45,1,1],[3.9,1.75,1.5,-1.75,-1.5,.35,.85,1],[4.4,1.95,1.85,-1.9,-1.7,.7,1.2,1],[4.9,2,2.1,-2.4,-2.3,1.5,1.9,1],[4.4,1.95,1.22,-1.1,-.65,.3,.95,.8]], glM=mat(0x1c2a35), rimM=mat(0xa7adb3), tyM=mat(0x15151a), wG2=new R.CylinderGeometry(.5,.5,.36,16), rG2=new R.CylinderGeometry(.32,.32,.4,12);
-function ext(pts,W){const sh=new R.Shape();pts.forEach((p,i)=>i?sh.lineTo(p[0],p[1]):sh.moveTo(p[0],p[1]));const g=new R.ExtrudeGeometry(sh,{depth:W-.2,bevelEnabled:true,bevelSize:.1,bevelThickness:.1,bevelSegments:2});g.translate(0,0,-(W-.2)/2);g.rotateY(-Math.PI/2);return g;}
-function carMesh(col,t,c,body,pl){if(t===5)return motoMesh(col,c,pl,body);const [L,W,H,zb,zr,zf,zw,bt]=CT[t],g=new R.Group(),bm=body||mat(col),h=L/2;
- const add=(geo,m,x,y,z)=>{const q=new R.Mesh(geo,m);q.position.set(x,y,z);q.castShadow=true;g.add(q);return q;};
- add(ext([[-h,.3],[-h,bt-.05],[h-1,bt],[h,bt-.15],[h,.3]],W),bm,0,0,0);
- add(ext([[zb,bt],[zr,H],[zf,H],[zw,bt]],W-.1),pl?glP:glM,0,0,0);if(t===4){add(new R.BoxGeometry(W-.2,.07,.5),bm,0,bt+.32,-h+.25);for(const sx of[-.7,.7])add(new R.BoxGeometry(.08,.3,.2),bm,sx,bt+.15,-h+.25);}
- add(new R.BoxGeometry(W-.35,.1,zf-zr),bm,0,H+.08,(zf+zr)/2);
- if(!pl)for(const sx of[-1,1])for(const z of[h-.95,-h+.95]){const w=add(wG2,tyM,sx*(W/2-.02),.5,z);w.rotation.z=Math.PI/2;const r=add(rG2,rimM,sx*(W/2-.02),.5,z);r.rotation.z=Math.PI/2;}
- const mL=bas(0x4a2c00),mR=bas(0x4a2c00),hb=new R.BoxGeometry(.5,.16,.08),sb=new R.BoxGeometry(.22,.13,.08);
- for(const sx of[-1,1]){add(hb,pl?hM:hdM,sx*(W/2-.4),.7,h+.05);add(hb,pl?tM:tlM,sx*(W/2-.4),.7,-h-.05);add(sb,sx>0?mL:mR,sx*(W/2-.12),.6,h+.04);add(sb,sx>0?mL:mR,sx*(W/2-.12),.6,-h-.04);}
- if(c){c.sL=mL;c.sR=mR;} else g.userData={mL,mR};
- return g;}
-function motoMesh(col,c,pl,body){const g=new R.Group(),bm=body||mat(col),dk=mat(0x1b1b20),rd=mat(0x2d3350),hl=mat(0xf1f1f1);
- const ad=(geo,m,x,y,z,rx)=>{const q=new R.Mesh(geo,m);q.position.set(x,y,z);if(rx)q.rotation.x=rx;q.castShadow=true;g.add(q);return q;},bx=(w,h,d)=>new R.BoxGeometry(w,h,d);
- if(!pl)for(const z of[.95,-.95]){const w=ad(new R.CylinderGeometry(.36,.36,.14,14),tyM,0,.36,z);w.rotation.z=Math.PI/2;const r=ad(new R.CylinderGeometry(.22,.22,.16,10),rimM,0,.36,z);r.rotation.z=Math.PI/2;}
- ad(bx(.34,.42,.7),dk,0,.55,0);ad(bx(.38,.3,.62),bm,0,.98,.28);ad(bx(.3,.1,.75),dk,0,.9,-.4);ad(bx(.3,.08,.5),bm,0,.84,-.95,.25);
- ad(bx(.07,.8,.07),dk,.13,.65,.9,-.3);ad(bx(.07,.8,.07),dk,-.13,.65,.9,-.3);ad(bx(.8,.05,.06),dk,0,1.12,.78);
- ad(bx(.22,.2,.12),pl?hM:hl,0,1.0,1.0);ad(bx(.2,.1,.06),pl?tM:mat(0xff3b30),0,.86,-1.18);
- const mL=bas(0x4a2c00),mR=bas(0x4a2c00),sb=bx(.14,.1,.08);
- ad(sb,mL,.42,1.12,.78);ad(sb,mR,-.42,1.12,.78);ad(sb,mL,.2,.84,-1.16);ad(sb,mR,-.2,.84,-1.16);
- ad(bx(.42,.62,.28),rd,0,1.42,-.3,.25);ad(new R.SphereGeometry(.19,10,8),hl,0,1.9,-.14);
- for(const sx of[-1,1]){ad(bx(.1,.1,.62),rd,sx*.26,1.28,.2);ad(bx(.14,.5,.2),rd,sx*.24,.85,-.2);}
- if(c){c.sL=mL;c.sR=mR;}else g.userData={mL,mR,moto:true};
- return g;}
+const rG2=new R.CylinderGeometry(.25,.25,.32,16);
 // Oyuncunun arabası
 const car3=new R.Group(), shell=new R.Group(); car3.add(shell);
-const hM=bas(0xffe8a8), tM=bas(0xff3b30), bodyM=mat(0x19b3a6), glassM=mat(0x1c2a35), darkM=mat(0x15151a), wheelG=new R.CylinderGeometry(.5,.5,.38,18);
+const hM=bas(0xffe8a8), tM=bas(0xff3b30), bodyM=FX.paint(0x19b3a6,1), glassM=FX.glass(), darkM=mat(0x15151a,{roughness:.9}), wheelG=new R.CylinderGeometry(.36,.36,.3,20);
 function part(parent,w,h,d,m,x,y,z){const q=new R.Mesh(new R.BoxGeometry(w,h,d),m);q.position.set(x,y,z);q.castShadow=true;parent.add(q);return q;}
 
 const hood=part(shell,2.1,.5,1.4,bodyM,0,.72,1.5);
@@ -244,22 +221,22 @@ const sign=part(shell,.7,.22,.3,bas(0xffd54a),0,2.05,-.2);
 const fb=part(shell,2.2,.3,.3,darkM,0,.45,2.3), rb=part(shell,2.2,.3,.3,darkM,0,.45,-2.3);
 const wh=[[1.05,1.4],[-1.05,1.4],[1.05,-1.4],[-1.05,-1.4]].map(([x,z])=>{const w=new R.Mesh(wheelG,darkM);w.rotation.z=Math.PI/2;w.position.set(x,.45,z);w.castShadow=true;car3.add(w);return w;});
 let gOpen=false,gCool=0,freeMode=true,boatM=false,engineOn=true,engT=0,camYaw=0,camPit=0,camT=0,drag=null;
-const GM=[['Sedan',0,0],['Hatchback',1,150],['Minibüs',3,200],['SUV',2,300],['Yarış arabası',4,600],['Motosiklet',5,250]],GR=[['Gümüş',0xa7adb3,0],['Altın',0xffb300,50],['Kırmızı',0xd32f2f,50],['Siyah',0x222222,50],['Mavi',0x1565c0,50]];
+const GM=[['Sedan',0,0],['Hatchback',1,150],['Minibüs',3,200],['SUV',2,300],['Yarış arabası',4,600],['Motosiklet',5,250],['Taksi',6,180],['Spor coupe',7,450]],GR=[['Gümüş',0xa7adb3,0],['Altın',0xffb300,50],['Kırmızı',0xd32f2f,50],['Siyah',0x222222,50],['Mavi',0x1565c0,50]];
 const G={money:0,model:0,rim:0,col:0xf5f5f5,parts:{},own:['m0','r0','c1']};try{Object.assign(G,JSON.parse(localStorage.getItem('ist-gar')||'{}'));}catch(e){}if(!G.own.includes('c1'))G.own.push('c1');G.parts=Object.assign({spo:0,str:0,neo:0,tnt:0,exh:0,rck:0,lip:0,tyr:0},G.parts||{});
-const rimP=mat(GR[G.rim][1]);let pcur=null;
+const rimP=mat(GR[G.rim][1],{metalness:.85,roughness:.25});let pcur=null;
 wh.forEach(w=>{w.add(new R.Mesh(rG2,rimP));w.rotation.order='YXZ';});const whP=wh[0].parent;
 const sheds=[[30,wh[1]],[52,fb],[68,wh[2]],[80,rb],[92,wh[0]]].map(([t,p])=>({t,p,par:p.parent,pos:p.position.clone(),rot:p.rotation.clone()}));
 const PT=[['spo','Spoyler',[['Yok',0],['Küçük',60],['Büyük',120],['Yarış kanadı',200]]],['str','Yarış çizgisi',[['Yok',0],['Beyaz',40],['Siyah',40],['Kırmızı',40]]],['neo','Neon alt aydınlatma',[['Yok',0],['Mavi',80],['Mor',80],['Yeşil',80],['Kırmızı',80]]],['tnt','Cam filmi',[['Normal',0],['Koyu',40],['Mavi',40]]],['exh','Egzoz',[['Yok',0],['Çift',50],['Spor',90]]],['rck','Tavan bagajı',[['Yok',0],['Var',70]]],['lip','Ön lip',[['Yok',0],['Var',60]]],['tyr','Lastik boyu',[['Normal',0],['Büyük',100],['Çok büyük',160]]]];
-const PC={str:[0,0xffffff,0x111111,0xd32f2f],neo:[0,0x2979ff,0xb026ff,0x2ee06b,0xff3b30],tnt:[0x1c2a35,0x050709,0x1d3b6b]},PS=mat(0xffffff),glP=mat(0x1c2a35);
+const PC={str:[0,0xffffff,0x111111,0xd32f2f],neo:[0,0x2979ff,0xb026ff,0x2ee06b,0xff3b30],tnt:[0x1c2a35,0x050709,0x1d3b6b]},PS=mat(0xffffff),glP=FX.glass();
 function buildPlayer(){if(pcur)shell.remove(pcur);if(boatM){pcur=boatMesh(bodyM);shell.add(pcur);window.pSig={mL:bas(0),mR:bas(0)};hood.visible=false;fb.visible=rb.visible=false;sign.visible=false;wh.forEach(w=>w.visible=false);return;}let mi=freeMode?0:G.model;const t=GM[mi][1];rimP.color.setHex(freeMode?GR[0][1]:GR[G.rim][1]);
  if(t===5){pcur=motoMesh(0,null,true,bodyM);shell.add(pcur);window.pSig=pcur.userData;hood.visible=false;fb.visible=rb.visible=false;sign.visible=false;
-  wh.forEach((w,i)=>{if(w.parent!==whP)return;w.visible=(i===0||i===2);w.userData.off=!(i===0||i===2);w.position.set(0,.36,i<2?.95:-.95);w.scale.set(.72,.42,.72);});
+  wh.forEach((w,i)=>{if(w.parent!==whP)return;w.visible=(i===0||i===2);w.userData.off=!(i===0||i===2);w.position.set(0,.36,i<2?.95:-.95);w.scale.set(1,.5,1);});
   sheds.forEach(q=>{if(q.p.parent===q.par)q.pos.copy(q.p.position);});glP.color.setHex(0x1c2a35);return;}
  fb.visible=rb.visible=true;wh.forEach(w=>{w.visible=true;w.userData.off=false;});sign.visible=!freeMode&&(G.col===0x19b3a6||G.col===0xffb300);
  pcur=carMesh(0,t,null,bodyM,true);shell.add(pcur);window.pSig=pcur.userData;
- const [L,W,H,zb,zr,zf,zw,bt]=CT[t],h=L/2,P=freeMode?{}:G.parts,ts=[1,1.18,1.35][P.tyr||0];
+ const [L,W,H,zb,zr,zf,zw,bt,ov,wr]=CT[t],h=L/2,P=freeMode?{}:G.parts,ts=[1,1.18,1.35][P.tyr||0];
  hood.visible=false;
- wh.forEach((w,i)=>{if(w.parent!==whP)return;w.position.set((i%2?-1:1)*(W/2-.02),.5*ts,(i<2?1:-1)*(h-.95));w.scale.set(ts,1,ts);});
+ wh.forEach((w,i)=>{if(w.parent!==whP)return;w.position.set((i%2?-1:1)*(W/2-.17),wr*ts,(i<2?1:-1)*(h-ov));w.scale.set(ts*wr/.36,.87,ts*wr/.36);});
  fb.position.set(0,.38,h+.05);rb.position.set(0,.38,-h-.05);fb.scale.set(W/2.2,.6,.6);rb.scale.copy(fb.scale);sign.position.set(0,H+.25,(zf+zr)/2);
  sheds.forEach(q=>{if(q.p.parent===q.par)q.pos.copy(q.p.position);});
  const ad=(geo,m,x,y,z)=>{const q=new R.Mesh(geo,m);q.position.set(x,y,z);q.castShadow=true;pcur.add(q);return q;},bx=(w,hh,d)=>new R.BoxGeometry(w,hh,d);
@@ -285,19 +262,19 @@ for(let n=0;n<46;n++){
   const c={ax:n%2,dir:Math.random()<.5?-1:1,rc:C[(Math.random()*8)|0],ln:Math.random()<.5?1:0,v:0,cd:0,vm:rnd(9.5,13),m:new R.Group()};
   do{const s=rnd(-270,270);if(c.ax){c.x=s;c.z=lane(c);}else{c.z=s;c.x=lane(c);}}while(Math.hypot(c.x-23.5,c.z+40)<40||ais.some(o=>Math.hypot(o.x-c.x,o.z-c.z)<9));
   c.a=hd(c);
-  c.m.add(carMesh(aiPal[n%aiPal.length],(n*3)%6,c));
+  c.m.add(carMesh(aiPal[n%aiPal.length],VEH.pickType(),c));
   scene.add(c.m); ais.push(c);
 }
 const rectHit=(x,z)=>{for(const q of rects)if(Math.abs(x-q[0])<q[2]+.9&&Math.abs(z-q[1])<q[3]+.9)return true;return false;};
 function aiStep(c,dt){const px=c.x,pz=c.z;
   const s0=c.ax?c.x:c.z, sn=Math.sin(c.a), cs=Math.cos(c.a); let want=c.vm,best=1e9,bk=0;
   for(const k of C){const d=(k-s0)*c.dir;if(d>-1&&d<best){best=d;bk=k;}}
-  const st=light(c.ax), dS=best-10;
+  const st=light(c.ax), dS=best-14;
   if(st!=='g'&&(c.ax?bk===27:c.rc===27)&&dS>-1.5&&dS<26&&!(st==='y'&&dS<5))want=Math.min(want,Math.max(0,dS)*1.2);
   const chk=(ox,oz)=>{const x=ox-c.x,z=oz-c.z,fd=x*sn+z*cs,ld=Math.abs(x*cs-z*sn);if(fd>0&&fd<16&&ld<2.4)want=Math.min(want,Math.max(0,fd-6.5)*.9);};
-  c.stk=c.v<.3?(c.stk||0)+dt:0; if(!(c.stk>10&&st==='g')){for(const o of ais)if(o!==c&&o.on)chk(o.x,o.z); chk(car.x,car.z);}
+  c.stk=c.v<.3?(c.stk||0)+dt:0; if(!(c.stk>10&&st==='g')){for(const o of ais)if(o!==c&&o.on)chk(o.x,o.z); chk(car.x,car.z); for(const q of People.cross)chk(q.x,q.z);}
   const tn=Math.abs(wrap(hd(c)-c.a))>.25; if(tn)want=Math.min(want,6.5);
-  c.v=Math.max(0,c.v+(c.v<want?3.5:-9)*dt);
+  c.v=Math.max(0,c.v+(c.v<want?3.5:-9)*dt); VEH.tail(c.tl&&c.tl.color,want<c.v-.4||c.v<.4);
   c.a+=clamp(wrap(hd(c)-c.a),-3.2*dt,3.2*dt);
   const L=lane(c), kk=tn?0:Math.min(1,dt*2.5); if(c.ax)c.z+=(L-c.z)*kk; else c.x+=(L-c.x)*kk;
   {const da=wrap(hd(c)-c.a),dd=c.ax?L-c.z:0,de=c.ax?0:L-c.x,dt2=de*cs-dd*sn,sg=(da>.12||dt2>.6)?1:(da<-.12||dt2<-.6)?-1:0,bo=((performance.now()/350)|0)%2;c.sL.color.setHex(sg>0&&bo?0xffa000:0x4a2c00);c.sR.color.setHex(sg<0&&bo?0xffa000:0x4a2c00);}
@@ -314,25 +291,7 @@ function aiStep(c,dt){const px=c.x,pz=c.z;
   c.m.position.set(c.x,0,c.z); c.m.rotation.y=c.a; c.m.visible=Math.abs(c.x-car.x)<200&&Math.abs(c.z-car.z)<200;
 }
 
-// Yayalar (gerçek insan oranları: yüz, saç, kol-bacak, ayakkabı; çeşitli ten/kıyafet)
 const peds=[];
-for(let n=0;n<60;n++){
-  const p={cx:((Math.random()*11)|0)*54-270,cz:((Math.random()*11)|0)*54-270,s:rnd(0,152),dir:Math.random()<.5?-1:1,ko:0,ph:rnd(0,6),m:new R.Group(),x:0,z:0};
-  const fem=Math.random()<.45,sk=pick(SKIN),hr=pick(HAIR),top=pick(SHIRT),bot=pick(PANTS),short=Math.random()<.35,skirt=fem&&Math.random()<.5;
-  const body=[PP(hG.tor,top,0,1.26,0,{sz:.62}),PP(hG.pel,bot,0,.97,0,{sz:.65}),PP(hG.neck,sk,0,1.57,0),PP(hG.head,sk,0,1.7,0,{sx:.95,sy:1.12}),PP(hG.nose,sk,0,1.685,.115),
-    PP(hG.eye,0x1a1a1a,.042,1.72,.104),PP(hG.eye,0x1a1a1a,-.042,1.72,.104),PP(hG.hair,hr,0,1.72,-.015,{rx:-.35})];
-  if(skirt)body.push(PP(hG.skirt,bot,0,.8,0,{sz:.8}));
-  if(fem||Math.random()<.1)body.push(PP(hG.hairL,hr,0,1.6,-.085));
-  if(Math.random()<.25)body.push(PP(hG.pack,pick(SHIRT),0,1.3,-.18));
-  p.m.add(new R.Mesh(mergeG(body),pedMat));
-  const lim=(parts,x,y,rz)=>{const q=new R.Group();q.position.set(x,y,0);q.rotation.z=rz||0;q.add(new R.Mesh(mergeG(parts),pedMat));p.m.add(q);return q;};
-  const leg=()=>[PP(hG.leg,skirt?sk:bot,0,-.43,0),PP(hG.shoe,0x15151a,0,-.82,.06)];
-  const arm=()=>{const a=[PP(hG.arm,short?sk:top,0,-.28,0),PP(hG.hand,sk,0,-.58,0)];if(short)a.push(PP(hG.slv,top,0,-.1,0));return a;};
-  p.l1=lim(leg(),.095,.88); p.l2=lim(leg(),-.095,.88); p.a1=lim(arm(),.27,1.47,-.07); p.a2=lim(arm(),-.27,1.47,.07);
-  p.m.scale.setScalar(rnd(.92,1.02));
-  pedPos(p); scene.add(p.m); peds.push(p);
-}
-function pedPos(p){const s=((p.s%152)+152)%152, sd=(s/38)|0, t=s%38-19; let qx,qz,dx,dz; if(sd===0){qx=t;qz=-18.6;dx=1;dz=0;}else if(sd===1){qx=18.6;qz=t;dx=0;dz=1;}else if(sd===2){qx=-t;qz=18.6;dx=-1;dz=0;}else{qx=-18.6;qz=-t;dx=0;dz=-1;} p.x=p.cx+qx;p.z=p.cz+qz;p.hd=Math.atan2(dx*p.dir,dz*p.dir);}
 
 // Hasar, enkaz, duman
 const debris=[], puffs=[], pg=new R.SphereGeometry(.4,8,6);
@@ -342,7 +301,7 @@ function puff(){if(boatM)return;const q=puffs.find(p=>p.t<=0);if(!q)return;q.t=1
 
 let baseCol=G.col||0xf5f5f5, nAI=30, camM=0, hlOn=false, curTime='dusk';
 let dist=0, ended=false, dmg=Math.min(100,G.dmg||0), score=100, shake=0, hitCd=0, twY=0, twZ=0, pitch=0, pv=0, inX=false, totaled=(G.dmg||0)>=100, puffT=0;
-const car={x:23.5,z:-40,a:0,v:0}; cam.position.set(23.5,6,-52);
+const car={x:23.5,z:-40,a:0,v:0}; cam.position.set(23.5,6,-52); People.build(scene,peds,rects);
 function look(){
   bodyM.color.setHex(freeMode?0xf5f5f5:baseCol).lerp(new R.Color(0x3a3a3a),clamp(dmg/130,0,1));
   hood.rotation.x=-dmg*.011; hood.position.y=.72+dmg*.004; shell.scale.z=1-dmg*.0015;
@@ -389,14 +348,14 @@ function impact(vn){
 // Kontroller
 const keys={up:0,down:0,left:0,right:0,space:0};
 const map={ArrowUp:'up',w:'up',W:'up',ArrowDown:'down',s:'down',S:'down',ArrowLeft:'left',a:'left',A:'left',ArrowRight:'right',d:'right',D:'right',' ':'space'};
-addEventListener('keydown',e=>{if(map[e.key]){keys[map[e.key]]=1;e.preventDefault();}const kk=e.key.toLowerCase();if(kk==='h')horn();if(kk==='l')toggleL();if(kk==='c')camM=(camM+1)%3;if(kk==='n')cycleTime();if(e.key==='Escape')document.body.classList.toggle('mn');});
+addEventListener('keydown',e=>{if(map[e.key]){keys[map[e.key]]=1;e.preventDefault();}const kk=e.key.toLowerCase();if(kk==='h')horn();if(kk==='l')toggleL();if(kk==='c')camM=(camM+1)%3;if(kk==='n')cycleTime();if(kk==='r')cycleWx();if(e.key==='Escape')document.body.classList.toggle('mn');});
 addEventListener('keyup',e=>{if(map[e.key])keys[map[e.key]]=0;});
 document.querySelectorAll('.pad button[data-k]').forEach(b=>{
   const k=b.dataset.k, set=v=>{keys[k]=v;b.classList.toggle('on',!!v);if(k==='horn'){if(v)hornOn();else hornOff();}};
   b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);set(1);});
   ['pointerup','pointercancel','lostpointercapture'].forEach(t=>b.addEventListener(t,()=>set(0)));
 });
-const pad=document.querySelector('.pad'), S={bs:1.3,bo:1,sw:false,sh:false,q:1};
+const pad=document.querySelector('.pad'), S={bs:1.3,bo:1,sw:false,sh:false,q:FX.Q};
 try{Object.assign(S,JSON.parse(localStorage.getItem('ist-set')||'{}'));}catch(e){}
 function applySet(){const r=document.documentElement.style;r.setProperty('--bs',S.bs);r.setProperty('--bo',S.bo);pad.classList.toggle('swap',S.sw);pad.classList.toggle('show',S.sh);applyQ();try{localStorage.setItem('ist-set',JSON.stringify(S));}catch(e){}}
 $('sQ').value=S.q;$('sQ').onchange=e=>{S.q=+e.target.value;applySet();};
@@ -408,12 +367,14 @@ const TM={
  day:{sky:['#4f9bd8','#9fd0f0','#f1eedd','#f6f1de'],fog:0xcfe2ee,hs:[0xffffff,0x7a7566,1],sun:[0xfff1d0,1.2],sea:0x2a86a8,win:0},
  dusk:{sky:['#2f3466','#b9648a','#f2a56b','#f7c58a'],fog:0xeba46f,hs:[0xffd9b0,0x4b3a4a,.85],sun:[0xffc98a,1.05],sea:0x1d6b86,win:.35},
  night:{sky:['#04060d','#0a1030','#162040','#25335c'],fog:0x0c1124,hs:[0x7084c8,0x151226,.4],sun:[0x8196d6,.45],sea:0x0b2a3d,win:1}};
-function applyLights(){hl.visible=hlOn&&!boatM;hM.color.setHex(hlOn?0xfff3c0:0x8a8470);$('bL').classList.toggle('act',hlOn);}
+function applyLights(){hl.visible=hlOn&&!boatM;hM.color.setHex(hlOn?0xfff3c0:0x8a8470);if(FX.Q>0)hM.color.multiplyScalar(hlOn?3.2:1);$('bL').classList.toggle('act',hlOn);}
 function setTime(m){const T=TM[m];curTime=m;
- const g=sx.createLinearGradient(0,0,0,256);[0,.5,.85,1].forEach((s,i)=>g.addColorStop(s,T.sky[i]));sx.fillStyle=g;sx.fillRect(0,0,4,256);scene.background.needsUpdate=true;
+ const g=sx.createLinearGradient(0,0,0,256);[0,.5,.85,1].forEach((s,i)=>g.addColorStop(s,T.sky[i]));sx.fillStyle=g;sx.fillRect(0,0,4,256);if(scene.background)scene.background.needsUpdate=true;
  scene.fog.color.setHex(T.fog);hemi.color.setHex(T.hs[0]);hemi.groundColor.setHex(T.hs[1]);hemi.intensity=T.hs[2];
  sun.color.setHex(T.sun[0]);sun.intensity=T.sun[1];sea.material.color.setHex(T.sea);dashM.color.setHex(T.win>.5?0x777777:0xffffff);
- for(const x of bm){x.emissive.setHex(T.win?0xffffff:0);x.emissiveIntensity=T.win;}
+ for(const x of bm){x.emissive.setHex(T.win?0xffffff:0);x.emissiveIntensity=T.win*(FX.Q>0?(T.win>.5?.85:1.2):1);}
+ FX.setTime(m);VEH.setNight(m==='night',m==='dusk');City.setTime(m);
+ if(FX.Q>0){const P=FX.TIME[m];scene.fog.color.setHex(P.fog);scene.fog.near=P.fogN*(FX.weather==='rain'?.6:1);scene.fog.far=P.fogF*(FX.weather==='rain'?.65:1);hemi.intensity=T.hs[2]*(m==='night'?.6:.38);sun.intensity=T.sun[1]*(m==='day'?1.45:1.25)*(FX.weather==='rain'?.4:1);}
  hlOn=m!=='day';hl.intensity=m==='night'?3.2:1.4;applyLights();
  $('bN').textContent={day:'☀ Gündüz (N)',dusk:'🌆 Akşam (N)',night:'🌙 Gece (N)'}[m];
  document.querySelectorAll('#tm button').forEach(b=>b.classList.toggle('on',b.dataset.v===m));}
@@ -421,7 +382,10 @@ function cycleTime(){setTime(curTime==='day'?'dusk':curTime==='dusk'?'night':'da
 function toggleL(){hlOn=!hlOn;applyLights();}
 function applyTraffic(){ais.forEach((c,i)=>{c.on=i<nAI;c.m.visible=c.on;});}
 function seg(id,fn){const bs=document.querySelectorAll('#'+id+' button');bs.forEach(b=>b.onclick=()=>{bs.forEach(x=>x.classList.toggle('on',x===b));fn(b.dataset.v);});}
-seg('tm',setTime);seg('tf',v=>{nAI=+v;applyTraffic();});
+seg('tm',setTime);seg('wx',v=>{FX.setWeather(v);setTime(curTime);wxLbl();});
+function wxLbl(){document.querySelectorAll('#wx button').forEach(b=>b.classList.toggle('on',b.dataset.v===FX.weather));$('bW').textContent={dry:'☀ Kuru (R)',wet:'💧 Islak (R)',rain:'🌧 Yağmur (R)'}[FX.weather];}
+function cycleWx(){FX.setWeather({dry:'wet',wet:'rain',rain:'dry'}[FX.weather]);setTime(curTime);wxLbl();msg({dry:'Kuru yol',wet:'Islak asfalt',rain:'Yağmur'}[FX.weather]);}
+$('bW').onclick=cycleWx;wxLbl();seg('tf',v=>{nAI=+v;applyTraffic();});
 $('mn').onclick=()=>document.body.classList.toggle('mn');
 $('bL').onclick=toggleL;$('bN').onclick=cycleTime;$('bC').onclick=()=>{camM=(camM+1)%3;};
 const SW=[0x19b3a6,0xf5f5f5,0xb71c1c,0x1a237e,0x111111,0xffb300,0x2e7d32,0x8e24aa], swb=[];
@@ -654,11 +618,7 @@ function frame(t){
   hitCd=Math.max(0,hitCd-dt);
   if(playing)steer=step(dt);
   for(const c of ais)if(c.on)aiStep(c,dt);
-  for(const p of peds){
-    const near2=Math.abs(p.x-car.x)<110&&Math.abs(p.z-car.z)<110; p.m.visible=near2; if(!near2&&p.ko<=0){p.s+=p.dir*1.4*dt;pedPos(p);continue;}
-    if(p.ko>0){p.ko-=dt;p.x+=p.vx*dt;p.z+=p.vz*dt;p.vx*=.93;p.vz*=.93;p.m.rotation.set(0,p.hd,Math.PI/2);p.m.position.set(p.x,.62,p.z);}
-    else{p.s+=p.dir*1.4*dt;pedPos(p);const w=Math.sin(t/200+p.ph);p.m.rotation.set(0,p.hd,0);p.m.position.set(p.x,.3+Math.abs(w)*.04,p.z);p.l1.rotation.x=w*.7;p.l2.rotation.x=-w*.7;p.a1.rotation.x=-w*.6;p.a2.rotation.x=w*.6;}
-  }
+  People.update(peds,dt,t);
   for(let i=debris.length-1;i>=0;i--){
     const d=debris[i],m=d.m; d.v.y-=22*dt; m.position.addScaledVector(d.v,dt);
     if(m.position.y<.3){m.position.y=.3;d.v.y*=-.35;d.v.x*=.7;d.v.z*=.7;d.w.multiplyScalar(.7);}
@@ -678,20 +638,20 @@ function frame(t){
   if(shake>.01){cam.position.x+=rnd(-1,1)*shake*.5;cam.position.y+=rnd(-1,1)*shake*.35;shake*=.9;}
   {const la=gOpen?0:Math.max(0,1-Math.abs(camYaw)*2)*6,ly=1.5+Math.max(0,-camPit-.12)*40;cam.lookAt(car.x+Math.sin(car.a)*la,ly,car.z+Math.cos(car.a)*la);}
   cam.fov=58+Math.abs(car.v)*.35; cam.updateProjectionMatrix();
-  sun.position.set(car.x+60,80,car.z+30); sun.target.position.set(car.x,0,car.z);
+  sun.position.set(car.x+FX.sunOff.x,FX.sunOff.y,car.z+FX.sunOff.z); sun.target.position.set(car.x,0,car.z);
   mNS.color.setHex(LC[light(0)]); mEW.color.setHex(LC[light(1)]); pNS.color.setHex(light(0)==='r'?0x2ee06b:0xff3b30); pEW.color.setHex(light(1)==='r'?0x2ee06b:0xff3b30);
   ferry.position.set(450,-.4,((t/1000*6+300)%700)-350); sea.position.y=-.8+Math.sin(t/900)*.06;
   const a=area(); if(a!==lastArea){$('where').textContent=a;lastArea=a;}
   const kv=Math.round(Math.abs(car.v)*3.6); if(kv!==lastKmh){lastKmh=kv;$('kmh').textContent=kv;} const gv=car.v<-.3?' R':Math.abs(car.v)<.3?' N':' D'; if(gv!==lastGr){lastGr=gv;$('gr').textContent=gv;}
   shell.visible=camM!==1; for(const w of wh)w.visible=camM!==1&&!boatM&&!w.userData.off;
-  tM.color.setHex((keys.down||keys.space)?0xff6a5a:hlOn?0xd9342a:0x7a2a24);
-  renderer.shadowMap.needsUpdate=(fc&1)===0; renderer.render(scene,cam); requestAnimationFrame(frame);
+  tM.color.setHex((keys.down||keys.space)?0xff6a5a:hlOn?0xd9342a:0x7a2a24);if(FX.Q>0)tM.color.multiplyScalar((keys.down||keys.space)?3.4:hlOn?1.5:1);
+  renderer.shadowMap.needsUpdate=(fc&1)===0; FX.update(dt,car.v); FX.render(); requestAnimationFrame(frame);
 }
-function resize(){renderer.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();}
-function applyQ(){prMax=[.8,1.15,1.6][S.q]||1.15;pr=Math.min(devicePixelRatio,prMax);renderer.setPixelRatio(pr);sun.castShadow=S.q>0;resize();}
+function resize(){renderer.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();FX.resize();}
+function applyQ(){if((S.q===0)!==(FX.Q===0)){try{localStorage.setItem('ist-set',JSON.stringify(S));}catch(e){}location.reload();return;}FX.setQuality(S.q);prMax=[.8,1.15,1.6,2][S.q]||1.15;pr=Math.min(devicePixelRatio,prMax);renderer.setPixelRatio(pr);sun.castShadow=S.q>0;resize();}
 addEventListener('resize',resize); resize(); look(); setTime('dusk'); applyTraffic();
 scene.updateMatrixWorld(true);
-{const dyn=new Set([car3,ferry,sea,sun,sun.target,...coins,beam,dockB,...ais.map(c=>c.m),...peds.map(p=>p.m),...puffs.map(q=>q.m)]);scene.children.forEach(o=>{if(!dyn.has(o))o.matrixAutoUpdate=false;});}
+{const dyn=new Set([...FX.dyn,car3,ferry,sea,sun,sun.target,...coins,beam,dockB,...ais.map(c=>c.m),...peds.map(p=>p.m),...puffs.map(q=>q.m)]);scene.children.forEach(o=>{if(!dyn.has(o))o.matrixAutoUpdate=false;});}
 requestAnimationFrame(frame);
 </script>
 <!-- IST-MODULLER -->
