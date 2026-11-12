@@ -352,6 +352,71 @@
       if (progressOk(def(id))) { P.unlocked[id] = true; save(); return true; }
       return false;
     };
+    P.tried = P.tried || {};   // deneme sürüşü yapılmış bölgeler (her bölge bir kez)
+
+    /* ================= bölgeye özel görevler: 3 kontrol noktası, süre sınırı, altın ödülü ================= */
+    const DM = {
+      ortakoy: { name: '🌉 Köprü turu', desc: 'Boğaziçi Köprüsü dahil 3 kontrol noktasından geç', time: 120, reward: 150, pref: l => l.filter(r => Math.abs(r.c + 130) < 15) },
+      caddebostan: { name: '🏖 Sahil turu', desc: 'Sahil yolu boyunca 3 kontrol noktasından geç', time: 120, reward: 200, pref: l => { const m = Math.max(...l.map(r => r.b - r.a)); return l.filter(r => r.b - r.a >= m * .6); } }
+    };
+    const dm = { on: null, ring: null };
+    function dmPoints(gr, spec) {
+      const long = (gr.net || []).filter(r => Math.abs(r.b - r.a) > 40); if (!long.length) return null;
+      const pref = spec.pref ? spec.pref(long) : [], pts = [];
+      for (let tries = 0; pts.length < 3 && tries < 400; tries++) {
+        const pool = pts.length === 1 && pref.length ? pref : long, r = pool[(Math.random() * pool.length) | 0];
+        const s = r.a + 15 + Math.random() * Math.max(1, r.b - r.a - 30), q = pos(r, s, laneX(r, 1)), pv = pts.length ? pts[pts.length - 1] : { x: car.x, z: car.z };
+        if (Math.hypot(q[0] - pv.x, q[1] - pv.z) < 60) continue;
+        pts.push({ x: q[0], z: q[1] });
+      }
+      return pts.length === 3 ? pts : null;
+    }
+    function dmRing(gr, p) {
+      if (!dm.ring) { dm.ring = new R.Mesh(new R.CylinderGeometry(4, 4, 30, 20, 1, true), new R.MeshBasicMaterial({ color: 0x2ee06b, transparent: true, opacity: .3, side: R.DoubleSide, depthWrite: false })); dm.ring.userData.__ist = true; }
+      gr.g.add(dm.ring); dm.ring.position.set(p.x, 15, p.z); dm.ring.visible = true;
+    }
+    function startDM() {
+      if (!world.cur || dm.on || world.trial > 0) return;
+      if (typeof cm !== 'undefined' && cm) return IST.toast('Önce görevi bitir');
+      const spec = DM[world.cur.id], gr = world.group[world.cur.id]; if (!spec || !gr) return;
+      const pts = dmPoints(gr, spec); if (!pts) return IST.toast('Görev başlatılamadı');
+      dm.on = { spec, pts, k: 0, t: spec.time }; dmRing(gr, pts[0]);
+      try { nav.style.display = 'block'; } catch (e) {}
+      IST.toast(spec.name + ' başladı!');
+    }
+    function endDM() {
+      if (!dm.on) return; dm.on = null; if (dm.ring) dm.ring.visible = false;
+      try { mh.textContent = ''; nav.style.display = 'none'; } catch (e) {}
+    }
+    function tickDM(dt) {
+      const m = dm.on; if (!m || (typeof gOpen !== 'undefined' && gOpen)) return;
+      m.t -= dt; const c = m.pts[m.k];
+      if (Math.hypot(c.x - car.x, c.z - car.z) < 8) {
+        m.k++;
+        if (m.k >= m.pts.length) {
+          const r = m.spec.reward; endDM(); IST.gold.add(r); P.missions++; save(); checkUnlocks(); IST.bus.emit('mission:done');
+          IST.toast('✅ ' + m.spec.name + ' tamam! +' + r + ' altın'); return;
+        }
+        dmRing(world.group[world.cur.id], m.pts[m.k]); IST.toast('Kontrol noktası ' + m.k + '/' + m.pts.length);
+      }
+      if (m.t <= 0) { endDM(); IST.toast('⏱ Süre doldu — tekrar dene'); return; }
+      const c2 = m.pts[m.k];
+      try { mh.textContent = m.spec.name + ' · Kontrol ' + (m.k + 1) + '/' + m.pts.length + ' · ' + Math.ceil(m.t) + ' sn'; arrow(c2.x, c2.z); } catch (e) {}
+    }
+
+    /* ================= kilitli bölge için 60 sn deneme sürüşü (her bölge bir kez) ================= */
+    const TRIAL = 60;
+    function tickTrial(dt) {
+      if (!(world.trial > 0)) return;
+      if (!(typeof gOpen !== 'undefined' && gOpen)) world.trial -= dt;
+      try { mh.textContent = '🚗 Deneme sürüşü · ' + Math.max(0, Math.ceil(world.trial)) + ' sn'; } catch (e) {}
+      if (world.trial <= 0) {
+        const d = world.cur; exit();
+        try { mh.textContent = ''; } catch (e) {}
+        IST.toast('Deneme bitti! ' + (d ? d.name : 'Bölge') + ' bölgesini açmak için 🏙 Bölgeler menüsüne bak');
+      }
+    }
+
     const checkUnlocks = () => { try { DEFS.forEach(d => { if (IST.cfg.districts.devUnlockAll !== true && !P.unlocked[d.id] && isUnlocked(d.id)) IST.toast(d.icon + ' ' + d.name + ' açıldı!'); }); } catch (e) {} };
 
     /* ================= dünya değiştirme (Fatih'i bozmadan) ================= */
@@ -362,10 +427,11 @@
       if (typeof cm !== 'undefined' && cm) return 'Önce görevi bitir';
       return '';
     }
-    function enter(id) {
+    function enter(id, trial) {
       const d = def(id); if (!d || world.cur) return false;
       const why = canEnter(); if (why) { IST.toast(why); return false; }
-      if (!isUnlocked(id)) { IST.toast('Bu bölge kilitli'); return false; }
+      if (!isUnlocked(id) && !(trial === true && !P.tried[id])) { IST.toast('Bu bölge kilitli'); return false; }
+      world.trial = 0; if (trial === true && !isUnlocked(id)) { P.tried[id] = 1; save(); world.trial = TRIAL; }
       world.hidden = []; scene.children.forEach(o => { if (o.isLight || o === car3 || (o.userData && o.userData.__ist)) return; world.hidden.push([o, o.visible]); o.visible = false; });
       const sv = world.saved = { arr: {}, C: C.slice(), SH: SH.slice(), DK: DK.slice() };
       [['rects', rects], ['ints', ints], ['peds', peds], ['ais', ais], ['coins', coins]].forEach(p => { sv.arr[p[0]] = p[1].splice(0); });
@@ -383,6 +449,7 @@
     }
     function exit(silent) {
       if (!world.cur) return false;
+      endDM(); if (world.trial > 0) { world.trial = 0; try { mh.textContent = ''; } catch (e) {} }
       const id = world.cur.id, gr = world.group[id], sv = world.saved;
       if (gr) gr.g.visible = false;
       [['rects', rects], ['ints', ints], ['peds', peds], ['ais', ais], ['coins', coins]].forEach(p => { p[1].splice(0); sv.arr[p[0]].forEach(x => p[1].push(x)); });
@@ -470,7 +537,7 @@
     }
     function tickPeds(dt) { const gr = world.cur && world.group[world.cur.id]; if (gr && gr.peds && !(typeof gOpen !== 'undefined' && gOpen)) gr.peds.update(dt, hitPed); }
     let lastT = 0;
-    function loop(t) { if (!world.cur) return; tickPeds(Math.min(.05, (t - lastT) / 1000 || 0)); lastT = t; requestAnimationFrame(loop); }
+    function loop(t) { if (!world.cur) return; const dt = Math.min(.05, (t - lastT) / 1000 || 0); tickPeds(dt); lastT = t; try { tickDM(dt); tickTrial(dt); } catch (e) { console.error('[IST districts]', e); } if (world.cur) requestAnimationFrame(loop); }
 
     /* oyunun mevcut fonksiyonlarına SARMALAYICI (kaynak dosya değişmez) */
     if (typeof window.reset === 'function') { const o = window.reset; window.reset = function () { if (world.cur) exit(true); return o.apply(this, arguments); }; }
@@ -487,7 +554,12 @@
       const b = panel.body; if (!b || !panel.isOpen) return; b.textContent = '';
       const info = document.createElement('small'); info.textContent = 'Görev: ' + P.missions + ' tamamlandı • Toplam kazanç: ' + P.earned + ' altın'; b.appendChild(info);
       if (world.cur) { const row = document.createElement('div'); row.className = 'ist-row'; const t = document.createElement('div'); t.textContent = '📍 Şu an: ' + world.cur.name;
-        const bt = document.createElement('button'); bt.className = 'ist-btn'; bt.textContent = "Fatih'e dön"; bt.onclick = () => { panel.close(); exit(); }; row.append(t, bt); b.appendChild(row); }
+        const bt = document.createElement('button'); bt.className = 'ist-btn'; bt.textContent = "Fatih'e dön"; bt.onclick = () => { panel.close(); exit(); }; row.append(t, bt); b.appendChild(row);
+        const spec = DM[world.cur.id];
+        if (spec) { const r2 = document.createElement('div'); r2.className = 'ist-row'; const t2 = document.createElement('div'), n2 = document.createElement('b'), s2 = document.createElement('small');
+          n2.textContent = spec.name + ' · ' + spec.reward + ' altın'; s2.textContent = world.trial > 0 ? 'Deneme sürüşünde görev yapılamaz' : spec.desc + ' (' + spec.time + ' sn)'; t2.append(n2, s2);
+          const b2 = document.createElement('button'); b2.className = 'ist-btn'; b2.textContent = dm.on ? 'Devam ediyor' : 'Başlat'; b2.disabled = !!dm.on || world.trial > 0;
+          b2.onclick = () => { panel.close(); startDM(); }; r2.append(t2, b2); b.appendChild(r2); } }
       DEFS.forEach(d => {
         const row = document.createElement('div'), un = isUnlocked(d.id); row.className = 'ist-row';
         const t = document.createElement('div'), nm = document.createElement('b'), sm = document.createElement('small'); nm.textContent = d.icon + ' ' + d.name; t.appendChild(nm);
@@ -496,12 +568,23 @@
         const bt = document.createElement('button'); bt.className = 'ist-btn';
         if (un) { bt.textContent = world.cur && world.cur.id === d.id ? 'Buradasın' : 'Git'; bt.disabled = !!(world.cur && world.cur.id === d.id); bt.onclick = () => { const why = world.cur ? '' : canEnter(); if (why) return IST.toast(why); panel.close(); if (world.cur) exit(true); enter(d.id); }; }
         else { bt.textContent = d.unlock.gold + ' altınla aç'; bt.disabled = !prevOk(d); bt.onclick = () => unlockWithGold(d.id); }
+        if (!un && !P.tried[d.id] && !world.cur) {   // kilitli bölgeyi bir kez 60 sn deneme
+          const tb = document.createElement('button'); tb.className = 'ist-btn'; tb.textContent = '🚗 ' + TRIAL + ' sn dene';
+          tb.onclick = () => { const why = canEnter(); if (why) return IST.toast(why); panel.close(); enter(d.id, true); };
+          row.appendChild(tb);
+        }
         row.appendChild(bt); b.appendChild(row);
       });
     }
-    let btn = null;
-    function refreshBtn() { if (btn) btn.textContent = world.cur ? "↩ Fatih'e dön" : '🏙 Bölgeler'; }
+    let btn = null, dmBtn = null;
+    function refreshBtn() {
+      if (btn) btn.textContent = world.cur ? "↩ Fatih'e dön" : '🏙 Bölgeler';
+      if (dmBtn) { const sp = world.cur && DM[world.cur.id]; dmBtn.style.display = sp && !(world.trial > 0) ? '' : 'none'; if (sp) dmBtn.textContent = '🎯 ' + sp.name.replace(/^\S+\s/, '') + ' · ' + sp.reward + ' altın'; }
+    }
     btn = IST.ui.menuButton('bDist', '🏙 Bölgeler', () => { if (world.cur && !panel.isOpen) { exit(); return; } panel.open(); }, { inGame: true });
+    /* bölge görevi düğmesi: yalnızca bir bölgedeyken (deneme sürüşü hariç) görünür */
+    dmBtn = IST.ui.menuButton('bDM', '🎯 Bölge görevi', () => { if (dm.on) return IST.toast('Görev devam ediyor'); document.body.classList.remove('mn'); startDM(); }, { inGame: true, before: 'bDist' });
+    refreshBtn();
     IST.districts = { DEFS, enter, exit, _tick: tickPeds, isUnlocked, progress: P, get current() { return world.cur; }, _world: world };
   });
 })();
