@@ -306,12 +306,12 @@ function puff(){if(boatM)return;const q=puffs.find(p=>p.t<=0);if(!q)return;q.t=1
 
 let baseCol=G.col||0xf5f5f5, nAI=30, camM=0, hlOn=false, curTime='dusk';
 let dist=0, ended=false, dmg=Math.min(100,G.dmg||0), score=100, shake=0, hitCd=0, twY=0, twZ=0, pitch=0, pv=0, inX=false, totaled=(G.dmg||0)>=100, puffT=0;
-const car={x:23.5,z:-40,a:0,v:0}; let carY=0; cam.position.set(23.5,6,-52); People.build(scene,peds,rects);
+const car={x:23.5,z:-40,a:0,v:0}; let carY=0, shedD=dmg; cam.position.set(23.5,6,-52); People.build(scene,peds,rects);
 function look(){
   bodyM.color.setHex(freeMode?0xf5f5f5:baseCol).lerp(new R.Color(0x3a3a3a),clamp(dmg/130,0,1));
   hood.rotation.x=-dmg*.011; hood.position.y=.72+dmg*.004; shell.scale.z=1-dmg*.0015;
-  for(const s of sheds)if(dmg>=s.t&&s.p.parent===s.par&&!(window.pSig&&pSig.moto&&wh.includes(s.p)))eject(s.p);
-  $('dm').style.width=dmg+'%';
+  for(const s of sheds)if(dmg>=s.t&&shedD<s.t&&s.p.parent===s.par&&!(window.pSig&&pSig.moto&&wh.includes(s.p)))eject(s.p);
+  shedD=dmg; $('dm').style.width=dmg+'%';
 }
 function reset(keep){boatOff();engineOn=true;{const e=$('bEng');if(e)e.textContent='🔑 Motoru durdur';}
   if(!keep){dmg=0;totaled=false;}score=100;dist=0;twY=twZ=0;Object.assign(car,{x:23.5,z:-40,a:0,v:0});
@@ -427,7 +427,7 @@ const gp=document.createElement('div');gp.style.cssText='position:fixed;top:0;ri
  cv.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;camYaw-=(e.clientX-drag.x)*.008;camPit=clamp(camPit+(e.clientY-drag.y)*.006,-1,.9);drag.x=e.clientX;drag.y=e.clientY;camT=performance.now();});
  ['pointerup','pointercancel'].forEach(t=>cv.addEventListener(t,e=>{if(drag&&e.pointerId===drag.id){drag=null;camT=performance.now();}}));}
 const RP=250, TOW=50, REPAIR_SHOP=false, repFree=()=>true, needRp=()=>dmg>0||totaled||(!freeMode&&score<100), rpBtn=()=>gbt('rp',needRp()?'🔧 Tamir et — '+(repFree()?'ÜCRETSİZ':RP+' ₺'):'Araba sağlam ✓',false);
-function restoreParts(){for(const q of sheds){const p=q.p,h=p.userData.home;q.par.add(p);if(h){p.position.copy(h.pos);p.rotation.copy(h.rot);p.scale.copy(h.sc);p.visible=h.vis;delete p.userData.home;}else{p.position.copy(q.pos);p.rotation.copy(q.rot);}}}
+function restoreParts(){shedD=dmg;for(const q of sheds){const p=q.p,h=p.userData.home;q.par.add(p);if(h){p.position.copy(h.pos);p.rotation.copy(h.rot);p.scale.copy(h.sc);p.visible=h.vis;delete p.userData.home;}else{p.position.copy(q.pos);p.rotation.copy(q.rot);}}}
 function fixParts(){restoreParts();debris.length=0;buildPlayer();look();}
 function repairCar(){if(!needRp()){msg('Araba zaten sağlam');return false;}if(!repFree()&&G.money<RP){msg('Yetersiz altın — tamir '+RP+' ₺');return false;}
  if(!repFree())G.money-=RP;dmg=0;totaled=false;twY=twZ=0;score=100;$('score').textContent=100;fixParts();mon.textContent='💰 '+G.money;saveG();msg('Araba yenilendi');return true;}
