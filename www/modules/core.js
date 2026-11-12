@@ -3,7 +3,7 @@
 (function (g) {
   'use strict';
   const IST = g.IST = g.IST || {};
-  IST.cfg = Object.assign({ chat: {}, shop: {}, districts: {} }, g.IST_CONFIG || {});
+  IST.cfg = Object.assign({ shop: {}, districts: {}, cloud: {} }, g.IST_CONFIG || {});
 
   /* ---- olay yolu ---- */
   const L = {};
@@ -16,7 +16,7 @@
   /* ---- yerel kayıt ---- */
   IST.storage = key => ({
     load(def) { try { return Object.assign({}, def, JSON.parse(localStorage.getItem(key) || '{}')); } catch (e) { return Object.assign({}, def); } },
-    save(v) { try { localStorage.setItem(key, JSON.stringify(v)); } catch (e) {} }
+    save(v) { if (g.noSv && key !== 'ist-cloud') return; try { localStorage.setItem(key, JSON.stringify(v)); } catch (e) {} }   // noSv: buluttan geri yükleme sırasında yazma yok
   });
 
   IST.toast = t => { try { if (typeof msg === 'function') msg(t); } catch (e) {} };

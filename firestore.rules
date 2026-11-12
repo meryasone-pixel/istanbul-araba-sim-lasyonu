@@ -1,0 +1,24 @@
+rules_version = '2';
+// Boğaz Drive — bulut kaydı kuralları (Firebase konsolu → Firestore Database → Kurallar sekmesine yapıştırın)
+// Her kayıt, 20 karakterlik gizli kurtarma koduyla adreslenir: /saves/{kod}
+// - Yalnızca uygulamadan isimsiz giriş yapmış oyuncular okuyup yazabilir.
+// - Kayıtlar listelenemez ve silinemez: kodu bilmeyen başkasının kaydını bulamaz.
+// - Kayıt boyutu ve alanları sınırlıdır.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /saves/{code} {
+      allow get: if request.auth != null && code.size() == 20;
+      allow create, update: if request.auth != null
+        && code.size() == 20
+        && request.resource.data.keys().hasOnly(['data', 'ts', 'v'])
+        && request.resource.data.data is string
+        && request.resource.data.data.size() < 200000
+        && request.resource.data.ts is int
+        && request.resource.data.v is int;
+      allow list, delete: if false;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
