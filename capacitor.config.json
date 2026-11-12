@@ -1,0 +1,7 @@
+{
+  "appId": "com.istanbulsurus.oyun",
+  "appName": "Boğaz Drive",
+  "webDir": "www",
+  "backgroundColor": "#2b2d5b",
+  "android": { "allowMixedContent": false }
+}
