@@ -59,16 +59,17 @@ button{font:inherit}
 #panel select{margin-left:8px;padding:6px 8px;border-radius:8px;border:0}
 #mini,#gr{display:none}
 #mn{pointer-events:auto;width:40px;height:40px;border:0;border-radius:12px;background:var(--glass);color:var(--ink);font-size:20px;opacity:.65;cursor:pointer}
-.r .tb,#reset,#gear{display:none}
-body.mn .r .tb,body.mn #reset,body.mn #gear{display:block}
+.r .tb,#reset{display:none}
+body.mn .r .tb,body.mn #reset{display:block}
+#smenu{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 4px}#smenu button{padding:10px 14px;border-radius:12px;border:0;background:var(--glass);color:var(--ink);font-size:14px;font-weight:600;cursor:pointer}
+#start #panel{position:static;display:none;margin:8px 0;min-width:0}#start #panel label{display:block;margin:6px 0}
 #mini{position:fixed;inset:auto;left:18px;top:calc(env(safe-area-inset-top,0px) + 112px);width:128px;height:128px;border-radius:14px;background:var(--glass);pointer-events:none}
 </style>
 </head>
 <body>
 <div id="hud"><div class="l"><div class="g" id="where">Beyoğlu</div><div class="g">Sürüş puanı<b id="score">100</b></div></div>
-<div class="r"><div id="speed"><b id="kmh">0</b><span>km/sa</span><span id="gr"> N</span><i><u id="dm"></u></i></div><button id="mn" aria-label="Menü">☰</button><button id="gear" aria-label="Ayarlar">⚙ Ayarlar</button><button class="tb" id="bEng">🔑 Motoru durdur</button><button class="tb" id="bM">🗺 Harita</button><button class="tb" id="bG">🔧 Garaj</button><button class="tb" id="bH">📢 Korna (H)</button><button class="tb" id="bL">💡 Far (L)</button><button class="tb" id="bN">🌆 Akşam (N)</button><button class="tb" id="bW">🌧 Hava (R)</button><button class="tb" id="bC">📷 Kamera (C)</button><button class="tb" id="bE">⏹ Oyunu bitir</button></div></div>
+<div class="r"><div id="speed"><b id="kmh">0</b><span>km/sa</span><span id="gr"> N</span><i><u id="dm"></u></i></div><button id="mn" aria-label="Menü">☰</button><button class="tb" id="bEng">🔑 Motoru durdur</button><button class="tb" id="bM">🗺 Harita</button><button class="tb" id="bH">📢 Korna (H)</button><button class="tb" id="bL">💡 Far (L)</button><button class="tb" id="bN">🌆 Akşam (N)</button><button class="tb" id="bW">🌧 Hava (R)</button><button class="tb" id="bC">📷 Kamera (C)</button><button class="tb" id="bE">⏹ Oyunu bitir</button></div></div>
 <canvas id="mini" width="128" height="128"></canvas>
-<div id="panel"><label>Düğme boyutu<input type="range" id="sBs" min="0.8" max="2.2" step="0.1"></label><label>Düğme şeffaflığı<input type="range" id="sBo" min="0.3" max="1" step="0.05"></label><label><input type="checkbox" id="sSw"> Sol/sağ düğmeleri yer değiştir</label><label><input type="checkbox" id="sSh"> Bilgisayarda da göster</label><label>Grafik kalitesi<select id="sQ"><option value="0">Düşük</option><option value="1">Orta</option><option value="2">Yüksek</option><option value="3">Ultra</option></select></label></div>
 <div id="msg"></div>
 <div class="pad"><div><button data-k="left" aria-label="Sol">◀</button><button data-k="right" aria-label="Sağ">▶</button></div><div><button data-k="horn" aria-label="Korna">📯</button><button data-k="down" aria-label="Fren">■</button><button data-k="up" aria-label="Gaz">▲</button></div></div>
 <div id="start"><div class="card">
@@ -76,7 +77,9 @@ body.mn .r .tb,body.mn #reset,body.mn #gear{display:block}
 <p id="res" style="display:none;font-weight:800;font-size:20px"></p>
 <p>Trafik ışıklarına uy, yayalara dikkat et, diğer araçlara çarpma. Ağır çarpmalar arabanı parçalar.</p>
 <div class="menu"><div class="row"><span>Mod</span><div class="seg" id="md"><button data-v="0" class="on">Serbest sürüş</button><button data-v="1">Görevler</button></div></div><div id="ms" style="display:none"></div><div class="row" id="rc"><span>Araba rengi</span><div id="sw"></div><input type="color" id="cc" value="#19b3a6" aria-label="Özel renk"></div><div class="row"><span>Zaman</span><div class="seg" id="tm"><button data-v="day">Gündüz</button><button data-v="dusk" class="on">Akşam</button><button data-v="night">Gece</button></div></div><div class="row"><span>Hava</span><div class="seg" id="wx"><button data-v="dry">Kuru</button><button data-v="wet">Islak</button><button data-v="rain">Yağmur</button></div></div><div class="row"><span>Trafik</span><div class="seg" id="tf"><button data-v="14">Az</button><button data-v="30" class="on">Orta</button><button data-v="46">Çok</button></div></div></div>
-<small>Ekrandaki ◀ ▶ ile dön, ▲ gaz, ■ fren, 📯 korna. Ekranı parmağınla sürükleyerek kamerayı her yöne çevir. Far, gece/gündüz ve diğer ayarlar sol üstteki ☰ menüde.</small>
+<small>Ekrandaki ◀ ▶ ile dön, ▲ gaz, ■ fren, 📯 korna. Ekranı parmağınla sürükleyerek kamerayı her yöne çevir. Sürüş sırasında far, korna, kamera, zaman ve hava sağ üstteki ☰ menüde.</small>
+<div id="smenu"><button id="gear" aria-label="Ayarlar">⚙ Ayarlar</button></div>
+<div id="panel"><label>Düğme boyutu<input type="range" id="sBs" min="0.8" max="2.2" step="0.1"></label><label>Düğme şeffaflığı<input type="range" id="sBo" min="0.3" max="1" step="0.05"></label><label><input type="checkbox" id="sSw"> Sol/sağ düğmeleri yer değiştir</label><label><input type="checkbox" id="sSh"> Bilgisayarda da göster</label><label>Grafik kalitesi<select id="sQ"><option value="0">Düşük</option><option value="1">Orta</option><option value="2">Yüksek</option><option value="3">Ultra</option></select></label></div>
 <button id="rs" style="margin-right:10px;padding:12px 14px;border-radius:12px;border:0;background:var(--glass);color:var(--ink);font-size:14px;cursor:pointer">♻ Oyunu sıfırla</button><button id="gm" style="margin-right:10px;padding:14px 20px;border-radius:12px;border:0;background:var(--glass);color:var(--ink);font-size:16px;font-weight:700;cursor:pointer">🔧 Garaj</button><button id="go">Sürmeye başla</button>
 </div></div>
 <script src="three.min.js"></script>
@@ -274,6 +277,7 @@ function aiStep(c,dt){const px=c.x,pz=c.z;
   const chk=(ox,oz)=>{const x=ox-c.x,z=oz-c.z,fd=x*sn+z*cs,ld=Math.abs(x*cs-z*sn);if(fd>0&&fd<16&&ld<2.4)want=Math.min(want,Math.max(0,fd-6.5)*.9);};
   c.stk=c.v<.3?(c.stk||0)+dt:0; if(!(c.stk>10&&st==='g')){for(const o of ais)if(o!==c&&o.on)chk(o.x,o.z); chk(car.x,car.z); for(const q of People.cross)chk(q.x,q.z);}
   const tn=Math.abs(wrap(hd(c)-c.a))>.25; if(tn)want=Math.min(want,6.5);
+  if(c.cd<=0&&best<18&&(c.nt||(bk>=297&&c.dir>0)||(bk<=-297&&c.dir<0)))want=Math.min(want,6);
   c.v=Math.max(0,c.v+(c.v<want?3.5:-9)*dt); VEH.tail(c.tl&&c.tl.color,want<c.v-.4||c.v<.4);
   c.a+=clamp(wrap(hd(c)-c.a),-3.2*dt,3.2*dt);
   const L=lane(c), kk=tn?0:Math.min(1,dt*2.5); if(c.ax)c.z+=(L-c.z)*kk; else c.x+=(L-c.x)*kk;
@@ -283,7 +287,8 @@ function aiStep(c,dt){const px=c.x,pz=c.z;
   if(c.cd>0)c.cd-=dt; else for(const k of C){
     if((s0-k)*(s1-k)<=0&&s0!==s1){
       const out=(k>=297&&c.dir>0)||(k<=-297&&c.dir<0);
-      if(out||Math.random()<.3){const o=c.ax?c.z:c.x;c.ax=1-c.ax;c.dir=o>270?-1:o<-270?1:(Math.random()<.5?-1:1);c.rc=k;c.cd=3;c.ln=Math.random()<.5?1:0;}
+      const tu=out||c.nt; c.nt=Math.random()<.3;
+      if(tu){const o=c.ax?c.z:c.x;c.ax=1-c.ax;c.dir=o>270?-1:o<-270?1:(Math.random()<.5?-1:1);c.rc=k;c.cd=3;c.ln=Math.random()<.5?1:0;}
       break;
     }
   }
@@ -301,11 +306,11 @@ function puff(){if(boatM)return;const q=puffs.find(p=>p.t<=0);if(!q)return;q.t=1
 
 let baseCol=G.col||0xf5f5f5, nAI=30, camM=0, hlOn=false, curTime='dusk';
 let dist=0, ended=false, dmg=Math.min(100,G.dmg||0), score=100, shake=0, hitCd=0, twY=0, twZ=0, pitch=0, pv=0, inX=false, totaled=(G.dmg||0)>=100, puffT=0;
-const car={x:23.5,z:-40,a:0,v:0}; cam.position.set(23.5,6,-52); People.build(scene,peds,rects);
+const car={x:23.5,z:-40,a:0,v:0}; let carY=0; cam.position.set(23.5,6,-52); People.build(scene,peds,rects);
 function look(){
   bodyM.color.setHex(freeMode?0xf5f5f5:baseCol).lerp(new R.Color(0x3a3a3a),clamp(dmg/130,0,1));
   hood.rotation.x=-dmg*.011; hood.position.y=.72+dmg*.004; shell.scale.z=1-dmg*.0015;
-  for(const s of sheds)if(dmg>=s.t&&s.p.parent===s.par)eject(s.p);
+  for(const s of sheds)if(dmg>=s.t&&s.p.parent===s.par&&!(window.pSig&&pSig.moto&&wh.includes(s.p)))eject(s.p);
   $('dm').style.width=dmg+'%';
 }
 function reset(keep){boatOff();engineOn=true;{const e=$('bEng');if(e)e.textContent='🔑 Motoru durdur';}
@@ -336,7 +341,6 @@ let hn=null;
 function hornOn(){try{startAudio();}catch(e){}if(hn||!ac)return;const t=ac.currentTime,g=ac.createGain(),lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1800;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.1,t+.025);const os=[392,494,587].map((f,i)=>{const o=ac.createOscillator();o.type='triangle';o.frequency.value=f;o.detune.value=i*3;o.connect(lp);o.start(t);return o;});lp.connect(g);g.connect(ac.destination);hn={g,os,t0:t};}
 function hornOff(){if(!hn)return;const h=hn;hn=null;const end=Math.max(ac.currentTime,h.t0+.2);h.g.gain.setValueAtTime(.1,end);h.g.gain.exponentialRampToValueAtTime(.0001,end+.14);h.os.forEach(o=>o.stop(end+.16));}
 function horn(){hornOn();hornOff();}
-$('bG').onclick=()=>openG();
 $('bH').onclick=()=>{try{startAudio();}catch(e){}horn();};
 function impact(vn){
   if(vn<1.2||hitCd>0)return; hitCd=.3; const k=clamp(vn/18,.12,1);
@@ -417,7 +421,7 @@ const rcoin=(g,near)=>{for(let n=0;n<20;n++){const k=C[(Math.random()*C.length)|
 let pcx=0,pcz=0,bT=0;
 for(let i=0;i<70;i++){const g=new R.Group(),m=new R.Mesh(cg2,cm2);m.rotation.x=Math.PI/2;g.add(m);scene.add(g);rcoin(g);coins.push(g);}
 const mon=document.createElement('div');mon.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:44px;z-index:5;color:#ffd54a;font:700 18px system-ui;text-shadow:0 1px 3px #000;pointer-events:none';mon.textContent='💰 '+G.money;document.body.appendChild(mon);
-const gp=document.createElement('div');gp.style.cssText='position:fixed;top:0;right:0;bottom:0;width:min(50vw,470px);display:none;z-index:30;font:15px system-ui;color:#fff;background:#15153ce8;overflow-y:auto;overscroll-behavior:contain';gp.innerHTML='<div id="gi" style="padding:14px 14px 30px"></div>';document.body.appendChild(gp);
+const gp=document.createElement('div');gp.style.cssText='position:fixed;top:0;right:0;bottom:0;width:min(50vw,470px);display:none;z-index:30;font:15px system-ui;color:#fff;background:#15153c;overflow-y:auto;overscroll-behavior:contain';gp.innerHTML='<div id="gi" style="padding:14px 14px 30px"></div>';document.body.appendChild(gp);
 {const cv=renderer.domElement;cv.style.touchAction='none';
  cv.addEventListener('pointerdown',e=>{drag={id:e.pointerId,x:e.clientX,y:e.clientY};try{cv.setPointerCapture(e.pointerId);}catch(_){}});
  cv.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;camYaw-=(e.clientX-drag.x)*.008;camPit=clamp(camPit+(e.clientY-drag.y)*.006,-1,.9);drag.x=e.clientX;drag.y=e.clientY;camT=performance.now();});
@@ -626,7 +630,8 @@ function frame(t){
     d.t+=dt;if(d.t>3&&Math.hypot(m.position.x-car.x,m.position.z-car.z)>70){m.visible=false;debris.splice(i,1);}
   }
   for(const q of puffs)if(q.t>0){q.t-=dt;q.m.position.y+=2.5*dt;q.m.scale.setScalar(1+(1.4-q.t)*1.5);q.m.material.opacity=Math.max(0,q.t/1.4)*.55;if(q.t<=0)q.m.visible=false;}
-  car3.position.set(car.x,0,car.z); car3.rotation.y=car.a;
+  {let y=0;if(!boatM&&C[0]<1e5){const bx2=Math.round(car.x/54)*54,bz2=Math.round(car.z/54)*54;if(Math.abs(bx2)<=270&&Math.abs(bz2)<=270&&Math.abs(car.x-bx2)<20.4&&Math.abs(car.z-bz2)<20.4)y=.3;}carY+=(y-carY)*Math.min(1,dt*12);}
+  car3.position.set(car.x,carY,car.z); car3.rotation.y=car.a;
   {const wt=performance.now()/1000;if(boatM)shell.rotation.set(Math.sin(wt*1.3)*.012,0,Math.sin(wt*1.1)*.015);else shell.rotation.set(pitch,twY,twZ+steer*car.v*.0025);}
   {const idle=performance.now()-camT>1600;
    if(gOpen){if(!drag)camYaw+=.5*dt;}
@@ -635,6 +640,9 @@ function frame(t){
   if(camM===1&&!gOpen){cam.position.set(car.x+Math.sin(car.a)*.3,1.45,car.z+Math.cos(car.a)*.3);}
   else{const bk0=gOpen?8:[11,-.3,19][camM]+car.v*.08,h0=gOpen?2.8:[5.2,1.45,9][camM]+car.v*.02,kk=Math.min(1,dt*(drag?10:4)),e0=Math.atan2(h0-1.5,Math.max(bk0,.5)),e=clamp(e0+Math.max(camPit,-.12),.06,1.3),Rr=Math.hypot(bk0,h0-1.5),ang=car.a+camYaw;
    cam.position.x+=(car.x-Math.sin(ang)*Rr*Math.cos(e)-cam.position.x)*kk;cam.position.z+=(car.z-Math.cos(ang)*Rr*Math.cos(e)-cam.position.z)*kk;cam.position.y+=(1.5+Rr*Math.sin(e)-cam.position.y)*kk;}
+  if(camM!==1&&!gOpen&&!boatM){const dx=cam.position.x-car.x,dz=cam.position.z-car.z,dl=Math.hypot(dx,dz);if(dl>1){const nr2=[];for(const q of rects)if(q[2]>1&&q[3]>1&&Math.abs(q[0]-car.x)<q[2]+dl+1&&Math.abs(q[1]-car.z)<q[3]+dl+1)nr2.push(q);
+   if(nr2.length){let f=1;for(let i=1;i<=12;i++){const t=i/12,x=car.x+dx*t,z=car.z+dz*t;if(nr2.some(q=>Math.abs(x-q[0])<q[2]+.5&&Math.abs(z-q[1])<q[3]+.5)){f=Math.max(.12,(i-1)/12);break;}}
+    if(f<1){cam.position.x=car.x+dx*f;cam.position.z=car.z+dz*f;}}}}
   if(shake>.01){cam.position.x+=rnd(-1,1)*shake*.5;cam.position.y+=rnd(-1,1)*shake*.35;shake*=.9;}
   {const la=gOpen?0:Math.max(0,1-Math.abs(camYaw)*2)*6,ly=1.5+Math.max(0,-camPit-.12)*40;cam.lookAt(car.x+Math.sin(car.a)*la,ly,car.z+Math.cos(car.a)*la);}
   cam.fov=58+Math.abs(car.v)*.35; cam.updateProjectionMatrix();

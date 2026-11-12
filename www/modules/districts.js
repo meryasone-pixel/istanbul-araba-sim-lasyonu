@@ -116,8 +116,8 @@
     /* vx: dikey yollar {c,h,a?,b?,dash?}  hz: yatay yollar. Her yolun iki ucu başka bir yolda biter (çıkmaz sokak yok). */
     function roads(B, vx, hz, o) {
       o = o || {}; const za = Math.min.apply(0, hz.map(h => h.c)), zb = Math.max.apply(0, hz.map(h => h.c)), xa = Math.min.apply(0, vx.map(v => v.c)), xb = Math.max.apply(0, vx.map(v => v.c));
-      vx.forEach(v => { v.a = v.a === undefined ? za : v.a; v.b = v.b === undefined ? zb : v.b; B.road(v.c, v.a, v.c, v.b, v.h * 2); B.net.push({ ax: 'v', c: v.c, a: v.a, b: v.b }); });
-      hz.forEach(h => { h.a = h.a === undefined ? xa : h.a; h.b = h.b === undefined ? xb : h.b; B.road(h.a, h.c, h.b, h.c, h.h * 2); B.net.push({ ax: 'h', c: h.c, a: h.a, b: h.b }); });
+      vx.forEach(v => { v.a = v.a === undefined ? za : v.a; v.b = v.b === undefined ? zb : v.b; B.road(v.c, v.a, v.c, v.b, v.h * 2); B.net.push({ ax: 'v', c: v.c, a: v.a, b: v.b, lo: v.lo || (v.h > 8 ? 6 : 2.6) }); });
+      hz.forEach(h => { h.a = h.a === undefined ? xa : h.a; h.b = h.b === undefined ? xb : h.b; B.road(h.a, h.c, h.b, h.c, h.h * 2); B.net.push({ ax: 'h', c: h.c, a: h.a, b: h.b, lo: h.lo || (h.h > 8 ? 6 : 2.6) }); });
       vx.forEach(v => {
         const cuts = hz.filter(h => h.c > v.a && h.c < v.b);
         segs(v.a, v.b, cuts, 1).forEach(sg => { (v.dash || [0]).forEach(d => B.dash(v.c + d, sg[0], v.c + d, sg[1]));
@@ -194,7 +194,7 @@
         B.cable([[x, 78, 50], [x, 48, 125], [x, 30, 205]], .5, 0xe2e5e9); B.cable([[x, 78, -65], [x, 48, -140], [x, 30, -220]], .5, 0xe2e5e9);
         B.box(2, 30, 2, 0xd0d4d8, x, 0, 205); B.box(2, 30, 2, 0xd0d4d8, x, 0, -220);
       });
-      B.net.push({ ax: 'v', c: AX, a: -115, b: 100 });
+      B.net.push({ ax: 'v', c: AX, a: -115, b: 100, lo: 6 });
       /* ---- ANADOLU YAKASI (kuzey): Beylerbeyi çevresi ---- */
       const vA = vx.map(v => Object.assign({}, v, { a: -288, b: v.c === AX ? -115 : -180 })), hA = [{ c: -288, h: 6 }, { c: -234, h: 6 }, { c: -180, h: 6 }];
       roads(B, vA, hA);
@@ -218,7 +218,7 @@
       B.plane(1200, 14, 0xe8d3a1, -17, .02, 37);                                  // kumsal
       B.plane(520, 36, 0xcfc7b8, -17, .04, 18); B.plane(520, 3, 0xb5524a, -17, .05, 16.5);   // yaya yolu + bisiklet yolu
       const xs = [-278, -212, -146, -80, -14, 52, 118, 184, 244], vx = xs.map(c => ({ c, h: 6 }));
-      const hz = [{ c: -288, h: 6 }, { c: -224, h: 6 }, { c: -150, h: 6 }, { c: -76, h: 6 }, { c: 0, h: 9.2, dash: [-4.4, 4.4] }];
+      const hz = [{ c: -288, h: 6 }, { c: -224, h: 6 }, { c: -150, h: 6 }, { c: -76, h: 6 }, { c: 0, h: 9.2, dash: [-4.4, 4.4], lo: 6.8 }];
       roads(B, vx, hz);
       B.box(522, .3, 2.4, 0x5a8f4e, -17, 0, 0);                                    // orta refüj
       fill(B, r, vx, hz, { cap: (i, j) => (j === 3 ? 20 : 46), lo: 14, park: (i, j) => (j === 3 && (i % 2 === 0)) });
@@ -282,24 +282,71 @@
       if (!silent) IST.toast('Fatih'); IST.bus.emit('district:exit', { id }); refreshBtn(); return true;
     }
 
-    /* bölgedeki trafik: yol ağı (B.net) üzerinde gidip gelen araçlar; yol sonunda U dönüşü yapar */
+    /* bölgedeki trafik: araçlar yol ağını (B.net) şerit çizgisi üzerinde takip eder; yol sonunda bağlı yola dönerek
+       (ya da köprüde olduğu gibi aynı hatta devam ederek) yoluna devam eder. Yolun ortasında U dönüşü YOK: eski sürümde
+       araçlar orta bariyere/kaldırıma çıkıp birbirlerinin içinden geçiyordu. */
+    const laneX = (r, dir) => r.c + (r.ax === 'v' ? (dir > 0 ? -1 : 1) : (dir > 0 ? 1 : -1)) * r.lo;   // vehicles: sağdan gidiş
+    const along = (r, x, z) => r.ax === 'v' ? z : x;
+    const pos = (r, s, l) => r.ax === 'v' ? [l, s] : [s, l];
+    function nextRoad(net, r, dir) {
+      const e = dir > 0 ? r.b : r.a, opts = [];
+      for (const n of net) {
+        if (n === r) continue;
+        if (n.ax === r.ax) { if (Math.abs(n.c - r.c) < .5 && Math.abs((dir > 0 ? n.a : n.b) - e) < .5) opts.push([n, dir, 3]); continue; }   // düz devam (köprü)
+        if (Math.abs(n.c - e) > .5 || r.c < n.a - .5 || r.c > n.b + .5) continue;
+        if (r.c < n.b - 10) opts.push([n, 1, 1]);
+        if (r.c > n.a + 10) opts.push([n, -1, 1]);
+      }
+      if (!opts.length) return [r, -dir];
+      let tot = 0; opts.forEach(o => tot += o[2]); let k = Math.random() * tot;
+      for (const o of opts) { k -= o[2]; if (k <= 0) return [o[0], o[1]]; }
+      return [opts[0][0], opts[0][1]];
+    }
     function makeCars(gr) {
-      const net = gr.net.filter(r => Math.abs(r.b - r.a) > 40), out = [], N = Math.min(26, 8 + net.length * 3);
-      if (!net.length) return out;
-      for (let n = 0; n < N; n++) {
-        const r = net[n % net.length], ax = r.ax === 'h' ? 1 : 0, dir = Math.random() < .5 ? -1 : 1, s = r.a + 15 + Math.random() * (r.b - r.a - 30);
-        const c = { ax, dir, rc: r.c, ln: 0, v: 0, cd: 0, vm: 8 + Math.random() * 4, m: new R.Group(), on: true, dist: { a: r.a, b: r.b } };
-        if (ax) { c.x = s; c.z = lane(c); } else { c.z = s; c.x = lane(c); }
-        c.a = hd(c); c.m.add(carMesh(aiPal[n % aiPal.length], (n * 3) % 6, c)); gr.g.add(c.m); out.push(c);
+      const net = gr.net, long = net.filter(r => Math.abs(r.b - r.a) > 40), out = [], N = Math.min(26, 8 + long.length * 3);
+      if (!long.length) return out;
+      for (let n = 0, tries = 0; n < N && tries < 400; tries++) {
+        const r = long[(Math.random() * long.length) | 0], dir = Math.random() < .5 ? -1 : 1, s = r.a + 15 + Math.random() * (r.b - r.a - 30), q = pos(r, s, laneX(r, dir));
+        if (out.some(o => Math.hypot(o.x - q[0], o.z - q[1]) < 14)) continue;
+        const c = { dist: { net, r, dir, nx: null }, ax: r.ax === 'h' ? 1 : 0, dir, rc: r.c, ln: 0, v: 0, cd: 0, vm: 8 + Math.random() * 4, m: new R.Group(), on: true, x: q[0], z: q[1] };
+        c.a = r.ax === 'v' ? (dir > 0 ? 0 : Math.PI) : (dir > 0 ? Math.PI / 2 : -Math.PI / 2);
+        c.m.add(carMesh(aiPal[n % aiPal.length], (n * 3) % 6, c)); c.m.position.set(c.x, 0, c.z); c.m.rotation.y = c.a; gr.g.add(c.m); out.push(c); n++;
       }
       return out;
     }
+    const wrapA = a => Math.atan2(Math.sin(a), Math.cos(a));
+    function distStep(c, dt) {
+      const D = c.dist; let r = D.r, dir = D.dir;
+      const s = along(r, c.x, c.z), e = dir > 0 ? r.b : r.a, left = (e - s) * dir;
+      if (!D.nx) D.nx = nextRoad(D.net, r, dir);
+      const [nr, nd] = D.nx, turning = nr !== r && nr.ax !== r.ax, uturn = nr === r;
+      // kavşağa girince yeni yola geç (dönüş yayı, yeni şeridin üzerindeki hedef noktası takip edilerek çizilir)
+      const sw = turning ? left < nr.lo + 3 : left < 1;
+      if (sw || left < -2) { D.r = r = nr; D.dir = dir = nd; D.nx = null; c.ax = r.ax === 'h' ? 1 : 0; c.dir = dir; c.rc = r.c; }
+      // hedef: şerit üzerinde 6 m ileri
+      const s2 = along(r, c.x, c.z), tgt = pos(r, s2 + dir * 6, laneX(r, dir)), want0 = Math.atan2(tgt[0] - c.x, tgt[1] - c.z);
+      const da = wrapA(want0 - c.a);
+      let want = c.vm;
+      const l2 = ((dir > 0 ? r.b : r.a) - s2) * dir;
+      if ((turning || uturn) && l2 < 22) want = Math.min(want, uturn ? 3 : 5.5);
+      if (Math.abs(da) > .25) want = Math.min(want, 5.5);
+      const sn = Math.sin(c.a), cs = Math.cos(c.a);
+      const chk = (ox, oz, gap) => { const x = ox - c.x, z = oz - c.z, fd = x * sn + z * cs, ld = Math.abs(x * cs - z * sn); if (fd > 0 && fd < 16 && ld < 2.3) want = Math.min(want, Math.max(0, fd - gap) * .9); };
+      c.stk = c.v < .3 ? (c.stk || 0) + dt : 0;
+      if (c.stk < 6) for (const o of ais) if (o !== c && o.on) chk(o.x, o.z, 6.5);
+      chk(car.x, car.z, 6.5);
+      c.v = Math.max(0, c.v + (c.v < want ? 3.5 : -9) * dt);
+      c.a = wrapA(c.a + Math.max(-2.6 * dt, Math.min(2.6 * dt, da)));
+      const px = c.x, pz = c.z;
+      c.x += Math.sin(c.a) * c.v * dt; c.z += Math.cos(c.a) * c.v * dt;
+      if (rectHit(c.x, c.z) && !rectHit(px, pz)) { c.x = px; c.z = pz; c.v = 0; }
+      if (c.sL) { const bo = ((performance.now() / 350) | 0) % 2, sg = da > .12 ? 1 : da < -.12 ? -1 : 0; c.sL.color.setHex(sg > 0 && bo ? 0xffa000 : 0x4a2c00); c.sR.color.setHex(sg < 0 && bo ? 0xffa000 : 0x4a2c00); }
+      VEH.tail(c.tl && c.tl.color, want < c.v - .4 || c.v < .4);
+      c.m.position.set(c.x, 0, c.z); c.m.rotation.y = c.a; c.m.visible = Math.abs(c.x - car.x) < 200 && Math.abs(c.z - car.z) < 200;
+    }
     if (typeof window.aiStep === 'function') {
       const o = window.aiStep;
-      window.aiStep = function (c, dt) {
-        o.apply(this, arguments);
-        if (c.dist) { const s = c.ax ? c.x : c.z; if ((c.dir > 0 && s > c.dist.b - 8) || (c.dir < 0 && s < c.dist.a + 8)) { c.dir = -c.dir; c.cd = 2; } }
-      };
+      window.aiStep = function (c, dt) { if (c.dist && c.dist.net) return distStep(c, dt); return o.apply(this, arguments); };
     }
 
     /* bölgedeki yayalar: yürür; araç çarparsa oyunun kendi kuralı (−15 puan, −50 ₺) uygulanır */
@@ -341,7 +388,7 @@
     }
     let btn = null;
     function refreshBtn() { if (btn) btn.textContent = world.cur ? "↩ Fatih'e dön" : '🏙 Bölgeler'; }
-    btn = IST.ui.menuButton('bDist', '🏙 Bölgeler', () => { if (world.cur && !panel.isOpen) { exit(); return; } panel.open(); });
+    btn = IST.ui.menuButton('bDist', '🏙 Bölgeler', () => { if (world.cur && !panel.isOpen) { exit(); return; } panel.open(); }, { inGame: true });
     IST.districts = { DEFS, enter, exit, _tick: tickPeds, isUnlocked, progress: P, get current() { return world.cur; }, _world: world };
   });
 })();
