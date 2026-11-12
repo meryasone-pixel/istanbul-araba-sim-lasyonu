@@ -307,7 +307,10 @@ function aiStep(c,dt){const px=c.x,pz=c.z;
   const ix=c.ax?bk:c.rc, iz=c.ax?c.rc:bk, sig=isLit(ix,iz), st=sig?light(c.ax,ix,iz):light(c.ax), dS=best-14;
   if(st!=='g'&&sig&&dS>-1.5&&dS<26&&!(st==='y'&&dS<5))want=Math.min(want,Math.max(0,dS)*1.2);
   const chk=(ox,oz)=>{const x=ox-c.x,z=oz-c.z,fd=x*sn+z*cs,ld=Math.abs(x*cs-z*sn);if(fd>0&&fd<16&&ld<2.4)want=Math.min(want,Math.max(0,fd-6.5)*.9);};
-  c.stk=c.v<.3?(c.stk||0)+dt:0; if(!(c.stk>10&&st==='g')){for(const o of ais)if(o!==c&&o.on)chk(o.x,o.z); chk(car.x,car.z); for(const q of People.cross)chk(q.x,q.z);}
+  c.stk=c.v<.3?(c.stk||0)+dt:0; if(!(c.stk>10&&st==='g')){for(const o of ais)if(o!==c&&o.on)chk(o.x,o.z); chk(car.x,car.z);}
+  /* karşıya geçen yaya: hem yayanın kendisine hem de geçidin tamamına bak (yaya yan şeritteyken de geçidin önünde dur).
+     Takılma istisnası yayalara uygulanmaz: yaya her zaman karşıya varır, araba onu ezip geçmez. */
+  for(const q of People.cross){chk(q.x,q.z);const k=q.ck;if(k&&k.mx!==undefined){const x=k.mx-c.x,z=k.mz-c.z,fd=x*sn+z*cs,ld=Math.abs(x*cs-z*sn);if(fd>0&&fd<20&&ld<7.5)want=Math.min(want,Math.max(0,fd-4.5)*.9);}}
   const tn=Math.abs(wrap(hd(c)-c.a))>.25; if(tn)want=Math.min(want,6.5);
   if(c.cd<=0&&best<18&&(c.nt||(bk>=297&&c.dir>0)||(bk<=-297&&c.dir<0)))want=Math.min(want,6);
   c.v=Math.max(0,c.v+(c.v<want?3.5:-9)*dt); VEH.tail(c.tl&&c.tl.color,want<c.v-.4||c.v<.4);

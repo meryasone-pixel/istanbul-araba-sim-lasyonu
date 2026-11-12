@@ -289,14 +289,14 @@
     return { ncx, ncz, s2, x0: a.x, z0: a.z, x1: b.x, z1: b.z, ax, road, sig: typeof isLit === 'function' ? isLit(iX, iZ) : iX === 27, mx: (a.x + b.x) / 2, mz: (a.z + b.z) / 2, iX, iZ };
   }
   function safeToCross(k) {
-    if (k.sig) { if (light(k.ax, k.iX, k.iZ) !== 'r') return false; }
-    else {
-      for (const c of ais) {
-        if (!c.on || c.ax !== k.ax || Math.abs(c.rc - k.road) > 1) continue;
-        const along = k.ax === 0 ? (k.mz - c.z) * c.dir : (k.mx - c.x) * c.dir;
-        if (along > -4 && along < 32 && c.v > .8) return false;
-        if (Math.abs(along) < 4) return false;
-      }
+    if (k.sig && light(k.ax, k.iX, k.iZ) !== 'r') return false;
+    // ışıklıda da yakındaki araca bak (sarıda girip geçmekte olan araç olabilir)
+    const lim = k.sig ? 14 : 32;
+    for (const c of ais) {
+      if (!c.on || c.ax !== k.ax || Math.abs(c.rc - k.road) > 1) continue;
+      const along = k.ax === 0 ? (k.mz - c.z) * c.dir : (k.mx - c.x) * c.dir;
+      if (along > -4 && along < lim && c.v > .8) return false;
+      if (Math.abs(along) < 4) return false;
     }
     const dx = k.mx - car.x, dz = k.mz - car.z, d = Math.hypot(dx, dz);
     if (d < 34 && Math.abs(car.v) > 2 && (dx * Math.sin(car.a) + dz * Math.cos(car.a)) * Math.sign(car.v) > -3) return false;
@@ -304,8 +304,30 @@
   }
 
   /* ---------- güncelleme ---------- */
-  let lastHorn = 0;
+  let lastHorn = 0, CUR = [];
+  /* kalabalık: önündeki yayaya çarpmamak için ya onu takip et (aynı yöne benzer hızda yürüyorsa) ya da yana kay */
+  function crowd(p, q) {
+    const hx = q.dx * p.dir, hz = q.dz * p.dir; let fv = null, lat = null, blk = false; const seen = new Set();
+    for (const o of CUR) {
+      if (o === p || o.st === 'hide' || o.ko > 0 || o.st === 'cross') continue;
+      // sohbet grubu tek engel sayılır (merkez + yarıçap); tek tek üyeler arasından geçmeye çalışmaz
+      let ox = o.x, oz = o.z, hw = .3, g = o.st === 'talk' && o.grp;
+      if (g) { if (seen.has(g)) continue; seen.add(g); ox = g.x; oz = g.z; let r = 0; for (const m of g.members) r = Math.max(r, Math.hypot(m.x - g.x, m.z - g.z)); hw = r + .3; }
+      const dx = ox - p.x, dz = oz - p.z; if (Math.abs(dx) > 3.5 || Math.abs(dz) > 3.5) continue;
+      const f = dx * hx + dz * hz, l = dx * q.nx + dz * q.nz;
+      if (f <= -(hw + .5) || f > 2.4 + hw || Math.abs(l) > hw + .3) continue;   // yan yanayken de kaçınmayı sürdür
+      const same = !g && o.st === 'walk' && o.dir === p.dir && o.cx === p.cx && o.cz === p.cz;
+      if (same) { if (f > 0 && f < 1.4) fv = fv === null ? Math.min(o.v, p.v) : Math.min(fv, o.v); continue; }   // aynı yöne: sollama yok, takip et
+      const up = cl(p.lat + l + hw + .3, -.6, 1.3), dn = cl(p.lat + l - hw - .3, -.6, 1.3), c0 = p.lat + l;   // engelin iki yanı
+      const okU = up - c0 >= hw + .25, okD = c0 - dn >= hw + .25;
+      let want = null; if (okU && okD) want = Math.abs(up - p.lat) < Math.abs(dn - p.lat) ? up : dn; else if (okU) want = up; else if (okD) want = dn;
+      if (want === null) { if (f < hw + 1) { fv = fv === null ? 0 : Math.min(fv, 0); blk = true; } }   // geçecek yer yok
+      else if (lat === null || Math.abs(want - p.lat) < Math.abs(lat - p.lat)) lat = want;
+    }
+    return { fv, lat, blk };
+  }
   PE.update = function (peds, dt, now) {
+    CUR = peds;
     const t = now / 1000, horn = (typeof hn !== 'undefined' && hn) ? 1 : 0, cs = Math.abs(car.v), fx = Math.sin(car.a), fz = Math.cos(car.a);
     const rain = FX.weather === 'rain';
     const hornNew = horn && !lastHorn; lastHorn = horn;
@@ -352,14 +374,18 @@
   };
 
   function walkStep(p, dt, t, rain) {
-    const sp = p.sp * (rain ? 1.15 : 1) * (p.phone && p.st === 'walk' ? .85 : 1);
-    p.v += (sp - p.v) * Math.min(1, dt * 2);
+    const cr = crowd(p, perim(p.cx, p.cz, p.s, p.lat));
+    if (cr.blk) { p.blkT = (p.blkT || 0) + dt; if (p.blkT > 1.5) { p.dir = -p.dir; p.blkT = 0; } } else p.blkT = 0;   // yol kapalıysa geri dön
+    let sp = p.sp * (rain ? 1.15 : 1) * (p.phone && p.st === 'walk' ? .85 : 1);
+    if (cr.fv !== null) sp = Math.min(sp, cr.fv);
+    p.v += (sp - p.v) * Math.min(1, dt * (cr.fv !== null ? 4 : 2));
     const s0 = p.s; p.s += p.dir * p.v * dt;
     // mobilya çevresinde şerit değiştir
     const q0 = perim(p.cx, p.cz, p.s, p.lat), f = FURN[p.cx + ',' + p.cz + ',' + q0.sd];
     let lt = p.base * (p.dir > 0 ? 1 : .6) + (p.dir > 0 ? .1 : -.15);
     if (f && Math.abs(q0.t) < 2.4) lt = f === 'b' ? Math.max(lt, .3) : Math.min(lt, -.38);
-    p.latT = lt; p.lat += (p.latT - p.lat) * Math.min(1, dt * 1.5);
+    if (cr.lat !== null) lt = cr.lat;
+    p.latT = lt; p.lat += (p.latT - p.lat) * Math.min(1, dt * (cr.lat !== null ? 3.5 : 1.5));
     const q = perim(p.cx, p.cz, p.s, p.lat); p.x = q.x; p.z = q.z; p.y += (.3 - p.y) * Math.min(1, dt * 8);
     p.yaw += wrapA(Math.atan2(q.dx * p.dir, q.dz * p.dir) - p.yaw) * Math.min(1, dt * 5);
     p.ph += p.v / 1.38 * Math.PI * 2 * dt;
@@ -367,6 +393,9 @@
     const sd0 = (((s0 % PER) + PER) % PER / 38) | 0, t0 = ((s0 % PER) + PER) % PER % 38 - 19;
     if (sd0 === q.sd) for (const cwt of [-CW, CW]) if ((t0 - cwt) * (q.t - cwt) < 0 && Math.random() < .22) {
       const k = crossInfo(p, { sd: q.sd, t: cwt }); if (!k) break;
+      // aynı geçitte bekleyen/geçenler varsa yan yana dur (üst üste değil)
+      let n = 0; for (const o of CUR) if (o !== p && (o.st === 'wait' || o.st === 'cross') && o.ck && Math.abs(o.ck.x0 - k.x0) + Math.abs(o.ck.z0 - k.z0) < .6) n++;
+      p.cOff = [0, .55, -.55, 1.1, -1.1][n % 5];
       p.ck = k; p.st = 'wait'; p.tSt = 0; p.wx0 = p.x; p.wz0 = p.z; return;
     }
     if (Math.random() < dt * .012) { p.st = 'stand'; p.tSt = rr(2, 6); p.look = 'shop'; p.lookT = p.tSt; }
@@ -374,13 +403,16 @@
   function waitStep(p, dt, t) {
     const k = p.ck; p.tSt += dt; p.v = Math.max(0, p.v - dt * 3);
     // kaldırım kenarına yürü
-    const tx = k.x0, tz = k.z0, ddx = tx - p.x, ddz = tz - p.z, dd = Math.hypot(ddx, ddz);
+    const pr = cPerp(k), off = p.cOff || 0;
+    const tx = k.x0 + pr[0] * off, tz = k.z0 + pr[1] * off, ddx = tx - p.x, ddz = tz - p.z, dd = Math.hypot(ddx, ddz);
     if (dd > .05) { const st = Math.min(dd, 1.2 * dt); p.x += ddx / dd * st; p.z += ddz / dd * st; p.ph += 1.2 / 1.38 * Math.PI * 2 * dt; p.v = 1.1; }
     p.yaw += wrapA(Math.atan2(k.x1 - k.x0, k.z1 - k.z0) - p.yaw) * Math.min(1, dt * 4);
     p.look = 'road'; p.lookT = .2;
     if (p.tSt > 1 && safeToCross(k)) { p.st = 'cross'; p.cd = 0; p.clen = Math.hypot(k.x1 - k.x0, k.z1 - k.z0); PE.cross.push(p); return; }
     if (p.tSt > 45) { p.st = 'walk'; p.dir = -p.dir; }
   }
+  /* geçit çizgisine dik birim vektör: yürüme yönünün sağı (karşıdan gelen için ters taraf) */
+  function cPerp(k) { const dx = k.x1 - k.x0, dz = k.z1 - k.z0, l = Math.hypot(dx, dz) || 1; return [-dz / l, dx / l]; }
   function crossStep(p, dt, t) {
     const k = p.ck;
     let run = 0; const dx = p.x - car.x, dz = p.z - car.z, d = Math.hypot(dx, dz);
@@ -388,7 +420,9 @@
     for (const c of ais) { if (c.on && c.v > 3 && Math.abs(c.x - p.x) + Math.abs(c.z - p.z) < 16) { run = Math.max(run, .6); break; } }
     const sp = p.sp * 1.1 + run * 1.9; p.v += (sp - p.v) * Math.min(1, dt * 3);
     p.cd += p.v * dt; const u = Math.min(1, p.cd / p.clen);
-    p.x = k.x0 + (k.x1 - k.x0) * u; p.z = k.z0 + (k.z1 - k.z0) * u;
+    // geçitte sağdan yürü (karşıdan gelenle çarpışmasın) + bekleme sırasındaki yan kayma
+    const pr = cPerp(k), off = (p.cOff || 0) + .4 * Math.min(1, u * 5, (1 - u) * 5);
+    p.x = k.x0 + (k.x1 - k.x0) * u + pr[0] * off; p.z = k.z0 + (k.z1 - k.z0) * u + pr[1] * off;
     const onRoad = p.cd > .4 && p.clen - p.cd > .4; p.y += ((onRoad ? .03 : .3) - p.y) * Math.min(1, dt * 14);
     p.yaw += wrapA(Math.atan2(k.x1 - k.x0, k.z1 - k.z0) - p.yaw) * Math.min(1, dt * 6);
     p.ph += p.v / (1.38 + run * .7) * Math.PI * 2 * dt; p.run = run;

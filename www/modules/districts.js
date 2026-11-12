@@ -81,6 +81,22 @@
         },
         people(n, rand) {                 // yaya çizgileri (B.walk) boyunca gezen, kol-bacak sallayan insanlar
           if (!B.walk.length || !n) return null;
+          /* yürüme çizgilerini yollardan kes: yaya taşıt yoluna girmez (eskiden bazı çizgiler yolun ortasına uzanıyordu) */
+          { const RD = B.net.map(r => { const h = (r.h || r.lo + 3) + .4; return r.ax === 'v' ? [r.c - h, r.c + h, Math.min(r.a, r.b), Math.max(r.a, r.b)] : [Math.min(r.a, r.b), Math.max(r.a, r.b), r.c - h, r.c + h]; });
+            const out = [];
+            for (const L of B.walk) {
+              const dx = L.x1 - L.x0, dz = L.z1 - L.z0, len = Math.hypot(dx, dz) || 1, cut = [];
+              for (const [xa, xb, za, zb] of RD) {   // Liang–Barsky: çizginin dikdörtgen içindeki [t0,t1] aralığı
+                let t0 = 0, t1 = 1, ok = true;
+                for (const [p, q] of [[-dx, L.x0 - xa], [dx, xb - L.x0], [-dz, L.z0 - za], [dz, zb - L.z0]]) {
+                  if (p === 0) { if (q < 0) { ok = false; break; } } else { const r = q / p; if (p < 0) t0 = Math.max(t0, r); else t1 = Math.min(t1, r); }
+                }
+                if (ok && t0 < t1) cut.push([t0, t1]);
+              }
+              cut.sort((a, b) => a[0] - b[0]); let s = 0;
+              for (const [a, b] of cut.concat([[1, 1]])) { if ((a - s) * len >= 4) out.push({ x0: L.x0 + dx * s, z0: L.z0 + dz * s, x1: L.x0 + dx * a, z1: L.z0 + dz * a }); s = Math.max(s, b); }
+            }
+            if (out.length) { B.walk.length = 0; out.forEach(l => B.walk.push(l)); } }
           const IM = (geo, cnt) => { const m = new R.InstancedMesh(geo, new R.MeshLambertMaterial({ color: 0xffffff }), cnt); m.frustumCulled = false; g.add(m); return m; };
           const mT = IM(new R.CylinderGeometry(.2, .165, .54, 8), n), mP = IM(new R.CylinderGeometry(.165, .17, .2, 8), n), mH = IM(new R.SphereGeometry(.115, 8, 6), n),
             mR = IM(new R.SphereGeometry(.127, 8, 6, 0, Math.PI * 2, 0, Math.PI * .58), n), mL = IM(new R.CylinderGeometry(.085, .06, .86, 6), 2 * n),
@@ -99,11 +115,16 @@
           const part = (m, i, x, y, z, rx, sz) => { l.position.set(x, y, z); l.rotation.set(rx || 0, 0, 0); l.scale.set(1, 1, sz || 1); l.updateMatrix(); OUT.multiplyMatrices(B0, l.matrix); m.setMatrixAt(i, OUT); },
             limb = (m, i, px, py, ang, ox, oy, oz) => { l.position.set(px, py, 0); l.rotation.set(ang, 0, 0); l.scale.set(1, 1, 1); l.updateMatrix(); TM.makeTranslation(ox, oy, oz); OUT.multiplyMatrices(B0, l.matrix).multiply(TM); m.setMatrixAt(i, OUT); };
           const all = [mT, mP, mH, mR, mL, mS, mA, mD];
+          /* aynı çizgidekiler: sağdan yürü (karşıdan gelenle yan yana geç), aynı yöne gidende sollama yok — öndekini takip et */
+          const byL = new Map(); W.forEach(w => { if (!byL.has(w.L)) byL.set(w.L, []); byL.get(w.L).push(w); });
           const api = { W, update(dt, hit) {
             for (let i = 0; i < n; i++) {
               const w = W[i], L = w.L, len = Math.hypot(L.x1 - L.x0, L.z1 - L.z0) || 1;
-              if (w.down > 0) w.down -= dt; else { w.t += w.dir * w.sp * dt / len; if (w.t > 1 || w.t < 0) { w.dir = -w.dir; w.t = Math.max(0, Math.min(1, w.t)); } w.ph += dt * 7; }
-              w.x = L.x0 + (L.x1 - L.x0) * w.t; w.z = L.z0 + (L.z1 - L.z0) * w.t;
+              let sp = w.sp; for (const o of byL.get(L)) { if (o === w || o.dir !== w.dir || o.down > 0) continue; const ah = (o.t - w.t) * w.dir * len; if (ah > 0 && ah < 1.3) sp = Math.min(sp, o.sp * Math.max(0, (ah - .6) / .7)); }
+              if (w.down > 0) w.down -= dt; else { w.t += w.dir * sp * dt / len; if (w.t > 1 || w.t < 0) { w.dir = -w.dir; w.t = Math.max(0, Math.min(1, w.t)); } w.ph += dt * 7 * Math.min(1, sp / w.sp + .2); }
+              w.k = (w.k === undefined ? w.dir : w.k) + (w.dir - (w.k === undefined ? w.dir : w.k)) * Math.min(1, dt * 2);   // dönüşte yumuşak yan geçiş
+              const off = w.k * .4, nx = -(L.z1 - L.z0) / len, nz = (L.x1 - L.x0) / len;
+              w.x = L.x0 + (L.x1 - L.x0) * w.t + nx * off; w.z = L.z0 + (L.z1 - L.z0) * w.t + nz * off;
               if (hit && w.down <= 0 && hit(w)) w.down = 3;
               const lay = w.down > 0, ry = Math.atan2((L.x1 - L.x0) * w.dir, (L.z1 - L.z0) * w.dir), sw = lay ? 0 : Math.sin(w.ph) * .7, bob = lay ? 0 : Math.abs(Math.sin(w.ph)) * .03;
               o.position.set(w.x, lay ? .3 : .05 + bob, w.z); o.rotation.set(lay ? 1.5 : 0, ry, 0); o.scale.set(w.sc, w.sc, w.sc); o.updateMatrix(); B0.copy(o.matrix);
@@ -183,8 +204,8 @@
     /* vx: dikey yollar {c,h,a?,b?,dash?}  hz: yatay yollar. Her yolun iki ucu başka bir yolda biter (çıkmaz sokak yok). */
     function roads(B, vx, hz, o) {
       o = o || {}; const za = Math.min.apply(0, hz.map(h => h.c)), zb = Math.max.apply(0, hz.map(h => h.c)), xa = Math.min.apply(0, vx.map(v => v.c)), xb = Math.max.apply(0, vx.map(v => v.c));
-      vx.forEach(v => { v.a = v.a === undefined ? za : v.a; v.b = v.b === undefined ? zb : v.b; B.road(v.c, v.a, v.c, v.b, v.h * 2); B.net.push({ ax: 'v', c: v.c, a: v.a, b: v.b, lo: v.lo || (v.h > 8 ? 6 : 2.6) }); });
-      hz.forEach(h => { h.a = h.a === undefined ? xa : h.a; h.b = h.b === undefined ? xb : h.b; B.road(h.a, h.c, h.b, h.c, h.h * 2); B.net.push({ ax: 'h', c: h.c, a: h.a, b: h.b, lo: h.lo || (h.h > 8 ? 6 : 2.6) }); });
+      vx.forEach(v => { v.a = v.a === undefined ? za : v.a; v.b = v.b === undefined ? zb : v.b; B.road(v.c, v.a, v.c, v.b, v.h * 2); B.net.push({ ax: 'v', c: v.c, a: v.a, b: v.b, lo: v.lo || (v.h > 8 ? 6 : 2.6), h: v.h }); });
+      hz.forEach(h => { h.a = h.a === undefined ? xa : h.a; h.b = h.b === undefined ? xb : h.b; B.road(h.a, h.c, h.b, h.c, h.h * 2); B.net.push({ ax: 'h', c: h.c, a: h.a, b: h.b, lo: h.lo || (h.h > 8 ? 6 : 2.6), h: h.h }); });
       vx.forEach(v => {
         const cuts = hz.filter(h => h.c > v.a && h.c < v.b);
         segs(v.a, v.b, cuts, 1).forEach(sg => { (v.dash || [0]).forEach(d => B.dash(v.c + d, sg[0], v.c + d, sg[1]));
