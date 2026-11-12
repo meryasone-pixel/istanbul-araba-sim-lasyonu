@@ -204,12 +204,6 @@
           dn.textContent = '🔥 Günün fırsatı: ' + dl.name; ds.textContent = priceOf(dl) + ' altın (normal ' + dl.price + ') • bugün geçerli'; dd.append(dn, ds);
           const db = document.createElement('button'); db.className = 'ist-btn'; db.textContent = 'Al'; db.onclick = () => buyItem(dl.id); dr.append(dd, db); b.appendChild(dr);
         } }
-      if (typeof repairCar === 'function') {              // araba yenileme (250 ₺)
-        const rr = document.createElement('div'); rr.className = 'ist-row'; const rd = document.createElement('div'), rn = document.createElement('b'), rs2 = document.createElement('small');
-        rn.textContent = '🔧 Arabayı yenile'; rs2.textContent = 'Hasar: %' + Math.round(dmg) + ' · ' + (repFree() ? 'ÜCRETSİZ' : RP + ' altın') + ((G.debt || 0) > 0 ? ' · Çekici borcu: ' + G.debt + ' ₺' : ''); rd.append(rn, rs2);
-        const rb = document.createElement('button'); rb.className = 'ist-btn'; rb.textContent = needRp() ? 'Yenile — ' + (repFree() ? 'ÜCRETSİZ' : RP + ' ₺') : 'Araba sağlam ✓'; rb.disabled = !needRp();
-        rb.onclick = () => { repairCar(); refresh(); }; rr.append(rd, rb); b.appendChild(rr);
-      }
       if (tab === 'iap') {
         if (!provider) { const n = document.createElement('small'); n.textContent = 'Not: Google Play ödemesi bu cihazda hazır değil (eklenti/ürünler eksik).'; b.appendChild(n); }
         IAP.slice().sort((x, y) => (y.id === 'starter_pack') - (x.id === 'starter_pack')).forEach(p => {
@@ -234,6 +228,12 @@
       });
     }
     IST.ui.menuButton('bShop', '🛒 Mağaza', () => panel.open());
+    /* araba yenileme: mağazadan çıkarıldı, ana menüde ayrı düğme */
+    if (typeof repairCar === 'function') {
+      const rb = IST.ui.menuButton('bRepair', '🔧 Arabayı yenile', () => { repairCar(); upRep(); });
+      function upRep() { try { rb.textContent = needRp() ? '🔧 Arabayı yenile — ' + (repFree() ? 'ÜCRETSİZ' : RP + ' ₺') + ' (hasar %' + Math.round(dmg) + ')' : '🔧 Araba sağlam ✓'; } catch (e) {} }
+      upRep(); setInterval(upRep, 1000);
+    }
     initProvider().then(refresh);
     IST.bus.on('ready', applyAll); applyAll();
     IST.bus.on('mission:done', () => { if (!S.iap.starter_pack && !S.nudged) { S.nudged = 1; save(); setTimeout(() => IST.toast('⭐ Başlangıç Paketi Mağaza\'da seni bekliyor'), 2500); } });
