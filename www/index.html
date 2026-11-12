@@ -128,9 +128,7 @@ slab(4,1.4,3000,0xb5a58c,308,-.3,0);
 const sea=new R.Mesh(new R.PlaneGeometry(1500,3000),FX.makeSea());
 sea.rotation.x=-Math.PI/2; sea.position.set(1060,-.8,0); scene.add(sea);
 const road=new R.Mesh(new R.PlaneGeometry(632,632),FX.makeRoad(79));
-road.rotation.x=-Math.PI/2; road.position.set(-8,.02,0); road.receiveShadow=true; scene.add(road);
-{const m=road.material;if(m&&!Array.isArray(m)){m.polygonOffset=true;m.polygonOffsetFactor=-2;m.polygonOffsetUnits=-2;}} /* z-fighting (titreme) önlemi */
-const dc=document.createElement('canvas'); dc.width=64; dc.height=8;
+road.rotation.x=-Math.PI/2; road.position.set(-8,.02,0); road.receiveShadow=true; scene.add(road);const dc=document.createElement('canvas'); dc.width=64; dc.height=8;
 const dx=dc.getContext('2d'); dx.fillStyle='#e9dfc9'; dx.fillRect(0,0,32,8);
 const dash=new R.CanvasTexture(dc); dash.wrapS=R.RepeatWrapping; dash.repeat.set(83,1);
 const dashM=new R.MeshBasicMaterial({map:dash,transparent:true});
@@ -192,7 +190,7 @@ inst(disc,mNS,AP.filter(a=>!a.ax).length,p=>{for(const a of AP)if(!a.ax)p(a.x-a.
 inst(disc,mEW,AP.filter(a=>a.ax).length,p=>{for(const a of AP)if(a.ax)p(a.x-a.fx*.31,4.6,a.z-a.fz*.31,ry0(a));});
 inst(new R.BoxGeometry(.34,.5,.34),mat(0x1b1b20),AP.length,p=>{for(const a of AP)p(a.x,2.7,a.z,ry0(a));});
 for(const [m,ax] of[[pNS,0],[pEW,1]])inst(dsm,m,AP.length,p=>{for(const a of AP)if(a.ax===ax)for(const sd of[1,-1]){p(a.x-a.fz*sd*.2,2.7,a.z+a.fx*sd*.2,Math.atan2(-a.fz*sd,a.fx*sd));}});
-City.crossings();FX.reflHide.push(...City.marks);if(City.pools)FX.reflHide.push(City.pools);
+City.crossings();FX.reflHide.push(...City.marks);for(const k of City.marks){const m=k.material;m.polygonOffset=true;m.polygonOffsetFactor=-4;m.polygonOffsetUnits=-4;}if(City.pools)FX.reflHide.push(City.pools);
 
 // Köprü ve vapur
 rects.push([308,0,1.8,330]);
@@ -505,7 +503,7 @@ function mStep(dt){if(!cm)return;const m=cm;
  else{m.t-=dt;const c=m.cps[m.k];if(Math.hypot(c.x-car.x,c.z-car.z)<8){m.k++;if(m.k>=3)return doneM(3);beam.position.set(m.cps[m.k].x,80,m.cps[m.k].z);msg('Kontrol noktası '+m.k+'/3');}if(m.t<=0)return failM();mh.textContent='🏁 Kontrol '+(m.k+1)+'/3 · '+Math.ceil(m.t)+' sn';const c2=m.cps[m.k];arrow(c2.x,c2.z);}}
 const visS=new Set(),mx=document.createElement('div');mx.style.cssText=mon.style.cssText;document.body.appendChild(mx);
 const rlG=new R.PlaneGeometry(9,.6);rlG.rotateX(-Math.PI/2);
-const rl=new R.InstancedMesh(rlG,new R.MeshBasicMaterial({color:0xff2a2a}),1728),rd=new R.Object3D();rl.frustumCulled=false;
+const rl=new R.InstancedMesh(rlG,new R.MeshBasicMaterial({color:0xff2a2a,polygonOffset:true,polygonOffsetFactor:-8,polygonOffsetUnits:-8}),1728),rd=new R.Object3D();rl.frustumCulled=false;
 {const z0=new R.Matrix4().makeScale(0,0,0);for(let i=0;i<1728;i++)rl.setMatrixAt(i,z0);}
 const rlOK=(ax,u)=>ax?(u>=1&&u<=70):(u>=1&&u<=69);
 let RT=0;for(let ax=0;ax<2;ax++)for(let u=0;u<72;u++)if(rlOK(ax,u))RT+=12;
