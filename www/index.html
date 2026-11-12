@@ -64,6 +64,23 @@ body.mn .r .tb,body.mn #reset{display:block}
 #smenu{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 4px}#smenu button{padding:10px 14px;border-radius:12px;border:0;background:var(--glass);color:var(--ink);font-size:14px;font-weight:600;cursor:pointer}
 #start #panel{position:static;display:none;margin:8px 0;min-width:0}#start #panel label{display:block;margin:6px 0}
 #mini{position:fixed;inset:auto;left:18px;top:calc(env(safe-area-inset-top,0px) + 112px);width:128px;height:128px;border-radius:14px;background:var(--glass);pointer-events:none}
+/* oyun içi ☰ menü ekrana sığmazsa kaydırılabilir (telefon yatayda 11 düğme ekrandan taşıyordu) */
+body.mn #hud .r{max-height:calc(100vh - env(safe-area-inset-top,0px) - 16px);overflow-y:auto;pointer-events:auto;padding-bottom:8px;touch-action:pan-y}
+/* kısa ekranlar (telefon yatay ~360-420 px): başlangıç ekranı sıkışık, "Sürmeye başla" hep görünür */
+@media (max-height:520px){
+ #start{padding:10px 16px}
+ #start h1{font-size:30px;margin:0 0 6px}
+ #start p{font-size:13px;margin:0 0 4px;line-height:1.35}
+ #start small{font-size:12px;margin:6px 0 8px;line-height:1.4}
+ .menu{gap:6px;margin:6px 0 2px}
+ .seg button{padding:6px 11px;font-size:13px}
+ #smenu button{padding:7px 11px;font-size:13px}
+ #go{position:sticky;bottom:0;padding:11px 22px;font-size:16px;box-shadow:0 4px 18px rgba(0,0,0,.35)}
+ #hud{padding:8px 12px}
+ #speed{min-width:110px;padding:4px 12px 8px}#speed b{font-size:26px}
+ .tb{padding:6px 12px;font-size:13px}
+ .pad{padding:10px 16px}
+}
 </style>
 </head>
 <body>
