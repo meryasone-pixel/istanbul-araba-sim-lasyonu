@@ -68,15 +68,15 @@
       },
       play: {   /* cordova-plugin-purchase v13  (npm i cordova-plugin-purchase && npx cap sync) */
         name: 'play', ready: false, pending: {},
-        init(onGrant) {
+        init(onGrant, onOwned) {
           const C = window.CdvPurchase; if (!C) return Promise.reject(new Error('cordova-plugin-purchase yok'));
           const st = this.st = C.store, P = this.P = C.Platform.GOOGLE_PLAY;
           st.register(IAP.map(p => ({ id: p.id, type: p.kind === 'c' ? C.ProductType.CONSUMABLE : C.ProductType.NON_CONSUMABLE, platform: P })));
           st.when().approved(t => {                      // SUNUCU DOĞRULAMASI için: t.verify() ve .verified() kullanın (README)
             t.products.forEach(pr => onGrant(pr.id, t.transactionId));
             t.finish();
-          });
-          return st.initialize([P]).then(() => { this.ready = true; });
+          }).productUpdated(p => { if (p && p.owned) onOwned(p.id); });   // daha önce alınmış tek seferlik ürünler (yeniden kurulum / geri yükleme)
+          return st.initialize([P]).then(() => { this.ready = true; IAP.forEach(x => { const p = st.get(x.id, P); if (p && p.owned) onOwned(x.id); }); });
         },
         price(id) { try { const p = this.st.get(id, this.P), o = p && p.getOffer(); return (o && o.pricingPhases[0].price) || ''; } catch (e) { return ''; } },
         purchase(id) {
@@ -97,10 +97,24 @@
       save(); IST.bus.emit('shop:changed', { id }); refresh(); applyAll();
       IST.toast(p.title + ' etkinleştirildi');
     }
+    /* daha önce satın alınmış tek seferlik ürünü (VIP, reklamsız, başlangıç paketi) geri ver — altın bonusu tekrar verilmez */
+    function markOwned(id) {
+      const p = IAP.find(x => x.id === id); if (!p || p.kind !== 'nc' || S.iap[id]) return;
+      S.iap[id] = true; save(); IST.bus.emit('shop:changed', { id }); refresh(); applyAll();
+      IST.toast(p.title + ' geri yüklendi');
+    }
+    /* Android uygulamasında ödeme eklentisi 'deviceready' ile hazır olur: en fazla 6 sn bekle */
+    function waitStore() {
+      if (window.CdvPurchase) return Promise.resolve();
+      const native = !!(window.cordova || (window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()));
+      if (!native) return Promise.resolve();
+      return new Promise(r => { let done = false; const f = () => { if (!done) { done = true; r(); } }; document.addEventListener('deviceready', f, { once: true }); setTimeout(f, 6000); });
+    }
     async function initProvider() {
       try {
+        if (cfg.mock !== true) await waitStore();
         provider = cfg.mock === true ? providers.mock : (window.CdvPurchase ? providers.play : null);
-        if (provider) await provider.init(grant);
+        if (provider) await provider.init(grant, markOwned);
       } catch (e) { console.warn('[IST shop] ödeme sağlayıcı başlatılamadı:', e.message); provider = null; }
     }
 
