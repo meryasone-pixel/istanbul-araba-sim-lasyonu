@@ -30,7 +30,7 @@
         solid(w, h, d, c, x, y, z) { B.rect(x, z, w / 2, d / 2); return B.box(w, h, d, c, x, y, z); },
         plane(w, d, c, x, y, z) { const o = new R.Mesh(new R.PlaneGeometry(w, d), typeof c === 'number' ? M(c) : c); o.rotation.x = -Math.PI / 2; o.position.set(x, y, z); o.receiveShadow = true; g.add(o); return o; },
         sea(w, d, x, z, y) { return B.plane(w, d, sea.material, x, y, z); },
-        road(x0, z0, x1, z1, w, c) { return z0 === z1 ? B.plane(Math.abs(x1 - x0), w, c || 0x3b3a42, (x0 + x1) / 2, .03, z0) : B.plane(w, Math.abs(z1 - z0), c || 0x3b3a42, x0, .03, (z0 + z1) / 2); },
+        road(x0, z0, x1, z1, w, c) { const rm = c || (window.FX && FX.roadMat) || 0x3b3a42; return z0 === z1 ? B.plane(Math.abs(x1 - x0), w, rm, (x0 + x1) / 2, .03, z0) : B.plane(w, Math.abs(z1 - z0), rm, x0, .03, (z0 + z1) / 2); },
         dash(x0, z0, x1, z1) {           // kesik şerit çizgisi
           const len = Math.hypot(x1 - x0, z1 - z0); if (len < 3) return;
           let mm; if (typeof dash2 !== 'undefined') { const t = dash2.clone(); t.needsUpdate = true; t.repeat.set(len / 7.6, 1); mm = new R.MeshBasicMaterial({ map: t, transparent: true }); } else mm = new R.MeshBasicMaterial({ color: 0xffffff });
