@@ -14,6 +14,20 @@
     function Builder() {
       const R = THREE, g = new R.Group(), rc = [], cache = {}, sideCache = {}; g.userData.__ist = true;
       const M = c => cache[c] || (cache[c] = mat(c));
+      /* süs nesneleri: hepsi türüne göre tek bir InstancedMesh'te toplanır (finish'te), çizim çağrısı artmaz */
+      const dr = rng(7), drr = (a, b) => a + dr() * (b - a), dpk = a => a[(dr() * a.length) | 0], DQ = {};
+      const lowQ = () => !!(window.FX && FX.Q === 0);
+      const GEO = {
+        box: () => new R.BoxGeometry(1, 1, 1),
+        roof: () => { const q = new R.ConeGeometry(Math.SQRT1_2, 1, 4); q.rotateY(Math.PI / 4); return q; },
+        trunk: () => new R.CylinderGeometry(.75, 1, 1, 6),
+        crown: () => (window.City && City.treeGeo ? City.treeGeo() : new R.IcosahedronGeometry(1, 0)),
+        bush: () => new R.IcosahedronGeometry(1, 1),
+        cyl: () => new R.CylinderGeometry(1, 1, 1, 14)
+      }, SHADOW = { box: true, roof: true, trunk: true, crown: true };
+      const TC = [0x4f7a3a, 0x5d8c43, 0x3f6b34, 0x6b9a4d, 0x7fa356, 0x8a9a3e, 0x557f3c];
+      const TILE = [0xb5523b, 0xa4462f, 0xc0644a, 0x8f3d2c];
+      const FLW = [0xe53935, 0xfdd835, 0xf06292, 0xffffff, 0xab47bc, 0xff9800];
       let winTex = null;
       function windows() {
         if (winTex) return winTex;
@@ -27,6 +41,16 @@
         mesh(geo, m, x, y, z) { const o = new R.Mesh(geo, typeof m === 'number' ? M(m) : m); o.position.set(x, y, z); o.castShadow = true; g.add(o); return o; },
         box(w, h, d, c, x, y, z, ry) { const o = B.mesh(new R.BoxGeometry(w, h, d), c, x, y + h / 2, z); if (ry) o.rotation.y = ry; return o; },
         rect(x, z, hw, hd) { rc.push([x, z, hw, hd]); },
+        deco(k, x, y, z, sx, sy, sz, ry, c) { (DQ[k] || (DQ[k] = [])).push([x, y, z, sx, sy, sz, ry || 0, c]); },
+        lowQ, dr, drr, dpk, FLW,
+        bush(x, z, s, c) { B.deco('bush', x, .45 * s, z, s, .8 * s, s, dr() * 6.28, c); },
+        bench(x, z, ry) {                  // oturak + sırtlık + ayak
+          const sx = Math.sin(ry), sz = Math.cos(ry);
+          B.deco('box', x, .25, z, 2, .45, .45, ry, 0x4e4e52);
+          B.deco('box', x, .5, z, 2.4, .1, .7, ry, 0x8d6e63);
+          B.deco('box', x - sx * .32, .85, z - sz * .32, 2.4, .45, .1, ry, 0x8d6e63);
+          B.rect(x, z, Math.abs(sz) * 1.2 + Math.abs(sx) * .4, Math.abs(sx) * 1.2 + Math.abs(sz) * .4);
+        },
         solid(w, h, d, c, x, y, z) { B.rect(x, z, w / 2, d / 2); return B.box(w, h, d, c, x, y, z); },
         plane(w, d, c, x, y, z) { const o = new R.Mesh(new R.PlaneGeometry(w, d), typeof c === 'number' ? M(c) : c); o.rotation.x = -Math.PI / 2; o.position.set(x, y, z); o.receiveShadow = true; g.add(o); return o; },
         sea(w, d, x, z, y) { return B.plane(w, d, sea.material, x, y, z); },
@@ -40,7 +64,20 @@
           const geo = new R.BoxGeometry(w, h, d), uv = geo.attributes.uv;
           for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * (w + d) / 12, uv.getY(i) * h / 6);
           const m = sideCache[c] || (sideCache[c] = (typeof nm === 'function' ? nm(c) : new R.MeshLambertMaterial({ color: c })));
-          const o = new R.Mesh(geo, m); o.position.set(x, h / 2 + .3, z); o.castShadow = o.receiveShadow = true; g.add(o); B.rect(x, z, w / 2, d / 2); return o;
+          const o = new R.Mesh(geo, m); o.position.set(x, h / 2 + .3, z); o.castShadow = o.receiveShadow = true; g.add(o); B.rect(x, z, w / 2, d / 2);
+          const top = h + .3, dk = new R.Color(c).multiplyScalar(.74).getHex();
+          B.deco('box', x, .75, z, w + .16, 1, d + .16, 0, dk);                         // zemin kat kuşağı
+          if (h < 20 && dr() < .5) {                                                     // kiremit çatı
+            B.deco('box', x, top + .15, z, w + .5, .3, d + .5, 0, 0xe8e0d0);
+            B.deco('roof', x, top + .3 + Math.min(w, d) * .14, z, w + .4, Math.min(w, d) * .28, d + .4, 0, dpk(TILE));
+          } else {                                                                       // düz çatı: korniş + çatı üstü
+            B.deco('box', x, top - .05, z, w + .5, .5, d + .5, 0, dk);
+            if (!lowQ()) {
+              if (dr() < .6) B.deco('box', x + drr(-w / 4, w / 4), top + .55, z + drr(-d / 4, d / 4), 2, 1, 1.4, 0, 0xb8bcc0);
+              if (dr() < .35) B.deco('cyl', x + drr(-w / 4, w / 4), top + .9, z + drr(-d / 4, d / 4), 1, 1.8, 1, 0, 0xdedede);
+            }
+          }
+          return o;
         },
         people(n, rand) {                 // yaya çizgileri (B.walk) boyunca gezen, kol-bacak sallayan insanlar
           if (!B.walk.length || !n) return null;
@@ -81,15 +118,38 @@
           } };
           api.update(0); all.forEach(m => { if (m.instanceColor) m.instanceColor.needsUpdate = true; }); return api;
         },
-        trees(pts) {
-          if (!pts.length) return; const t = new R.InstancedMesh(new R.CylinderGeometry(.25, .3, 2, 5), M(0x6d4c41), pts.length), k = new R.InstancedMesh(new R.IcosahedronGeometry(1.7, 0), M(0x4f9a4a), pts.length), o = new R.Object3D();
-          pts.forEach((p, i) => { const s = p[2] || 1; o.scale.set(s, s, s); o.position.set(p[0], s, p[1]); o.updateMatrix(); t.setMatrixAt(i, o.matrix); o.position.set(p[0], 3.2 * s, p[1]); o.updateMatrix(); k.setMatrixAt(i, o.matrix); });
-          t.frustumCulled = k.frustumCulled = false; g.add(t, k);
+        /* ağaç: gövde + dolgun tepe; her ağacın gövdesine çarpışma kutusu eklenir (araç artık içinden geçmez) */
+        trees(pts, op) {
+          op = op || {}; const lq = lowQ();
+          pts.forEach(p => {
+            const s = (p[2] || 1) * drr(.88, 1.12), c = dpk(TC);
+            B.deco('trunk', p[0], s, p[1], .2 * s, 2 * s, .2 * s, 0, 0x5b4636);
+            B.deco('crown', p[0], 2.9 * s, p[1], 1.35 * s, 1.5 * s, 1.35 * s, dr() * 6.28, c);
+            if (!lq && dr() < .55) B.deco('crown', p[0] + drr(-.4, .4), 3.9 * s, p[1] + drr(-.4, .4), .8 * s, .9 * s, .8 * s, dr() * 6.28, dpk(TC));
+            if (op.pit) B.deco('box', p[0], .06, p[1], 1.3, .06, 1.3, 0, 0x5a4632);       // ağaç dibi toprak
+            B.rect(p[0], p[1], .45, .45);
+          });
         },
+        /* sokak lambası: kaide + direk + yola uzanan kol + fener; q = [x, z, yön açısı] */
         lamps(pts) {
-          if (!pts.length) return; const p = new R.InstancedMesh(new R.CylinderGeometry(.12, .15, 6, 6), M(0x37474f), pts.length), l = new R.InstancedMesh(new R.SphereGeometry(.4, 8, 6), new R.MeshBasicMaterial({ color: 0xffe9a8 }), pts.length), o = new R.Object3D();
-          pts.forEach((q, i) => { o.position.set(q[0], 3, q[1]); o.updateMatrix(); p.setMatrixAt(i, o.matrix); o.position.set(q[0], 6.2, q[1]); o.updateMatrix(); l.setMatrixAt(i, o.matrix); });
-          p.frustumCulled = l.frustumCulled = false; g.add(p, l);
+          if (!pts.length) return;
+          const l = new R.InstancedMesh(new R.SphereGeometry(.32, 10, 6), new R.MeshBasicMaterial({ color: 0xffe9a8 }), pts.length), o = new R.Object3D();
+          pts.forEach((q, i) => {
+            const a = q[2] || 0, sx = Math.sin(a), sz = Math.cos(a);
+            B.deco('cyl', q[0], .25, q[1], .28, .5, .28, 0, 0x2f3a40);
+            B.deco('cyl', q[0], 3.3, q[1], .1, 6.2, .1, 0, 0x37474f);
+            B.deco('box', q[0] + sx * .7, 6.3, q[1] + sz * .7, .1, .1, 1.5, a, 0x37474f);
+            B.deco('box', q[0] + sx * 1.4, 6.2, q[1] + sz * 1.4, .5, .22, .8, a, 0x263238);
+            o.position.set(q[0] + sx * 1.4, 6.04, q[1] + sz * 1.4); o.scale.set(1, .45, 1); o.updateMatrix(); l.setMatrixAt(i, o.matrix);
+            B.rect(q[0], q[1], .3, .3);
+          });
+          l.frustumCulled = false; g.add(l);
+        },
+        /* çalı çiti (çarpışmalı) */
+        hedge(x0, z0, x1, z1) {
+          const len = Math.hypot(x1 - x0, z1 - z0); if (len < 1) return; const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, hz = z0 === z1;
+          B.deco('box', cx, .45, cz, hz ? len : .8, .9, hz ? .8 : len, 0, 0x3f6b34);
+          B.rect(cx, cz, hz ? len / 2 : .4, hz ? .4 : len / 2);
         },
         ring(x0, x1, z0, z1, c) {          // bölge sınır duvarı
           B.solid(x1 - x0, 3, 2, c, (x0 + x1) / 2, 0, z0); B.solid(x1 - x0, 3, 2, c, (x0 + x1) / 2, 0, z1);
@@ -102,7 +162,14 @@
         hangers(cu, n, deckY, c) {
           const v = []; for (let i = 1; i < n; i++) { const p = cu.getPoint(i / n); v.push(new R.Vector3(p.x, p.y, p.z), new R.Vector3(p.x, deckY, p.z)); }
           g.add(new R.LineSegments(new R.BufferGeometry().setFromPoints(v), new R.LineBasicMaterial({ color: c }))); },
-        finish() { g.updateMatrixWorld(true); g.traverse(o => { o.matrixAutoUpdate = false; }); return g; }
+        finish() {
+          const dm = mat(0xffffff, { roughness: .9 }), o = new R.Object3D(), col = new R.Color();
+          Object.keys(DQ).forEach(k => {
+            const L = DQ[k], im = new R.InstancedMesh(GEO[k](), dm, L.length);
+            L.forEach((q, i) => { o.position.set(q[0], q[1], q[2]); o.rotation.set(0, q[6], 0); o.scale.set(q[3], q[4], q[5]); o.updateMatrix(); im.setMatrixAt(i, o.matrix); im.setColorAt(i, col.setHex(q[7])); });
+            im.castShadow = !!SHADOW[k]; im.receiveShadow = true; im.frustumCulled = false; g.add(im);
+          });
+          g.updateMatrixWorld(true); g.traverse(o => { o.matrixAutoUpdate = false; }); return g; }
       };
       return B;
     }
@@ -121,24 +188,49 @@
       vx.forEach(v => {
         const cuts = hz.filter(h => h.c > v.a && h.c < v.b);
         segs(v.a, v.b, cuts, 1).forEach(sg => { (v.dash || [0]).forEach(d => B.dash(v.c + d, sg[0], v.c + d, sg[1]));
-          [-1, 1].forEach(sd => { const off = sd * (v.h + 1.5); B.plane(3, sg[1] - sg[0], 0xcfc8bb, v.c + off, .04, (sg[0] + sg[1]) / 2); B.walk.push({ x0: v.c + sd * (v.h + 2.2), z0: sg[0], x1: v.c + sd * (v.h + 2.2), z1: sg[1] }); }); });
+          [-1, 1].forEach(sd => { const off = sd * (v.h + 1.5); B.plane(3, sg[1] - sg[0], 0xcfc8bb, v.c + off, .04, (sg[0] + sg[1]) / 2); if (!B.lowQ()) B.deco('box', v.c + sd * (v.h + .12), .09, (sg[0] + sg[1]) / 2, .25, .18, sg[1] - sg[0], 0, 0xa9a39a); B.walk.push({ x0: v.c + sd * (v.h + 2.2), z0: sg[0], x1: v.c + sd * (v.h + 2.2), z1: sg[1] }); }); });
       });
       hz.forEach(h => {
         const cuts = vx.filter(v => v.c > h.a && v.c < h.b);
         segs(h.a, h.b, cuts, 1).forEach(sg => { (h.dash || [0]).forEach(d => B.dash(sg[0], h.c + d, sg[1], h.c + d));
-          [-1, 1].forEach(sd => { const off = sd * (h.h + 1.5); B.plane(sg[1] - sg[0], 3, 0xcfc8bb, (sg[0] + sg[1]) / 2, .04, h.c + off); B.walk.push({ x0: sg[0], z0: h.c + sd * (h.h + 2.2), x1: sg[1], z1: h.c + sd * (h.h + 2.2) }); }); });
+          [-1, 1].forEach(sd => { const off = sd * (h.h + 1.5); B.plane(sg[1] - sg[0], 3, 0xcfc8bb, (sg[0] + sg[1]) / 2, .04, h.c + off); if (!B.lowQ()) B.deco('box', (sg[0] + sg[1]) / 2, .09, h.c + sd * (h.h + .12), sg[1] - sg[0], .18, .25, 0, 0xa9a39a); B.walk.push({ x0: sg[0], z0: h.c + sd * (h.h + 2.2), x1: sg[1], z1: h.c + sd * (h.h + 2.2) }); }); });
       });
       /* sokak ağaçları + lambalar */
       const tr = [], lp = [];
-      vx.forEach(v => segs(v.a, v.b, hz.filter(h => h.c > v.a && h.c < v.b), 8).forEach(sg => { for (let z = sg[0] + 6; z < sg[1] - 2; z += 15) [-1, 1].forEach(sd => tr.push([v.c + sd * (v.h + .9), z, .85])); for (let z = sg[0] + 10; z < sg[1]; z += 34) lp.push([v.c + (v.h + .4), z]); }));
-      hz.forEach(h => segs(h.a, h.b, vx.filter(v => v.c > h.a && v.c < h.b), 8).forEach(sg => { for (let x = sg[0] + 6; x < sg[1] - 2; x += 15) [-1, 1].forEach(sd => tr.push([x, h.c + sd * (h.h + .9), .85])); for (let x = sg[0] + 10; x < sg[1]; x += 34) lp.push([x, h.c - (h.h + .4)]); }));
-      B.trees(tr); B.lamps(lp);
+      vx.forEach(v => segs(v.a, v.b, hz.filter(h => h.c > v.a && h.c < v.b), 8).forEach(sg => { for (let z = sg[0] + 6; z < sg[1] - 2; z += 15) [-1, 1].forEach(sd => tr.push([v.c + sd * (v.h + .9), z, .85])); for (let z = sg[0] + 10; z < sg[1]; z += 34) lp.push([v.c + (v.h + .4), z, -Math.PI / 2]); }));
+      hz.forEach(h => segs(h.a, h.b, vx.filter(v => v.c > h.a && v.c < h.b), 8).forEach(sg => { for (let x = sg[0] + 6; x < sg[1] - 2; x += 15) [-1, 1].forEach(sd => tr.push([x, h.c + sd * (h.h + .9), .85])); for (let x = sg[0] + 10; x < sg[1]; x += 34) lp.push([x, h.c - (h.h + .4), 0]); }));
+      B.trees(tr, { pit: true }); B.lamps(lp);
     }
+    /* park: çim, çapraz patikalar, çevre çiti, ortada havuzlu çeşme, çiçek tarhları, banklar, ağaçlar */
     function park(B, r, x0, x1, z0, z1) {
-      B.plane(x1 - x0, z1 - z0, 0x5f8f4e, (x0 + x1) / 2, .045, (z0 + z1) / 2); const t = [];
-      for (let x = x0 + 6; x < x1 - 3; x += 11) for (let z = z0 + 6; z < z1 - 3; z += 11) t.push([x + rr(r, -2, 2), z + rr(r, -2, 2), rr(r, .8, 1.25)]);
-      B.trees(t); B.box(2.6, .5, .9, 0x8d6e63, (x0 + x1) / 2, 0, z1 - 3); B.box(2.6, .5, .9, 0x8d6e63, (x0 + x1) / 2, 0, z0 + 3);
-      B.walk.push({ x0: x0 + 3, z0: (z0 + z1) / 2, x1: x1 - 3, z1: (z0 + z1) / 2 });
+      const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2, W = x1 - x0, D = z1 - z0, pv = 0xd8c9a6, gap = 2.2;
+      B.plane(W, D, 0x5f8f4e, cx, .045, cz);
+      B.plane(W, 3, pv, cx, .05, cz); B.plane(3, D, pv, cx, .05, cz); B.plane(10, 10, 0xcfc3a6, cx, .052, cz);
+      /* çevre çiti: patika ağızları açık */
+      [z0 + .5, z1 - .5].forEach(z => { B.hedge(x0 + .5, z, cx - gap, z); B.hedge(cx + gap, z, x1 - .5, z); });
+      [x0 + .5, x1 - .5].forEach(x => { B.hedge(x, z0 + 1, x, cz - gap); B.hedge(x, cz + gap, x, z1 - 1); });
+      /* çeşme */
+      B.deco('cyl', cx, .35, cz, 3.2, .7, 3.2, 0, 0xe2dccb); B.deco('cyl', cx, .66, cz, 2.85, .05, 2.85, 0, 0x5fa8c8);
+      B.deco('cyl', cx, 1.3, cz, .35, 2, .35, 0, 0xe2dccb); B.deco('cyl', cx, 2.3, cz, 1.1, .25, 1.1, 0, 0xe2dccb); B.deco('cyl', cx, 2.44, cz, .95, .04, .95, 0, 0x7cc0dc);
+      B.rect(cx, cz, 3.2, 3.2);
+      /* çeşme çevresinde çiçek tarhları + banklar */
+      [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(q => {
+        const fx = cx + q[0] * 4.2, fz = cz + q[1] * 4.2; if (W < 22 || D < 22) return;
+        B.deco('cyl', fx, .1, fz, 1.5, .2, 1.5, 0, 0x5a4632);
+        for (let k = 0; k < 7; k++) { const a = k / 7 * 6.28, rr_ = k ? 1 : 0; B.bush(fx + Math.cos(a) * rr_, fz + Math.sin(a) * rr_, rr(r, .3, .45), B.dpk(B.FLW)); }
+      });
+      if (D > 26) { B.bench(cx - 3, cz - 8, Math.PI / 2); B.bench(cx + 3, cz + 8, -Math.PI / 2); }
+      if (W > 26) { B.bench(cx - 8, cz + 3, Math.PI); B.bench(cx + 8, cz - 3, 0); }
+      /* ağaçlar (patika ve çeşmeden uzakta) + aralara çalı */
+      const t = [];
+      for (let x = x0 + 5; x < x1 - 3; x += 9) for (let z = z0 + 5; z < z1 - 3; z += 9) {
+        const px = x + rr(r, -1.8, 1.8), pz = z + rr(r, -1.8, 1.8);
+        if (Math.abs(px - cx) < 4 || Math.abs(pz - cz) < 4 || px < x0 + 2.5 || px > x1 - 2.5 || pz < z0 + 2.5 || pz > z1 - 2.5) continue;
+        if (r() < .8) t.push([px, pz, rr(r, .85, 1.3)]); else B.bush(px, pz, rr(r, .7, 1.1), 0x4c7a3a);
+      }
+      B.trees(t);
+      B.walk.push({ x0: x0 + 3, z0: cz + 1, x1: cx - 4.5, z1: cz + 1 }, { x0: cx + 4.5, z0: cz - 1, x1: x1 - 3, z1: cz - 1 },
+        { x0: cx - 1, z0: z0 + 3, x1: cx - 1, z1: cz - 4.5 }, { x0: cx + 1, z0: cz + 4.5, x1: cx + 1, z1: z1 - 3 });
     }
     /* iki yol dizisi arasındaki her hücreyi binalarla doldurur */
     function fill(B, r, xs, zs, o) {
@@ -180,7 +272,7 @@
       for (let i = -2; i <= 2; i++) { B.box(2, 6, .4, 0x39404a, cx + i * 5.5, 3, cz - 11.1); B.box(1.6, 3.4, .4, 0x39404a, cx + i * 5.5, 8.4, cz - 11.1); }
       const stall = [0xe53935, 0xfb8c00, 0x43a047, 0x1e88e5, 0x8e24aa, 0xfdd835];
       for (let i = 0; i < 16; i++) { const x = -92 + i * 18, z = 151; B.solid(3, 2.4, 2.4, stall[i % 6], x, 0, z); B.box(3.8, .2, 3, 0xffffff, x, 2.5, z); }
-      const tr = [], lp = []; for (let x = -100; x <= 200; x += 14) { tr.push([x, 104, 1]); lp.push([x + 6, 103]); } B.trees(tr); B.lamps(lp);
+      const tr = [], lp = []; for (let x = -100; x <= 200; x += 14) { tr.push([x, 104, 1]); lp.push([x + 6, 103, 0]); if (x < 200) { B.bush(x + 3.5, 104, .7, B.dpk(B.FLW)); B.bush(x + 10.5, 104, .7, 0x4c7a3a); } } B.trees(tr, { pit: true }); B.lamps(lp);
       for (let i = 0; i < 6; i++) { const x = -20 + i * 40; B.box(3.2, 1, 9, i % 2 ? 0xffffff : 0x1e88e5, x, -8.6, 86); B.box(2, 1.2, 3, 0xf5f5f5, x, -7.6, 85); }
       /* ---- BOĞAZİÇİ KÖPRÜSÜ (Ortaköy'ü Anadolu yakasına bağlar) ---- */
       B.box(26, 1.6, 215, 0x55555e, AX, -1.6, -7.5); B.plane(23, 215, 0x2e2e34, AX, .03, -7.5);
@@ -204,7 +296,8 @@
       const px = 40, pz = -152; B.solid(100, 10, 16, 0xf1e7d0, px, 0, pz); B.box(102, 1.2, 18, 0x8a8f94, px, 10, pz); B.solid(22, 14, 18, 0xf1e7d0, px, 0, pz);
       B.mesh(new R.SphereGeometry(6, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), domeC, px, 14, pz);
       for (let i = -7; i <= 7; i++) B.box(2, 4, .3, 0x39404a, px + i * 6.2, 2.8, pz + 8.1);
-      const t2 = [], l2 = []; for (let x = -100; x <= 200; x += 14) { t2.push([x, -118, 1]); l2.push([x + 6, -117]); } B.trees(t2); B.lamps(l2);
+      const t2 = [], l2 = []; for (let x = -100; x <= 200; x += 14) { t2.push([x, -118, 1]); l2.push([x + 6, -117, Math.PI]); if (x < 200) { B.bush(x + 3.5, -118, .7, B.dpk(B.FLW)); B.bush(x + 10.5, -118, .7, 0x4c7a3a); } } B.trees(t2, { pit: true }); B.lamps(l2);
+      for (let i = 0; i < 6; i++) B.bench(-60 + i * 45, -124, Math.PI);
       /* ring duvarları (kıyı tarafı açık) */
       B.solid(2, 3, 200, 0xb9b2a4, -290, 0, 200); B.solid(2, 3, 200, 0xb9b2a4, 250, 0, 200); B.solid(540, 3, 2, 0xb9b2a4, -20, 0, 300);
       B.solid(2, 3, 190, 0xb9b2a4, -290, 0, -205); B.solid(2, 3, 190, 0xb9b2a4, 250, 0, -205); B.solid(540, 3, 2, 0xb9b2a4, -20, 0, -300);
@@ -224,7 +317,16 @@
       fill(B, r, vx, hz, { cap: (i, j) => (j === 3 ? 20 : 46), lo: 14, park: (i, j) => (j === 3 && (i % 2 === 0)) });
       B.solid(522, 1.2, 1.6, 0xe4ddd0, -17, 0, 30.5); B.solid(522, .6, .8, 0xc4bdb0, -17, 0, 10.2);   // deniz seti + kaldırım bordürü
       [10, 13, 20, 24].forEach(z => B.walk.push({ x0: -270, z0: z, x1: 236, z1: z }));
-      const lp = []; for (let x = -270; x < 240; x += 24) lp.push([x, 12]); B.lamps(lp); const tr = []; for (let x = -270; x < 240; x += 18) tr.push([x, 26, 1]); B.trees(tr);
+      const lp = []; for (let x = -270; x < 240; x += 24) lp.push([x, 12, Math.PI]); B.lamps(lp);
+      const tr = []; for (let x = -270; x < 240; x += 18) {             // sahil ağaçları + aralarında çiçek tarhları ve banklar
+        tr.push([x, 26, 1]); if (x + 9 >= 240) continue;
+        B.deco('cyl', x + 9, .12, 26, 2, .24, 2, 0, 0x5a4632);
+        for (let k = 0; k < 6; k++) { const a = k / 6 * 6.28; B.bush(x + 9 + Math.cos(a) * 1.1, 26 + Math.sin(a) * 1.1, .42, B.dpk(B.FLW)); } B.bush(x + 9, 26, .6, 0x4c7a3a);
+        const kd = (((x + 4.5 + 230) % 100) + 100) % 100;                // büfelerin (her 100 m) üstüne bank koyma
+        if (x % 36 === 0 && kd > 8 && kd < 92) B.bench(x + 4.5, 22.5, 0);
+      }
+      B.trees(tr, { pit: true });
+      if (!B.lowQ()) for (let x = -268; x < 238; x += 4) if (xs.every(c => Math.abs(x - c) > 10)) B.bush(x, 0, B.drr(.45, .65), B.dr() < .3 ? B.dpk(B.FLW) : 0x4f7a3a);   // refüj çalı/çiçekleri
       for (let i = 0; i < 18; i++) { const x = -270 + i * 28, c = [0xe53935, 0x1e88e5, 0xfdd835, 0x43a047][i % 4]; B.box(.12, 2.6, .12, 0xffffff, x, 0, 37); B.mesh(new R.ConeGeometry(1.8, .8, 8), c, x, 2.9, 37); B.box(1, .3, 2.2, 0xffffff, x + 2.2, 0, 38); }
       for (let i = 0; i < 5; i++) { const x = -230 + i * 100; B.solid(8, 3.4, 5, [0xf2f2f2, 0xffe0b2][i % 2], x, 0, 21); B.box(9, .3, 6, [0xe53935, 0x1e88e5, 0xfdd835][i % 3], x, 3.4, 21); }
       B.box(5, .5, 42, 0x8d6e63, 60, -.3, 52); [8, 20, 32].forEach(z => { B.box(.4, 2, .4, 0x5d4037, 58, -1.3, 36 + z); B.box(.4, 2, .4, 0x5d4037, 62, -1.3, 36 + z); });
