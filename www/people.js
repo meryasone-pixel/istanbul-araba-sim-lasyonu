@@ -286,10 +286,10 @@
     const ax = (q.sd === 1 || q.sd === 3) ? 0 : 1;           // geçilen yoldaki araçların ekseni
     const road = ax === 0 ? (p.cx + ox / 2) : (p.cz + oz / 2);
     const iX = ax === 0 ? road : nearC(a.x), iZ = ax === 0 ? nearC(a.z) : road;
-    return { ncx, ncz, s2, x0: a.x, z0: a.z, x1: b.x, z1: b.z, ax, road, sig: iX === 27, mx: (a.x + b.x) / 2, mz: (a.z + b.z) / 2, iX, iZ };
+    return { ncx, ncz, s2, x0: a.x, z0: a.z, x1: b.x, z1: b.z, ax, road, sig: typeof isLit === 'function' ? isLit(iX, iZ) : iX === 27, mx: (a.x + b.x) / 2, mz: (a.z + b.z) / 2, iX, iZ };
   }
   function safeToCross(k) {
-    if (k.sig) { if (light(k.ax) !== 'r') return false; }
+    if (k.sig) { if (light(k.ax, k.iX, k.iZ) !== 'r') return false; }
     else {
       for (const c of ais) {
         if (!c.on || c.ax !== k.ax || Math.abs(c.rc - k.road) > 1) continue;

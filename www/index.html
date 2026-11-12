@@ -179,17 +179,29 @@ for(let i=-5;i<=5;i++)for(let j=-5;j<=5;j++){
 City.sidewalks();City.flush();City.skyline();City.lamps();
 
 // Trafik ışıkları ve yaya geçitleri
-const mNS=bas(0x2ee06b), mEW=bas(0xff3b30), LC={g:0x2ee06b,y:0xffc83a,r:0xff3b30};
-function light(ax){const t=(performance.now()/1000)%24,u=ax?t-12:t;return u<0?'r':u<9?'g':u<11?'y':'r';}
-const ints=C.map(z=>[27,z]);
-const AP=[];for(const [x,z] of ints)for(const [fx,fz] of[[1,0],[-1,0],[0,1],[0,-1]]){const a={x:x-fx*10.5-fz*8.2,z:z-fz*10.5+fx*8.2,fx,fz,ax:fx?1:0};AP.push(a);rects.push([a.x,a.z,.25,.25]);}
-const pNS=bas(0x2ee06b),pEW=bas(0xff3b30),disc=new R.CircleGeometry(.26,14),dsm=new R.CircleGeometry(.14,12),ry0=a=>Math.atan2(-a.fx,-a.fz);
+const mNS=bas(0xffffff), mEW=bas(0xffffff), LC={g:0x2ee06b,y:0xffc83a,r:0xff3b30};
+/* ışıklı kavşaklar: kuzey-güney ana cadde (x=27) + doğu-batı ana cadde (z=27).
+   Yeşil dalga: her kavşak bir öncekinden GW sn sonra yeşile döner; ~50 km/sa ile giden üst üste yeşile denk gelir. */
+const GW=3.9, LIT=new Set(), ints=[];
+for(const k of C)for(const [x,z] of[[27,k],[k,27]]){const key=x+','+z;if(!LIT.has(key)){LIT.add(key);ints.push([x,z]);}}
+const isLit=(x,z)=>LIT.has(x+','+z);
+function light(ax,x,z){const o=x===undefined?0:((x+297)+(z+297))/54*GW,t=(((performance.now()/1000-o)%24)+24)%24,u=ax?t-12:t;return u<0?'r':u<9?'g':u<11?'y':'r';}
+/* sahildeki kavşağın deniz tarafına (olmayan yol) direk konmaz */
+const AP=[];for(const [x,z] of ints)for(const [fx,fz] of[[1,0],[-1,0],[0,1],[0,-1]]){const a={x:x-fx*10.5-fz*8.2,z:z-fz*10.5+fx*8.2,fx,fz,ax:fx?1:0,ix:x,iz:z};if(a.x>305)continue;AP.push(a);rects.push([a.x,a.z,.25,.25]);}
+const pNS=bas(0xffffff),pEW=bas(0xffffff),disc=new R.CircleGeometry(.26,14),dsm=new R.CircleGeometry(.14,12),ry0=a=>Math.atan2(-a.fx,-a.fz);
 inst(new R.CylinderGeometry(.12,.14,5,6),mat(0x2a2a30),AP.length,p=>{for(const a of AP)p(a.x,2.5,a.z);});
 inst(new R.BoxGeometry(.6,.9,.6),mat(0x1b1b20),AP.length,p=>{for(const a of AP)p(a.x,4.6,a.z,ry0(a));});
-inst(disc,mNS,AP.filter(a=>!a.ax).length,p=>{for(const a of AP)if(!a.ax)p(a.x-a.fx*.31,4.6,a.z-a.fz*.31,ry0(a));});
-inst(disc,mEW,AP.filter(a=>a.ax).length,p=>{for(const a of AP)if(a.ax)p(a.x-a.fx*.31,4.6,a.z-a.fz*.31,ry0(a));});
+const lampNS=AP.filter(a=>!a.ax),lampEW=AP.filter(a=>a.ax);
+const lNS=inst(disc,mNS,lampNS.length,p=>{for(const a of lampNS)p(a.x-a.fx*.31,4.6,a.z-a.fz*.31,ry0(a),1,1,1,0xffffff);});
+const lEW=inst(disc,mEW,lampEW.length,p=>{for(const a of lampEW)p(a.x-a.fx*.31,4.6,a.z-a.fz*.31,ry0(a),1,1,1,0xffffff);});
 inst(new R.BoxGeometry(.34,.5,.34),mat(0x1b1b20),AP.length,p=>{for(const a of AP)p(a.x,2.7,a.z,ry0(a));});
-for(const [m,ax] of[[pNS,0],[pEW,1]])inst(dsm,m,AP.length,p=>{for(const a of AP)if(a.ax===ax)for(const sd of[1,-1]){p(a.x-a.fz*sd*.2,2.7,a.z+a.fx*sd*.2,Math.atan2(-a.fz*sd,a.fx*sd));}});
+const pIm=[];for(const [m,ax,list] of[[pNS,0,lampNS],[pEW,1,lampEW]])pIm.push([inst(dsm,m,list.length*2,p=>{for(const a of list)for(const sd of[1,-1]){p(a.x-a.fz*sd*.2,2.7,a.z+a.fx*sd*.2,Math.atan2(-a.fz*sd,a.fx*sd),1,1,1,0xffffff);}}),list,ax]);
+/* her lamba kendi kavşağının ışığını gösterir (yeşil dalga nedeniyle kavşaklar farklı renkte olabilir) */
+const _lc=new R.Color();
+function updLights(){
+ for(const [im,list,ax] of[[lNS,lampNS,0],[lEW,lampEW,1]]){list.forEach((a,i)=>im.setColorAt(i,_lc.setHex(LC[light(ax,a.ix,a.iz)])));im.instanceColor.needsUpdate=true;}
+ for(const [im,list,ax] of pIm){let i=0;for(const a of list){_lc.setHex(light(ax,a.ix,a.iz)==='r'?0x2ee06b:0xff3b30);im.setColorAt(i++,_lc);im.setColorAt(i++,_lc);}im.instanceColor.needsUpdate=true;}}
+updLights();
 City.crossings();FX.reflHide.push(...City.marks);for(const k of City.marks){const m=k.material;m.polygonOffset=true;m.polygonOffsetFactor=-4;m.polygonOffsetUnits=-4;}if(City.pools)FX.reflHide.push(City.pools);
 
 // Köprü ve vapur
@@ -292,8 +304,8 @@ const rectHit=(x,z)=>{for(const q of rects)if(Math.abs(x-q[0])<q[2]+.9&&Math.abs
 function aiStep(c,dt){const px=c.x,pz=c.z;
   const s0=c.ax?c.x:c.z, sn=Math.sin(c.a), cs=Math.cos(c.a); let want=c.vm,best=1e9,bk=0;
   for(const k of C){const d=(k-s0)*c.dir;if(d>-1&&d<best){best=d;bk=k;}}
-  const st=light(c.ax), dS=best-14;
-  if(st!=='g'&&(c.ax?bk===27:c.rc===27)&&dS>-1.5&&dS<26&&!(st==='y'&&dS<5))want=Math.min(want,Math.max(0,dS)*1.2);
+  const ix=c.ax?bk:c.rc, iz=c.ax?c.rc:bk, sig=isLit(ix,iz), st=sig?light(c.ax,ix,iz):light(c.ax), dS=best-14;
+  if(st!=='g'&&sig&&dS>-1.5&&dS<26&&!(st==='y'&&dS<5))want=Math.min(want,Math.max(0,dS)*1.2);
   const chk=(ox,oz)=>{const x=ox-c.x,z=oz-c.z,fd=x*sn+z*cs,ld=Math.abs(x*cs-z*sn);if(fd>0&&fd<16&&ld<2.4)want=Math.min(want,Math.max(0,fd-6.5)*.9);};
   c.stk=c.v<.3?(c.stk||0)+dt:0; if(!(c.stk>10&&st==='g')){for(const o of ais)if(o!==c&&o.on)chk(o.x,o.z); chk(car.x,car.z); for(const q of People.cross)chk(q.x,q.z);}
   const tn=Math.abs(wrap(hd(c)-c.a))>.25; if(tn)want=Math.min(want,6.5);
@@ -667,7 +679,7 @@ function step(dt){if(gOpen)return 0;gStep();mStep(dt);
   // Kırmızı ışık
   let bx=C[0],bz=C[0]; for(const k of C){if(Math.abs(k-car.x)<Math.abs(bx-car.x))bx=k;if(Math.abs(k-car.z)<Math.abs(bz-car.z))bz=k;}
   const inside=Math.abs(car.x-bx)<6.5&&Math.abs(car.z-bz)<6.5;
-  if(inside&&bx===27&&!inX&&Math.abs(car.v)>3&&light(Math.abs(fx)>.7071?1:0)==='r'){pts(-10);msg(freeMode?'Kırmızıda geçtin':'Kırmızıda geçtin −10');}
+  if(inside&&isLit(bx,bz)&&!inX&&Math.abs(car.v)>3&&light(Math.abs(fx)>.7071?1:0,bx,bz)==='r'){pts(-10);msg(freeMode?'Kırmızıda geçtin':'Kırmızıda geçtin −10');}
   inX=inside;
   if(osc){osc.frequency.value=48+Math.abs(car.v)*3.2;gain.gain.value=(!playing||gOpen||totaled||!engineOn)?0:(boatM?.008:.01)+Math.min(Math.abs(car.v)/60,1)*.02+(up?.006:0);}
   const acc=(car.v-pv)/Math.max(dt,.001); pv=car.v; pitch+=(clamp(-acc*.004,-.06,.06)-pitch)*Math.min(1,dt*6);
@@ -737,7 +749,7 @@ function frame(t){
   {const la=gOpen?0:Math.max(0,1-Math.abs(camYaw)*2)*6,ly=1.5+Math.max(0,-camPit-.12)*40;cam.lookAt(car.x+Math.sin(car.a)*la,ly,car.z+Math.cos(car.a)*la);}
   cam.fov=58+Math.abs(car.v)*.35; cam.updateProjectionMatrix();
   snapSun();
-  mNS.color.setHex(LC[light(0)]); mEW.color.setHex(LC[light(1)]); pNS.color.setHex(light(0)==='r'?0x2ee06b:0xff3b30); pEW.color.setHex(light(1)==='r'?0x2ee06b:0xff3b30);
+  updLights();
   ferry.position.set(450,-.4,((t/1000*6+300)%700)-350); sea.position.y=-.8+Math.sin(t/900)*.06;
   const a=area(); if(a!==lastArea){$('where').textContent=a;lastArea=a;}
   const kv=Math.round(Math.abs(car.v)*3.6); if(kv!==lastKmh){lastKmh=kv;$('kmh').textContent=kv;} const gv=car.v<-.3?' R':Math.abs(car.v)<.3?' N':' D'; if(gv!==lastGr){lastGr=gv;$('gr').textContent=gv;}
