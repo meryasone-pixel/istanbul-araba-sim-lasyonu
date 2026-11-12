@@ -80,7 +80,7 @@
     menuButton(id, label, fn, opts) {
       const b = document.createElement('button'); b.id = id; b.className = 'tb'; b.textContent = label; b.onclick = fn;
       // oyun içi ☰ menüde yalnızca sürüş sırasında gereken düğmeler kalır; diğerleri başlangıç/oyun sonu ekranına gider
-      const inGame = opts && opts.inGame, sm = document.getElementById('smenu'), anchor = document.getElementById('bH');
+      const inGame = opts && opts.inGame, sm = document.getElementById('smenu'), anchor = document.getElementById((opts && opts.before) || 'bH');
       if (!inGame && sm) { b.className = ''; sm.appendChild(b); }
       else if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(b, anchor); else document.body.appendChild(b);
       return b;

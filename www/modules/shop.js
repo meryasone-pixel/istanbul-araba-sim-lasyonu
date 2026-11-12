@@ -230,7 +230,7 @@
     IST.ui.menuButton('bShop', '🛒 Mağaza', () => panel.open());
     /* araba yenileme: mağazadan çıkarıldı, ana menüde ayrı düğme */
     if (typeof repairCar === 'function') {
-      const rb = IST.ui.menuButton('bRepair', '🔧 Arabayı yenile', () => { repairCar(); upRep(); });
+      const rb = IST.ui.menuButton('bRepair', '🔧 Arabayı yenile', () => { repairCar(); upRep(); }, { inGame: true, before: 'bEng' });
       function upRep() { try { rb.textContent = needRp() ? '🔧 Arabayı yenile — ' + (repFree() ? 'ÜCRETSİZ' : RP + ' ₺') + ' (hasar %' + Math.round(dmg) + ')' : '🔧 Araba sağlam ✓'; } catch (e) {} }
       upRep(); setInterval(upRep, 1000);
     }
