@@ -40,7 +40,7 @@
       { id: 'hn_melody', cat: 'horn', name: 'Melodi', cur: 'gold', price: 800, horn: { seq: [392, 494, 587, 784], type: 'triangle', lp: 2200 } },
       { id: 'hn_vip', cat: 'horn', name: 'VIP Korna', cur: 'gold', price: 0, vip: true, horn: { seq: [523, 659, 784, 1047], type: 'sine', lp: 3000 } }
     ];
-    const CATS = [['iap', '💰 Altın & VIP'], ['livery', '🎨 Kaplama'], ['neon', '✨ Neon'], ['rim', '🛞 Jant'], ['horn', '📯 Korna']];
+    const CATS = [['iap', '💰 Altın & VIP'], ['livery', '🎨 Kaplama'], ['neon', '✨ Neon'], ['rim', '⚙ Jant'], ['horn', '📯 Korna']];
     const item = id => ITEMS.find(x => x.id === id);
 
     /* günün fırsatı: her gün bir ürün %30 indirimli (gün içinde sabit kalır, alınca zincirleme indirim olmaz) */

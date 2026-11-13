@@ -80,7 +80,16 @@ body.mn #hud .r{max-height:calc(100vh - env(safe-area-inset-top,0px) - 16px);ove
  #speed{min-width:110px;padding:4px 12px 8px}#speed b{font-size:26px}
  .tb{padding:6px 12px;font-size:13px}
  .pad{padding:10px 16px}
+ /* dokunmatik tuşlar telefonda ekranın en fazla ~%24'ü (ayarlardaki boyut yine geçerli, sadece üst sınır) */
+ .pad button{width:min(calc(78px*var(--bs,1.3)),24vh);height:min(calc(78px*var(--bs,1.3)),24vh);font-size:min(calc(30px*var(--bs,1.3)),9vh)}
+ #msg{font-size:19px;top:20%}
 }
+/* dokunmatik ekranda ☰ menü, alttaki sürüş tuşlarının üstünde biter (menü düğmeleri gaz/fren tuşlarının arkasına giriyordu) */
+@media (pointer:coarse){
+ body.mn #hud .r{max-height:calc(100vh - env(safe-area-inset-top,0px) - min(calc(78px*var(--bs,1.3)),24vh) - 44px)}
+}
+/* başlangıç ekranı açıkken altın sayacı ve bildirimler menünün üstüne binmesin */
+#start{z-index:6}
 </style>
 </head>
 <body>
