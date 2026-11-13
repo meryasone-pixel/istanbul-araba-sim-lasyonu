@@ -507,7 +507,9 @@ function drawG(){let h;
   GR.forEach((m,i)=>h+=gbt('r:'+i,own('r'+i)?m[0]:m[0]+' — '+m[2]+' altın',G.rim===i,hx(m[1])));h+='<br><br><b>Boya</b><br>';
   SW.forEach((c,i)=>h+=gbt('c:'+i,own('c'+i)?'&nbsp;&nbsp;&nbsp;':'🔒 '+PAINT+' altın',baseCol===c,hx(c)));
   /* neon artık mağazada satılıyor: garajdaki eski neon satırı yalnızca daha önce neon almış oyunculara görünür */
-  PT.forEach(p=>{if(p[0]==='neo'&&!p[2].some((o,i)=>i&&own('p:neo:'+i)))return;h+='<br><br><b>'+p[1]+'</b><br>';p[2].forEach((o,i)=>h+=gbt('p:'+p[0]+':'+i,own('p:'+p[0]+':'+i)||!o[1]?o[0]:o[0]+' — '+o[1]+' altın',(G.parts[p[0]]||0)===i));});
+  /* motosiklette araba parçaları (spoyler, egzoz, bagaj, lip, lastik, çizgi, cam filmi, neon) görünmez: satışa da çıkmaz */
+  const moto=GM[G.model][1]===5;if(moto)h+='<br><br><small>🏍 Motosiklete araba parçaları (spoyler, egzoz, bagaj vb.) takılmaz. Kaplama, neon ve korna için 🛒 Mağaza\'ya bak.</small>';
+  PT.forEach(p=>{if(moto)return;if(p[0]==='neo'&&!p[2].some((o,i)=>i&&own('p:neo:'+i)))return;h+='<br><br><b>'+p[1]+'</b><br>';p[2].forEach((o,i)=>h+=gbt('p:'+p[0]+':'+i,own('p:'+p[0]+':'+i)||!o[1]?o[0]:o[0]+' — '+o[1]+' altın',(G.parts[p[0]]||0)===i));});
   {const ex=PX.filter(q=>q[3].includes(G.model));if(ex.length){h+='<br><br><b>⭐ '+GM[G.model][0]+' için özel</b>';
    ex.forEach(p=>{h+='<br><small>'+p[1]+'</small><br>';p[2].forEach((o,i)=>h+=gbt('p:'+p[0]+':'+i,own('p:'+p[0]+':'+i)||!o[1]?o[0]:o[0]+' — '+o[1]+' altın',(G.parts[p[0]]||0)===i));});}}
   h+='<br><br>'+gbt('x','Kapat ✕',false,'#8a2b2b');}

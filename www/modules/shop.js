@@ -161,7 +161,9 @@
         const ne = eq.neon ? item(eq.neon) : null, R = R_();
         if (R && typeof shell !== 'undefined') {
           if (!neon) { neon = new R.Mesh(new R.PlaneGeometry(2.8, 6.2), new R.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .55, blending: R.AdditiveBlending, depthWrite: false })); neon.rotation.x = -Math.PI / 2; neon.position.y = .09; shell.add(neon); }
-          neon.visible = !!ne; if (ne && !ne.rainbow) neon.material.color.setHex(ne.color);
+          neon.visible = !!ne && !(typeof boatM !== 'undefined' && boatM); if (ne && !ne.rainbow) neon.material.color.setHex(ne.color);
+          // neon her aracın kendi boyutunda (eskiden her araca 2.8×6.2 m çiziliyordu; motosiklette kocaman dikdörtgen oluyordu)
+          try { const t = GM[G.model][1]; let w = 1.1, l = 2.7; if (t !== 5 && typeof CT !== 'undefined' && CT[t]) { l = CT[t][0] + .9; w = CT[t][1] + .9; } neon.scale.set(w / 2.8, l / 6.2, 1); } catch (e) {}
         }
       } catch (e) { console.error('[IST shop] uygulama hatası', e); }
     }
