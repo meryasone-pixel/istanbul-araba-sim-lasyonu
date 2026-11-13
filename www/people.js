@@ -167,13 +167,16 @@
   }
 
   /* ---------- kaldırım geometrisi ---------- */
-  function perim(cx, cz, s, lat) {
-    s = ((s % PER) + PER) % PER; const sd = (s / 38) | 0, t = s % 38 - 19, r = RING + lat;
-    if (sd === 0) return { x: cx + t, z: cz - r, dx: 1, dz: 0, sd, t, nx: 0, nz: -1 };
-    if (sd === 1) return { x: cx + r, z: cz + t, dx: 0, dz: 1, sd, t, nx: 1, nz: 0 };
-    if (sd === 2) return { x: cx - t, z: cz + r, dx: -1, dz: 0, sd, t, nx: 0, nz: 1 };
-    return { x: cx - r, z: cz - t, dx: 0, dz: -1, sd, t, nx: -1, nz: 0 };
+  /* o verilirse sonuç o nesneye yazılır (her karede yeni nesne yok → bellek çöpü/kasılma azalır) */
+  function perim(cx, cz, s, lat, o) {
+    s = ((s % PER) + PER) % PER; const sd = (s / 38) | 0, t = s % 38 - 19, r = RING + lat; o = o || {}; o.sd = sd; o.t = t;
+    if (sd === 0) { o.x = cx + t; o.z = cz - r; o.dx = 1; o.dz = 0; o.nx = 0; o.nz = -1; }
+    else if (sd === 1) { o.x = cx + r; o.z = cz + t; o.dx = 0; o.dz = 1; o.nx = 1; o.nz = 0; }
+    else if (sd === 2) { o.x = cx - t; o.z = cz + r; o.dx = -1; o.dz = 0; o.nx = 0; o.nz = 1; }
+    else { o.x = cx - r; o.z = cz - t; o.dx = 0; o.dz = -1; o.nx = -1; o.nz = 0; }
+    return o;
   }
+  const PA = {}, PB = {}, PC = {}, CWS = [-CW, CW];   // walkStep'in tekrar kullanılan geçici nesneleri
   PE.perim = perim;
   const NB = [[0, -54], [54, 0], [0, 54], [-54, 0]];
   const blockOK = (cx, cz) => Math.abs(cx) <= 270 && Math.abs(cz) <= 270;
@@ -263,6 +266,7 @@
         for (let k = 0; k < 30; k++) {
           const [cx, cz] = randomBlock(), sd = (Math.random() * 4) | 0, t = rr(3, 15) * (Math.random() < .5 ? -1 : 1), q = perim(cx, cz, sd * 38 + 19 + t, .2);
           if (Math.abs(Math.abs(t) - 9) < 1.2 || (k < 29 && !okSpot(q.x, q.z, any))) continue;
+          if (k < 29 && GROUPS.some(o => o !== g && o.placed && Math.hypot(o.x - q.x, o.z - q.z) < 3)) continue;   // iki sohbet grubu üst üste konmasın
           g.x = q.x; g.z = q.z; g.q = q; break;
         }
         g.placed = true; g.sp = 0; g.tN = 0;
@@ -270,7 +274,7 @@
       }
     } else {
       const arr = p.kind === 'sit' ? BENCH : STOP;
-      if (p.slot) { p.slot.occ = null; p.slot = null; }
+      if (p.slot) { if (p.slot.occ === p) p.slot.occ = null; p.slot = null; }   // yalnızca kendi yerini boşalt (başkasının yerini silip iki kişiyi üst üste koyuyordu)
       let best = null;
       for (let k = 0; k < 40; k++) { const b = arr[(Math.random() * arr.length) | 0]; if (!b || b.occ) continue; if (okSpot(b.x, b.z, any)) { best = b; break; } }
       if (!best) { p.st = 'hide'; p.m.visible = false; return; }
@@ -306,8 +310,9 @@
   /* ---------- güncelleme ---------- */
   let lastHorn = 0, CUR = [];
   /* kalabalık: önündeki yayaya çarpmamak için ya onu takip et (aynı yöne benzer hızda yürüyorsa) ya da yana kay */
+  const SEEN = new Set(), CRO = { fv: null, lat: null, blk: false };   // her karede yeniden oluşturulmaz (bellek çöpü → kasılma)
   function crowd(p, q) {
-    const hx = q.dx * p.dir, hz = q.dz * p.dir; let fv = null, lat = null, blk = false; const seen = new Set();
+    const hx = q.dx * p.dir, hz = q.dz * p.dir; let fv = null, lat = null, blk = false; const seen = SEEN; seen.clear();
     for (const o of CUR) {
       if (o === p || o.st === 'hide' || o.ko > 0 || o.st === 'cross') continue;
       // sohbet grubu tek engel sayılır (merkez + yarıçap); tek tek üyeler arasından geçmeye çalışmaz
@@ -317,14 +322,19 @@
       const f = dx * hx + dz * hz, l = dx * q.nx + dz * q.nz;
       if (f <= -(hw + .5) || f > 2.4 + hw || Math.abs(l) > hw + .3) continue;   // yan yanayken de kaçınmayı sürdür
       const same = !g && o.st === 'walk' && o.dir === p.dir && o.cx === p.cx && o.cz === p.cz;
-      if (same) { if (f > 0 && f < 1.4) fv = fv === null ? Math.min(o.v, p.v) : Math.min(fv, o.v); continue; }   // aynı yöne: sollama yok, takip et
+      if (same) {
+        // tam yan yana/iç içe: yalnızca biri (seed'i küçük olan) yavaşlayıp geride kalır, diğeri onu yok sayar → kilitlenme olmaz
+        if (Math.abs(f) < .45) { if ((p.seed || 0) < (o.seed || 0)) fv = fv === null ? .25 : Math.min(fv, .25); continue; }
+        if (f > 0 && f < 1.4) fv = fv === null ? Math.min(o.v, p.v) : Math.min(fv, o.v);   // aynı yöne: sollama yok, takip et
+        continue;
+      }
       const up = cl(p.lat + l + hw + .3, -.6, 1.3), dn = cl(p.lat + l - hw - .3, -.6, 1.3), c0 = p.lat + l;   // engelin iki yanı
       const okU = up - c0 >= hw + .25, okD = c0 - dn >= hw + .25;
       let want = null; if (okU && okD) want = Math.abs(up - p.lat) < Math.abs(dn - p.lat) ? up : dn; else if (okU) want = up; else if (okD) want = dn;
       if (want === null) { if (f < hw + 1) { fv = fv === null ? 0 : Math.min(fv, 0); blk = true; } }   // geçecek yer yok
       else if (lat === null || Math.abs(want - p.lat) < Math.abs(lat - p.lat)) lat = want;
     }
-    return { fv, lat, blk };
+    CRO.fv = fv; CRO.lat = lat; CRO.blk = blk; return CRO;
   }
   PE.update = function (peds, dt, now) {
     CUR = peds;
@@ -374,24 +384,25 @@
   };
 
   function walkStep(p, dt, t, rain) {
-    const cr = crowd(p, perim(p.cx, p.cz, p.s, p.lat));
+    const cr = crowd(p, perim(p.cx, p.cz, p.s, p.lat, PA));
     if (cr.blk) { p.blkT = (p.blkT || 0) + dt; if (p.blkT > 1.5) { p.dir = -p.dir; p.blkT = 0; } } else p.blkT = 0;   // yol kapalıysa geri dön
     let sp = p.sp * (rain ? 1.15 : 1) * (p.phone && p.st === 'walk' ? .85 : 1);
     if (cr.fv !== null) sp = Math.min(sp, cr.fv);
     p.v += (sp - p.v) * Math.min(1, dt * (cr.fv !== null ? 4 : 2));
     const s0 = p.s; p.s += p.dir * p.v * dt;
     // mobilya çevresinde şerit değiştir
-    const q0 = perim(p.cx, p.cz, p.s, p.lat), f = FURN[p.cx + ',' + p.cz + ',' + q0.sd];
+    if (p.fkB !== p.cx * 1e4 + p.cz) { p.fkB = p.cx * 1e4 + p.cz; p.fk = [0, 1, 2, 3].map(sd => p.cx + ',' + p.cz + ',' + sd); }   // mobilya anahtarı blok değişince bir kez kurulur
+    const q0 = perim(p.cx, p.cz, p.s, p.lat, PB), f = FURN[p.fk[q0.sd]];
     let lt = p.base * (p.dir > 0 ? 1 : .6) + (p.dir > 0 ? .1 : -.15);
     if (f && Math.abs(q0.t) < 2.4) lt = f === 'b' ? Math.max(lt, .3) : Math.min(lt, -.38);
     if (cr.lat !== null) lt = cr.lat;
     p.latT = lt; p.lat += (p.latT - p.lat) * Math.min(1, dt * (cr.lat !== null ? 3.5 : 1.5));
-    const q = perim(p.cx, p.cz, p.s, p.lat); p.x = q.x; p.z = q.z; p.y += (.3 - p.y) * Math.min(1, dt * 8);
+    const q = perim(p.cx, p.cz, p.s, p.lat, PC); p.x = q.x; p.z = q.z; p.y += (.3 - p.y) * Math.min(1, dt * 8);
     p.yaw += wrapA(Math.atan2(q.dx * p.dir, q.dz * p.dir) - p.yaw) * Math.min(1, dt * 5);
     p.ph += p.v / 1.38 * Math.PI * 2 * dt;
     // yaya geçidine geldi mi?
     const sd0 = (((s0 % PER) + PER) % PER / 38) | 0, t0 = ((s0 % PER) + PER) % PER % 38 - 19;
-    if (sd0 === q.sd) for (const cwt of [-CW, CW]) if ((t0 - cwt) * (q.t - cwt) < 0 && Math.random() < .22) {
+    if (sd0 === q.sd) for (const cwt of CWS) if ((t0 - cwt) * (q.t - cwt) < 0 && Math.random() < .22) {
       const k = crossInfo(p, { sd: q.sd, t: cwt }); if (!k) break;
       // aynı geçitte bekleyen/geçenler varsa yan yana dur (üst üste değil)
       let n = 0; for (const o of CUR) if (o !== p && (o.st === 'wait' || o.st === 'cross') && o.ck && Math.abs(o.ck.x0 - k.x0) + Math.abs(o.ck.z0 - k.z0) < .6) n++;
@@ -446,6 +457,8 @@
   /* ---------- poz ---------- */
   function animate(p, dt, t, rain) {
     const B = p.B, run = p.run || 0;
+    // bacak/kol kemikleri yaya başına bir kez bulunur (eskiden her karede 'th' + L gibi metin birleştirilip aranıyordu → bellek çöpü)
+    const LG = p.LG || (p.LG = ['L', 'R'].map(L => ({ th: B['th' + L], kn: B['kn' + L], ft: B['ft' + L], ua: B['ua' + L], fa: B['fa' + L] })));
     for (const k in B) B[k].rotation.set(0, 0, 0);
     B.hips.position.set(0, HY, 0);
     const moving = (p.st === 'walk' || p.st === 'cross' || (p.st === 'wait' && p.v > .5)) && p.ko <= 0;
@@ -457,11 +470,11 @@
     if (moving) {
       const ph = p.ph, s = Math.sin(ph), A = (.4 + .32 * run) * (old ? .7 : 1) * cl(p.v / 1.3, .4, 1.4);
       for (let k = 0; k < 2; k++) {
-        const sk = Math.sin(ph + k * Math.PI), ck = Math.cos(ph + k * Math.PI), sg = k ? -1 : 1, L = k ? 'R' : 'L';
+        const sk = Math.sin(ph + k * Math.PI), ck = Math.cos(ph + k * Math.PI), sg = k ? -1 : 1, g = LG[k];
         const hip = -A * sk - .05, knee = .1 + (.7 + .6 * run) * Math.pow(Math.max(0, ck), 1.3) + (run ? .3 : 0);
-        B['th' + L].rotation.x = hip; B['kn' + L].rotation.x = knee; B['ft' + L].rotation.x = -hip * .3 - knee * .4 + Math.max(0, -ck) * .12;
-        B['ua' + L].rotation.x = A * .8 * sk; B['ua' + L].rotation.z = sg * (.06 + run * .08);
-        B['fa' + L].rotation.x = -(.2 + Math.max(0, -sk) * .35 * A + run * 1.1);
+        g.th.rotation.x = hip; g.kn.rotation.x = knee; g.ft.rotation.x = -hip * .3 - knee * .4 + Math.max(0, -ck) * .12;
+        g.ua.rotation.x = A * .8 * sk; g.ua.rotation.z = sg * (.06 + run * .08);
+        g.fa.rotation.x = -(.2 + Math.max(0, -sk) * .35 * A + run * 1.1);
       }
       B.hips.position.y = HY - .012 - run * .04 + (.02 + run * .03) * Math.cos(2 * ph);
       B.hips.rotation.y = .09 * s; B.hips.rotation.z = .03 * Math.cos(2 * ph + .5);
@@ -469,7 +482,7 @@
       if (p.phone && !run && !umb) { B.uaL.rotation.x = -.25; B.faL.rotation.x = -1.3; B.faL.rotation.y = -.25; B.head.rotation.x = .42; }
     } else if (p.st === 'sit') {
       B.hips.position.set(0, .47, -.08);
-      for (const L of ['L', 'R']) { B['th' + L].rotation.x = -1.48; B['kn' + L].rotation.x = 1.42 + (L === 'L' ? .08 : -.05); B['ft' + L].rotation.x = .06; }
+      for (let k = 0; k < 2; k++) { const g = LG[k]; g.th.rotation.x = -1.48; g.kn.rotation.x = 1.42 + (k === 0 ? .08 : -.05); g.ft.rotation.x = .06; }
       B.thL.rotation.z = .07; B.thR.rotation.z = -.07; B.spine.rotation.x = -.06; B.chest.rotation.x = .05 + Math.sin(t * 1.4 + p.seed) * .012;
       if (p.phone) { B.uaL.rotation.x = -.3; B.faL.rotation.x = -1.35; B.uaR.rotation.x = -.3; B.faR.rotation.x = -1.3; B.faR.rotation.y = .3; B.faL.rotation.y = -.3; B.head.rotation.x = .45; }
       else { B.uaL.rotation.x = -.38; B.faL.rotation.x = -.75; B.uaR.rotation.x = -.38; B.faR.rotation.x = -.75; idleHead(p, t); }
@@ -516,7 +529,7 @@
     if (p.look === 'car') { tx = car.x; tz = car.z; }
     else if ((p.look === 'spk' || p.look === 'bus') && p.lx !== undefined) { tx = p.lx; tz = p.lz; }
     else if (p.look === 'road' && p.ck) { const k = p.ck, sgn = Math.sin(t * .9 + p.seed) > 0 ? 1 : -1, ddx = k.x1 - k.x0, ddz = k.z1 - k.z0, l = Math.hypot(ddx, ddz) || 1; tx = p.x - ddz / l * 12 * sgn + ddx / l * 4; tz = p.z + ddx / l * 12 * sgn + ddz / l * 4; }
-    else if (p.look === 'shop') { const q = perim(p.cx, p.cz, p.s, 0); tx = p.x - q.nx * 5; tz = p.z - q.nz * 5; }
+    else if (p.look === 'shop') { const q = perim(p.cx, p.cz, p.s, 0, PA); tx = p.x - q.nx * 5; tz = p.z - q.nz * 5; }
     let hy = 0;
     if (tx !== null) hy = cl(wrapA(Math.atan2(tx - p.x, tz - p.z) - p.yaw), -1.25, 1.25);
     else if (p.st === 'stop' || p.st === 'stand' || p.st === 'talk') hy = Math.sin(t * .3 + p.seed * 3) * .5;

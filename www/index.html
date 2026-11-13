@@ -382,20 +382,25 @@ function pts(n){if(freeMode)return;score=clamp(score+n,0,100);$('score').textCon
 let ac,osc,gain;
 function startAudio(){try{if(ac){if(ac.state==='suspended')ac.resume();return;}
   ac=new(window.AudioContext||window.webkitAudioContext)();
+  /* ana çıkış: bütün sesler bir sınırlayıcıdan geçer — üst üste binince (çarpışma+motor+korna) taşıp cızırdamaz */
+  master=ac.createDynamicsCompressor(); master.threshold.value=-12; master.knee.value=6; master.ratio.value=12; master.attack.value=.003; master.release.value=.25;
+  const mg=ac.createGain(); mg.gain.value=.8; master.connect(mg); mg.connect(ac.destination);
   osc=ac.createOscillator(); osc.type='sawtooth';
   const f=ac.createBiquadFilter(); f.type='lowpass'; f.frequency.value=380;
-  gain=ac.createGain(); gain.gain.value=0; osc.connect(f); f.connect(gain); gain.connect(ac.destination); osc.start();
+  gain=ac.createGain(); gain.gain.value=0; osc.connect(f); f.connect(gain); gain.connect(master); osc.start();
 }catch(e){}}
+let master=null, noiseB=null;
+const aOut=()=>master||ac.destination;
 function crash(k){
-  if(!ac)return; const n=ac.sampleRate*.5|0, b=ac.createBuffer(1,n,ac.sampleRate), d=b.getChannelData(0);
-  for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);
-  const s=ac.createBufferSource(); s.buffer=b; const f=ac.createBiquadFilter(); f.type='lowpass'; f.frequency.value=900+k*2500;
-  const g=ac.createGain(); g.gain.value=k*.9; s.connect(f); f.connect(g); g.connect(ac.destination); s.start();
-  const o=ac.createOscillator(), og=ac.createGain(); o.frequency.setValueAtTime(130,ac.currentTime); o.frequency.exponentialRampToValueAtTime(40,ac.currentTime+.3);
-  og.gain.setValueAtTime(k*.6,ac.currentTime); og.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.35); o.connect(og); og.connect(ac.destination); o.start(); o.stop(ac.currentTime+.4);
+  if(!ac)return; const t=ac.currentTime;
+  if(!noiseB){const n=ac.sampleRate*.5|0;noiseB=ac.createBuffer(1,n,ac.sampleRate);const d=noiseB.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);}   // gürültü bir kez üretilir
+  const s=ac.createBufferSource(); s.buffer=noiseB; const f=ac.createBiquadFilter(); f.type='lowpass'; f.frequency.value=900+k*2500;
+  const g=ac.createGain(); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(k*.55,t+.005); s.connect(f); f.connect(g); g.connect(aOut()); s.start(t);
+  const o=ac.createOscillator(), og=ac.createGain(); o.frequency.setValueAtTime(130,t); o.frequency.exponentialRampToValueAtTime(40,t+.3);
+  og.gain.setValueAtTime(.0001,t); og.gain.exponentialRampToValueAtTime(k*.4+.001,t+.008); og.gain.exponentialRampToValueAtTime(.001,t+.35); o.connect(og); og.connect(aOut()); o.start(t); o.stop(t+.4);
 }
 let hn=null;
-function hornOn(){try{startAudio();}catch(e){}if(hn||!ac)return;const t=ac.currentTime,g=ac.createGain(),lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1800;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.1,t+.025);const os=[392,494,587].map((f,i)=>{const o=ac.createOscillator();o.type='triangle';o.frequency.value=f;o.detune.value=i*3;o.connect(lp);o.start(t);return o;});lp.connect(g);g.connect(ac.destination);hn={g,os,t0:t};}
+function hornOn(){try{startAudio();}catch(e){}if(hn||!ac)return;const t=ac.currentTime,g=ac.createGain(),lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1800;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.1,t+.025);const os=[392,494,587].map((f,i)=>{const o=ac.createOscillator();o.type='triangle';o.frequency.value=f;o.detune.value=i*3;o.connect(lp);o.start(t);return o;});lp.connect(g);g.connect(aOut());hn={g,os,t0:t};}
 function hornOff(){if(!hn)return;const h=hn;hn=null;const end=Math.max(ac.currentTime,h.t0+.2);h.g.gain.setValueAtTime(.1,end);h.g.gain.exponentialRampToValueAtTime(.0001,end+.14);h.os.forEach(o=>o.stop(end+.16));}
 function horn(){hornOn();hornOff();}
 $('bH').onclick=()=>{try{startAudio();}catch(e){}horn();};
@@ -647,7 +652,7 @@ function showMap(){const c=$('mpc').getContext('2d'),q=312/648,X=x=>(x+324)*q,Z=
  if(REPAIR_SHOP){c.fillStyle='#2979ff';c.fillRect(X(SH[0])-4,Z(SH[1])-4,8,8);}c.fillStyle='#ff3b30';c.beginPath();c.arc(X(car.x),Z(car.z),5,0,7);c.fill();
  $('mpt').textContent='Yeşil: gezdiğin sokaklar';mp.style.display='flex';}
 $('gm').onclick=()=>openG();
-function ignite(){try{startAudio();}catch(e){}if(!ac)return;const t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain(),f=ac.createBiquadFilter();o.type='sawtooth';f.type='lowpass';f.frequency.value=500;o.frequency.setValueAtTime(40,t);o.frequency.linearRampToValueAtTime(70,t+.5);o.frequency.linearRampToValueAtTime(55,t+.7);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.05,t+.05);g.gain.linearRampToValueAtTime(.0001,t+.75);o.connect(f);f.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+.8);}
+function ignite(){try{startAudio();}catch(e){}if(!ac)return;const t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain(),f=ac.createBiquadFilter();o.type='sawtooth';f.type='lowpass';f.frequency.value=500;o.frequency.setValueAtTime(40,t);o.frequency.linearRampToValueAtTime(70,t+.5);o.frequency.linearRampToValueAtTime(55,t+.7);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.05,t+.05);g.gain.linearRampToValueAtTime(.0001,t+.75);o.connect(f);f.connect(g);g.connect(aOut());o.start(t);o.stop(t+.8);}
 $('bEng').onclick=()=>{engineOn=!engineOn;$('bEng').textContent=engineOn?'🔑 Motoru durdur':'🔑 Arabayı çalıştır';if(engineOn)ignite();msg(engineOn?'Motor çalıştı':'Motor kapatıldı');};
 $('bM').onclick=showMap;
 const cf=document.createElement('div');cf.style.cssText='position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#000b;z-index:40;font:16px system-ui;color:#fff';
@@ -703,7 +708,8 @@ function step(dt){if(gOpen)return 0;gStep();mStep(dt);
   const inside=Math.abs(car.x-bx)<6.5&&Math.abs(car.z-bz)<6.5;
   if(inside&&isLit(bx,bz)&&!inX&&Math.abs(car.v)>3&&light(Math.abs(fx)>.7071?1:0,bx,bz)==='r'){pts(-10);msg(freeMode?'Kırmızıda geçtin':'Kırmızıda geçtin −10');}
   inX=inside;
-  if(osc){osc.frequency.value=48+Math.abs(car.v)*3.2;gain.gain.value=(!playing||gOpen||totaled||!engineOn)?0:(boatM?.008:.01)+Math.min(Math.abs(car.v)/60,1)*.02+(up?.006:0);}
+  /* motor sesi: değerler kare kare zıplamaz, ~40 ms'de yumuşakça kayar (ani adımlar tık/cızırtı yapıyordu) */
+  if(osc){const tA=ac.currentTime;osc.frequency.setTargetAtTime(48+Math.abs(car.v)*3.2,tA,.04);gain.gain.setTargetAtTime((!playing||gOpen||totaled||!engineOn)?0:(boatM?.008:.01)+Math.min(Math.abs(car.v)/60,1)*.02+(up?.006:0),tA,.04);}
   const acc=(car.v-pv)/Math.max(dt,.001); pv=car.v; pitch+=(clamp(-acc*.004,-.06,.06)-pitch)*Math.min(1,dt*6);
   if(dmg>45){puffT-=dt;if(puffT<=0){puff();puffT=dmg>75?.06:.14;}}
   return steer;

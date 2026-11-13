@@ -181,7 +181,7 @@
       const o = ac.createOscillator(), g = ac.createGain(), lp = ac.createBiquadFilter();
       o.type = h.type || 'triangle'; o.frequency.value = f; lp.type = 'lowpass'; lp.frequency.value = h.lp || 2000;
       g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + .02); g.gain.setValueAtTime(vol, t0 + dur); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur + .12);
-      o.connect(lp); lp.connect(g); g.connect(ac.destination); o.start(t0); o.stop(t0 + dur + .15); return { o, g };
+      o.connect(lp); lp.connect(g); g.connect(typeof aOut === 'function' ? aOut() : ac.destination); o.start(t0); o.stop(t0 + dur + .15); return { o, g };
     }
     if (typeof window.hornOn === 'function') {
       const on = window.hornOn, off = window.hornOff;
