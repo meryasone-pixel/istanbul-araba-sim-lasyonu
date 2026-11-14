@@ -432,8 +432,9 @@ document.querySelectorAll('.pad button[data-k]').forEach(b=>{
 });
 const pad=document.querySelector('.pad'), S={bs:1.3,bo:1,sw:false,sh:false,q:FX.Q};
 try{Object.assign(S,JSON.parse(localStorage.getItem('ist-set')||'{}'));}catch(e){}
+if(!S.qm)S.q=FX.Q; /* kaliteyi oyuncu seçmediyse cihaza göre otomatik seçilen kalite geçerli */
 function applySet(){const r=document.documentElement.style;r.setProperty('--bs',S.bs);r.setProperty('--bo',S.bo);pad.classList.toggle('swap',S.sw);pad.classList.toggle('show',S.sh);applyQ();try{localStorage.setItem('ist-set',JSON.stringify(S));}catch(e){}}
-$('sQ').value=S.q;$('sQ').onchange=e=>{S.q=+e.target.value;applySet();};
+$('sQ').value=S.q;$('sQ').onchange=e=>{S.q=+e.target.value;S.qm=true;applySet();};
 $('sBs').value=S.bs;$('sBo').value=S.bo;$('sSw').checked=S.sw;$('sSh').checked=S.sh;
 $('sBs').oninput=e=>{S.bs=+e.target.value;applySet();};$('sBo').oninput=e=>{S.bo=+e.target.value;applySet();};
 $('sSw').onchange=e=>{S.sw=e.target.checked;applySet();};$('sSh').onchange=e=>{S.sh=e.target.checked;applySet();};
@@ -461,6 +462,7 @@ seg('tm',setTime);seg('wx',v=>{FX.setWeather(v);setTime(curTime);wxLbl();});
 function wxLbl(){document.querySelectorAll('#wx button').forEach(b=>b.classList.toggle('on',b.dataset.v===FX.weather));$('bW').textContent={dry:'☀ Kuru (R)',wet:'💧 Islak (R)',rain:'🌧 Yağmur (R)'}[FX.weather];}
 function cycleWx(){FX.setWeather({dry:'wet',wet:'rain',rain:'dry'}[FX.weather]);setTime(curTime);wxLbl();msg({dry:'Kuru yol',wet:'Islak asfalt',rain:'Yağmur'}[FX.weather]);}
 $('bW').onclick=cycleWx;wxLbl();seg('tf',v=>{nAI=+v;applyTraffic();});
+if(FX.Q===0){nAI=14;[...$('tf').children].forEach(b=>b.classList.toggle('on',b.dataset.v==='14'));} /* düşük kalitede trafik "Az" başlar (zayıf telefon) */
 $('mn').onclick=()=>document.body.classList.toggle('mn');
 $('bL').onclick=toggleL;$('bN').onclick=cycleTime;$('bC').onclick=()=>{camM=(camM+1)%3;};
 const SW=[0x19b3a6,0xf5f5f5,0xb71c1c,0x1a237e,0x111111,0xffb300,0x2e7d32,0x8e24aa], swb=[];

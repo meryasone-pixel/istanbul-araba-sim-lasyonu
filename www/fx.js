@@ -9,11 +9,21 @@
   const R = THREE, FX = window.FX = {};
 
   /* ---------- kalite ---------- */
+  /* zayıf cihaz: belleği ≤3 GB ya da eski/zayıf grafik işlemcisi (ör. Galaxy J7 Prime 2: Mali-T830) → Düşük kalite */
+  function weakDevice() {
+    try {
+      if (navigator.deviceMemory && navigator.deviceMemory <= 3) return true;
+      const c = document.createElement('canvas'), gl = c.getContext('webgl'); if (!gl) return true;
+      const e = gl.getExtension('WEBGL_debug_renderer_info'), r = e ? String(gl.getParameter(e.UNMASKED_RENDERER_WEBGL)) : '';
+      const lose = gl.getExtension('WEBGL_lose_context'); if (lose) lose.loseContext();
+      return /Mali-(T|4|G31|G51)|Mali-G52 MC1|Adreno \(TM\) (3\d\d|4\d\d|50\d|51\d)|PowerVR|Vivante|VideoCore/i.test(r);
+    } catch (e) { return false; }
+  }
   let q = 1;
   try {
     const s = JSON.parse(localStorage.getItem('ist-set') || '{}');
-    if (s.q !== undefined) q = +s.q;
-    else q = (window.matchMedia && matchMedia('(pointer:coarse)').matches) ? 1 : 2;
+    if (s.q !== undefined && s.qm) q = +s.q;             // oyuncu kaliteyi kendisi seçtiyse ona dokunma
+    else q = weakDevice() ? 0 : (window.matchMedia && matchMedia('(pointer:coarse)').matches) ? 1 : 2;
   } catch (e) {}
   FX.Q = q;               // malzeme katmanı (açılışta sabit)
   FX.q = q;               // canlı kalite (efektler)
