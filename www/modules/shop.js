@@ -103,12 +103,12 @@
       S.iap[id] = true; save(); IST.bus.emit('shop:changed', { id }); refresh(); applyAll();
       IST.toast(p.title + ' geri yüklendi');
     }
-    /* Android uygulamasında ödeme eklentisi 'deviceready' ile hazır olur: en fazla 6 sn bekle */
+    /* Android uygulamasında ödeme eklentisi 'deviceready' sonrası kullanılabilir. Yavaş telefonlarda (ör. J7) bu sinyal
+       sayfa ağır yüklendiği için 5-10 sn gecikebiliyor: 30 sn'ye kadar bekle (sinyal zaten geldiyse Cordova hemen çağırır). */
     function waitStore() {
-      if (window.CdvPurchase) return Promise.resolve();
       const native = !!(window.cordova || (window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()));
       if (!native) return Promise.resolve();
-      return new Promise(r => { let done = false; const f = () => { if (!done) { done = true; r(); } }; document.addEventListener('deviceready', f, { once: true }); setTimeout(f, 6000); });
+      return new Promise(r => { let done = false; const f = () => { if (!done) { done = true; r(); } }; document.addEventListener('deviceready', f, { once: true }); setTimeout(f, 30000); });
     }
     async function initProvider() {
       try {

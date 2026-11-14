@@ -512,6 +512,8 @@ const gbt=(k,t,on,bg)=>'<button data-k="'+k+'" style="margin:3px;padding:8px 11p
 let fineT=0;function fine(n,f){if(freeMode)return;const t=performance.now();if(!f&&t<fineT)return;if(!f)fineT=t+1200;G.money=Math.max(0,G.money-n);mon.textContent='💰 '+G.money;saveG();}
 function saveG(){if(window.noSv)return;try{G.dmg=Math.round(dmg);localStorage.setItem('ist-gar',JSON.stringify(G));}catch(e){}}
 addEventListener('pagehide',saveG);document.addEventListener('visibilitychange',()=>{if(document.hidden)saveG();});
+/* uygulama arka plana geçince (ana ekran, telefon araması, kilit) ses tamamen dursun; dönünce oyun sürüyorsa devam etsin */
+document.addEventListener('visibilitychange',()=>{try{if(!ac)return;if(document.hidden){if(hn)hornOff();ac.suspend();}else if(playing&&!ended)ac.resume();}catch(e){}});
 let gMode='g';const own=id=>G.own.includes(id),hx=c=>'#'+c.toString(16).padStart(6,'0'),SH=REPAIR_SHOP?[-19,-19]:[1e6,1e6];
 function drawG(){let h;
  if(gMode==='s'){h='<b style="font-size:20px">🛠 Tamir</b> &nbsp; 💰 '+G.money+' altın<br><br>Hasar: %'+Math.round(dmg)+'<br>'+rpBtn()+'<br><br>'+gbt('x','Kapat ✕',false,'#8a2b2b');}
