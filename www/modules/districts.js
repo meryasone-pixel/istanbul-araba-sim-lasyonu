@@ -330,7 +330,7 @@
       const r = rng(23), R = B.R;
       B.plane(2400, 1500, 0x9a958a, -20, 0, -700); B.plane(1200, 100, 0x9a958a, -20, 0, 100); B.sea(1600, 1400, -20, 750, -.8);
       B.plane(1200, 14, 0xe8d3a1, -17, .02, 37);                                  // kumsal
-      B.plane(520, 36, 0xcfc7b8, -17, .04, 18); B.plane(520, 3, 0xb5524a, -17, .05, 16.5);   // yaya yolu + bisiklet yolu
+      B.plane(520, 20.4, 0xcfc7b8, -17, .04, 19.8); B.plane(520, 3, 0xb5524a, -17, .05, 16.5);   // yaya yolu (bordürden deniz setine: z 9.6–30; eskiden ana yolun yarısını örtüyordu) + bisiklet yolu
       const xs = [-278, -212, -146, -80, -14, 52, 118, 184, 244], vx = xs.map(c => ({ c, h: 6 }));
       const hz = [{ c: -288, h: 6 }, { c: -224, h: 6 }, { c: -150, h: 6 }, { c: -76, h: 6 }, { c: 0, h: 9.2, dash: [-4.4, 4.4], lo: 6.8 }];
       roads(B, vx, hz);

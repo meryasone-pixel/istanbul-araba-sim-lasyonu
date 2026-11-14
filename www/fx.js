@@ -422,7 +422,7 @@
         void main(){ vec3 p=position; float sp=17.+fract(p.x*7.13)*6.; p.y=mod(p.y-uTime*sp,30.); p.xz=uCam.xz+mod(p.xz-uCam.xz+vec2(uTime*1.2,0.)+40.,80.)-40.; p.y+=uCam.y-8.;
           p+=vec3(-.05,.62,0.)*aEnd; vA=mix(.15,1.,aEnd); gl_Position=projectionMatrix*viewMatrix*vec4(p,1.); }`,
       fragmentShader: `uniform float uA; uniform vec3 uC; varying float vA; void main(){ gl_FragColor=vec4(uC*uA*vA,1.); }` });
-    const l = new R.LineSegments(g, m); l.frustumCulled = false; l.renderOrder = 10; l.visible = false; return l;
+    const l = new R.LineSegments(g, m); l.frustumCulled = false; l.renderOrder = 10; l.visible = false; l.userData.__ist = true; return l;   // __ist: bölgeye girerken gizlenmez (yağmur bölgelerde de yağsın)
   }
 
   /* ---------- başlatma ---------- */
@@ -435,7 +435,7 @@
     if ((w2 && ext.has('EXT_color_buffer_float')) || (!w2 && ext.has('OES_texture_half_float') && ext.has('EXT_color_buffer_half_float'))) ftype = R.HalfFloatType;
     msaa = w2 && !!R.WebGLMultisampleRenderTarget;
     // gök kubbe
-    sky = new R.Mesh(new R.SphereGeometry(1000, 32, 16), skyMat); sky.frustumCulled = false; sky.renderOrder = -1000; scene.add(sky); FX.dyn.push(sky);
+    sky = new R.Mesh(new R.SphereGeometry(1000, 32, 16), skyMat); sky.frustumCulled = false; sky.renderOrder = -1000; sky.userData.__ist = true; scene.add(sky); FX.dyn.push(sky);   // __ist: bölgelerde gökyüzü siyah kalmasın
     // çevre (yansıma) haritası için ayrı küçük sahne
     envScene = new R.Scene(); const es = new R.Mesh(new R.SphereGeometry(40, 32, 16), skyMat); envScene.add(es);
     const gd = new R.Mesh(new R.CircleGeometry(38, 24), new R.MeshBasicMaterial({ color: 0x2e2c2b })); gd.rotation.x = -Math.PI / 2; gd.position.y = -1.5; envScene.add(gd); FX._envGround = gd;
