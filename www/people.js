@@ -310,7 +310,9 @@
   /* ---------- güncelleme ---------- */
   let lastHorn = 0, CUR = [];
   /* kalabalık: önündeki yayaya çarpmamak için ya onu takip et (aynı yöne benzer hızda yürüyorsa) ya da yana kay */
-  const SEEN = new Set(), CRO = { fv: null, lat: null, blk: false };   // her karede yeniden oluşturulmaz (bellek çöpü → kasılma)
+  const SEEN = new Set(), CRO = { fv: null, lat: null, blk: false }, CARO = [1.1, -1.1];   // CARO: arabanın ön/arka yarısının merkezi (araç boyu ~4.4 m)
+  /* nokta oyuncunun arabasının içinde mi (ön ve arka yarı birer daire, yarıçap r) */
+  function inCar(x, z, r) { for (const o2 of CARO) if (Math.hypot(x - car.x - Math.sin(car.a) * o2, z - car.z - Math.cos(car.a) * o2) < r) return true; return false; }   // her karede yeniden oluşturulmaz (bellek çöpü → kasılma)
   function crowd(p, q) {
     const hx = q.dx * p.dir, hz = q.dz * p.dir; let fv = null, lat = null, blk = false; const seen = SEEN; seen.clear();
     for (const o of CUR) {
@@ -333,6 +335,14 @@
       let want = null; if (okU && okD) want = Math.abs(up - p.lat) < Math.abs(dn - p.lat) ? up : dn; else if (okU) want = up; else if (okD) want = dn;
       if (want === null) { if (f < hw + 1) { fv = fv === null ? 0 : Math.min(fv, 0); blk = true; } }   // geçecek yer yok
       else if (lat === null || Math.abs(want - p.lat) < Math.abs(lat - p.lat)) lat = want;
+    }
+    /* oyuncunun arabası (duruyor/yavaş): kaldırımdaki yaya içinden geçmez, durur, yol kapalıysa geri döner */
+    if (Math.abs(car.v) < 3) for (const o2 of CARO) {
+      const dx = car.x + Math.sin(car.a) * o2 - p.x, dz = car.z + Math.cos(car.a) * o2 - p.z, hw = 1.25;
+      if (Math.abs(dx) > 3.5 || Math.abs(dz) > 3.5) continue;
+      const f = dx * hx + dz * hz, l = dx * q.nx + dz * q.nz;
+      if (f <= -(hw + .5) || f > 2.4 + hw || Math.abs(l) > hw + .3) continue;
+      if (f < hw + 1) { fv = 0; blk = true; }
     }
     CRO.fv = fv; CRO.lat = lat; CRO.blk = blk; return CRO;
   }
@@ -430,9 +440,13 @@
     if (d < 22 && Math.abs(car.v) > 4) run = 1;
     for (const c of ais) { if (c.on && c.v > 3 && Math.abs(c.x - p.x) + Math.abs(c.z - p.z) < 16) { run = Math.max(run, .6); break; } }
     const sp = p.sp * 1.1 + run * 1.9; p.v += (sp - p.v) * Math.min(1, dt * 3);
+    const pr = cPerp(k), offAt = u => (p.cOff || 0) + .4 * Math.min(1, u * 5, (1 - u) * 5);
+    /* geçidin üstünde duran oyuncu arabası: içinden geçme, araba gidene kadar önünde bekle */
+    if (Math.abs(car.v) < 1) { const u1 = Math.min(1, (p.cd + .6) / p.clen), o1 = offAt(u1);
+      if (inCar(k.x0 + (k.x1 - k.x0) * u1 + pr[0] * o1, k.z0 + (k.z1 - k.z0) * u1 + pr[1] * o1, 1.45)) { p.v = 0; p.look = 'car'; p.lookT = .5; } }
     p.cd += p.v * dt; const u = Math.min(1, p.cd / p.clen);
     // geçitte sağdan yürü (karşıdan gelenle çarpışmasın) + bekleme sırasındaki yan kayma
-    const pr = cPerp(k), off = (p.cOff || 0) + .4 * Math.min(1, u * 5, (1 - u) * 5);
+    const off = offAt(u);
     p.x = k.x0 + (k.x1 - k.x0) * u + pr[0] * off; p.z = k.z0 + (k.z1 - k.z0) * u + pr[1] * off;
     const onRoad = p.cd > .4 && p.clen - p.cd > .4; p.y += ((onRoad ? .03 : .3) - p.y) * Math.min(1, dt * 14);
     p.yaw += wrapA(Math.atan2(k.x1 - k.x0, k.z1 - k.z0) - p.yaw) * Math.min(1, dt * 6);

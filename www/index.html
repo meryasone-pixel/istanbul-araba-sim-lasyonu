@@ -357,7 +357,7 @@ function aiStep(c,dt){const px=c.x,pz=c.z;
   const ix=c.ax?bk:c.rc, iz=c.ax?c.rc:bk, sig=isLit(ix,iz), st=sig?light(c.ax,ix,iz):light(c.ax), dS=best-14;
   if(st!=='g'&&sig&&dS>-1.5&&dS<26&&!(st==='y'&&dS<5))want=Math.min(want,Math.max(0,dS)*1.2);
   const chk=(ox,oz)=>{const x=ox-c.x,z=oz-c.z,fd=x*sn+z*cs,ld=Math.abs(x*cs-z*sn);if(fd>0&&fd<16&&ld<2.4)want=Math.min(want,Math.max(0,fd-6.5)*.9);};
-  c.stk=c.v<.3?(c.stk||0)+dt:0; if(!(c.stk>10&&st==='g')){for(const o of ais)if(o!==c&&o.on)chk(o.x,o.z); chk(car.x,car.z);}
+  c.stk=c.v<.3?(c.stk||0)+dt:0; if(!(c.stk>10&&st==='g')){for(const o of ais)if(o!==c&&o.on)chk(o.x,o.z);} chk(car.x,car.z); /* oyuncunun arabası her zaman görülür (takılma istisnasında trafik duran oyuncunun içinden geçiyordu) */
   /* karşıya geçen yaya: hem yayanın kendisine hem de geçidin tamamına bak (yaya yan şeritteyken de geçidin önünde dur).
      Takılma istisnası yayalara uygulanmaz: yaya her zaman karşıya varır, araba onu ezip geçmez. */
   for(const q of People.cross){chk(q.x,q.z);const k=q.ck;if(k&&k.mx!==undefined){const x=k.mx-c.x,z=k.mz-c.z,fd=x*sn+z*cs,ld=Math.abs(x*cs-z*sn);if(fd>0&&fd<20&&ld<7.5)want=Math.min(want,Math.max(0,fd-4.5)*.9);}}
@@ -738,7 +738,8 @@ function step(dt){if(gOpen)return 0;gStep();mStep(dt);
     }
     for(const p of peds){
       if(p.ko>0||Math.abs(car.v)<1)continue;
-      if(Math.hypot(px0-p.x,pz0-p.z)<1.5){p.ko=4;p.vx=fx*car.v*.5;p.vz=fz*car.v*.5;pts(-15);fine(50,1);msg(freeMode?'Yayaya çarptın':'Yayaya çarptın −50 altın');crash(.25);}
+      /* çarpılan yaya yana da savrulur (eskiden yalnız ileri, arabadan yavaş: araba devrilen yayanın içinden geçiyordu) */
+      if(Math.hypot(px0-p.x,pz0-p.z)<1.5){const sd=((p.x-px0)*fz-(p.z-pz0)*fx)>=0?1:-1,av=Math.abs(car.v);p.ko=4;p.vx=fx*car.v*.6+fz*sd*av*.6;p.vz=fz*car.v*.6-fx*sd*av*.6;pts(-15);fine(50,1);msg(freeMode?'Yayaya çarptın':'Yayaya çarptın −50 altın');crash(.25);}
     }
   }
   // Kırmızı ışık
