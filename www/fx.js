@@ -22,10 +22,12 @@
   let q = 1;
   try {
     const s = JSON.parse(localStorage.getItem('ist-set') || '{}');
-    if (s.q !== undefined && s.qm) q = +s.q;             // oyuncu kaliteyi kendisi seçtiyse ona dokunma
+    if (s.q !== undefined && s.qm) q = Math.min(2, +s.q);   // Ultra kaldırıldı (3 → Yüksek)             // oyuncu kaliteyi kendisi seçtiyse ona dokunma
     else q = weakDevice() ? 0 : (window.matchMedia && matchMedia('(pointer:coarse)').matches) ? 1 : 2;
   } catch (e) {}
-  FX.Q = q;               // malzeme katmanı (açılışta sabit)
+  /* Düşük (lite): Orta'nın malzemeleri, gökyüzü, renk tonu ve yağmuru kalır; parlama, HDR tampon, yansıma, gren, bulanıklık kapalı */
+  FX.lite = q === 0;
+  FX.Q = FX.lite ? 1 : q; // malzeme katmanı (açılışta sabit)
   FX.q = q;               // canlı kalite (efektler)
   FX.weather = 'wet';     // dry | wet | rain
   FX.night = 0; FX.dusk = 0;
@@ -387,7 +389,7 @@
 
   let ren, scn, cam, rtS, rtR, bA = [], bB = [], levels = 3, ftype = R.UnsignedByteType, msaa = false, sky, envGen, envRT, envScene, rain, reflHide = [], reflCam = new R.PerspectiveCamera(), sz = new R.Vector2();
   FX.reflHide = reflHide; FX.dyn = [];
-  FX.post = () => FX.q > 0;
+  FX.post = () => FX.q > 0 || FX.lite;
   FX.refl = () => FX.q >= 2;
 
   function mkRT(w, h, ms) {
@@ -404,6 +406,7 @@
     rtS = mkRT(w, h, msaa);
     if (FX.refl()) { const k = FX.q >= 3 ? .75 : .5; rtR = mkRT(Math.max(2, w * k | 0), Math.max(2, h * k | 0), false); }
     levels = 3;   // Orta'da da 3 katman: 2 katmanda 2. katman iki kez eklenip beyazların etrafında kalın hale yapıyordu (3. katman 1/8 boyut, yükü çok az)
+    if (FX.lite) { compM.uniforms.uRes.value.set(w, h); return; }   // Düşük: parlama tamponları yok
     for (let i = 0; i < 3; i++) { const d = 2 << i, bw = Math.max(2, w / d | 0), bh = Math.max(2, h / d | 0); bA.push(mkRT(bw, bh)); bB.push(mkRT(bw, bh)); bA[i].depthBuffer = bB[i].depthBuffer = false; }
     compM.uniforms.uRes.value.set(w, h);
   }
@@ -411,7 +414,7 @@
 
   /* ---------- yağmur ---------- */
   function makeRain() {
-    const N = [0, 900, 1800, 2600][FX.q] || 900, pos = new Float32Array(N * 6), sd = new Float32Array(N * 2);
+    const N = FX.lite ? 600 : [0, 900, 1800, 2600][FX.q] || 900, pos = new Float32Array(N * 6), sd = new Float32Array(N * 2);
     for (let i = 0; i < N; i++) {
       const x = Math.random() * 80 - 40, y = Math.random() * 30, z = Math.random() * 80 - 40;
       for (let k = 0; k < 2; k++) { pos[i * 6 + k * 3] = x; pos[i * 6 + k * 3 + 1] = y; pos[i * 6 + k * 3 + 2] = z; sd[i * 2 + k] = k; }
@@ -432,7 +435,8 @@
     UNI.tPud.value = T.puddle;
     if (FX.Q === 0) return;
     const gl = renderer.getContext(), ext = renderer.extensions, w2 = renderer.capabilities.isWebGL2;
-    if ((w2 && ext.has('EXT_color_buffer_float')) || (!w2 && ext.has('OES_texture_half_float') && ext.has('EXT_color_buffer_half_float'))) ftype = R.HalfFloatType;
+    if (FX.lite) {}   // Düşük: 8 bit tampon (yarı bant genişliği)
+    else if ((w2 && ext.has('EXT_color_buffer_float')) || (!w2 && ext.has('OES_texture_half_float') && ext.has('EXT_color_buffer_half_float'))) ftype = R.HalfFloatType;
     msaa = w2 && !!R.WebGLMultisampleRenderTarget;
     // gök kubbe
     sky = new R.Mesh(new R.SphereGeometry(1000, 32, 16), skyMat); sky.frustumCulled = false; sky.renderOrder = -1000; sky.userData.__ist = true; scene.add(sky); FX.dyn.push(sky);   // __ist: bölgelerde gökyüzü siyah kalmasın
@@ -452,7 +456,7 @@
   };
   let lastSz = '';
   FX.resize = function () { if (!ren || FX.Q === 0) return; ren.getDrawingBufferSize(sz); const k = sz.x + 'x' + sz.y + ':' + FX.q; if (k === lastSz) return; lastSz = k; buildRTs(); };
-  FX.setQuality = function (nq) { FX.q = FX.Q === 0 ? 0 : Math.max(1, nq | 0); if (ren && FX.Q > 0) { if (rain) { scn.remove(rain); rain.geometry.dispose(); const i = reflHide.indexOf(rain); if (i >= 0) reflHide.splice(i, 1); } rain = makeRain(); scn.add(rain); reflHide.push(rain); lastSz = ''; FX.resize(); applyWeather(); } };
+  FX.setQuality = function (nq) { FX.q = FX.Q === 0 || FX.lite ? 0 : Math.max(1, nq | 0); if (ren && FX.Q > 0) { if (rain) { scn.remove(rain); rain.geometry.dispose(); const i = reflHide.indexOf(rain); if (i >= 0) reflHide.splice(i, 1); } rain = makeRain(); scn.add(rain); reflHide.push(rain); lastSz = ''; FX.resize(); applyWeather(); } };
 
   function updateEnv() {
     if (!envGen) return;
@@ -482,7 +486,7 @@
     const w = FX.weather;
     UNI.uWet.value = w === 'dry' ? 0 : w === 'wet' ? .72 : 1;
     UNI.uRain.value = w === 'rain' ? 1 : 0;
-    if (rain) rain.visible = w === 'rain' && FX.q > 0;
+    if (rain) rain.visible = w === 'rain' && (FX.q > 0 || FX.lite);
   }
   FX.setWeather = function (w) { FX.weather = w; try { localStorage.setItem('ist-wx', w); } catch (e) {} applyWeather(); };
   applyWeather();
@@ -526,6 +530,12 @@
     if (!FX.post() || !rtS) { UNI.uReflOn.value = 0; ren.setRenderTarget(null); ren.render(scn, cam); return; }
     if (FX.refl() && rtR && UNI.uWet.value > .01) reflectPass(); else UNI.uReflOn.value = 0;
     ren.setRenderTarget(rtS); ren.render(scn, cam);
+    if (FX.lite) {   // Düşük: parlama/bulanıklık/renk kayması/gren yok, yalnız renk tonu
+      const U = compM.uniforms; U.tS.value = rtS.texture; U.tB0.value = U.tB1.value = U.tB2.value = dummyT;
+      U.uBloom.value = 0; U.uExpo.value = GR.expo; U.uSat.value = GR.sat * (FX.weather === 'rain' ? .9 : 1); U.uCon.value = GR.con; U.uLift.value.copy(GR.lift); U.uGain.value.copy(GR.gain); U.uVig.value = GR.vig;
+      U.uBlur.value = 0; U.uCA.value = 0; U.uGrain.value = 0; U.uFlash.value = flash;
+      pass(compM, null); return;
+    }
     // bloom
     brightM.uniforms.t.value = rtS.texture; brightM.uniforms.uTh.value = GR.th; pass(brightM, bA[0]);
     for (let i = 0; i < levels; i++) {
