@@ -23,7 +23,7 @@
   try {
     const s = JSON.parse(localStorage.getItem('ist-set') || '{}');
     if (s.q !== undefined && s.qm) q = Math.min(2, +s.q);   // oyuncu kaliteyi kendisi seçtiyse ona dokunma (Ultra kaldırıldı: 3 → Yüksek)
-    else q = weakDevice() ? 0 : (window.matchMedia && matchMedia('(pointer:coarse)').matches) ? 1 : 2;
+    else q = (s.slow /* önceki oyunda telefon zorlandı (index.html slowCheck) */ || weakDevice()) ? 0 : (window.matchMedia && matchMedia('(pointer:coarse)').matches) ? 1 : 2;
   } catch (e) {}
   FX.Q = q;               // malzeme katmanı (açılışta sabit)
   FX.q = q;               // canlı kalite (efektler)

@@ -765,7 +765,14 @@ function drawMini(){
   if(cm&&cm.i===0){const tx=clamp(X(cm.x),6,W-6),tz=clamp(Z(cm.z),6,W-6);mc.fillStyle='#2ee06b';mc.beginPath();mc.arc(tx,tz,4.5,0,7);mc.fill();mc.strokeStyle='#fff';mc.lineWidth=1.5;mc.stroke();}
   mc.save();mc.translate(W/2,W/2);mc.rotate(Math.PI-car.a);mc.fillStyle='#19e0cf';mc.beginPath();mc.moveTo(0,-6);mc.lineTo(4.5,5);mc.lineTo(-4.5,5);mc.closePath();mc.fill();mc.restore();
 }
-let tPrev=0,fc=0,fAcc=0,fN=0,lastKmh=-1,lastGr='',upBlock=0,camFree=null,camF=1;
+let tPrev=0,fc=0,fAcc=0,fN=0,lastKmh=-1,lastGr='',upBlock=0,camFree=null,camF=1,slowN=0;
+/* telefon zorlanıyorsa (çözünürlük en alta indiği halde sürüşte ~8 sn boyunca 30 FPS altı): gölgeler hemen kapanır,
+   sonraki açılışta Düşük kalite gelir. Oyuncu kaliteyi kendisi seçtiyse dokunulmaz. */
+function slowCheck(av){if(!playing||FX.Q===0||S.qm||S.slow)return;slowN=(av>.033&&pr<=.61)?slowN+1:0;if(slowN<4)return;
+  S.slow=true;try{localStorage.setItem('ist-set',JSON.stringify(S));}catch(e){}sun.castShadow=false;
+  const n=document.createElement('div');n.textContent='Telefonun için grafik hafifletildi (sonraki açılışta Düşük kalite)';
+  n.style.cssText='position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:70;background:rgba(20,20,50,.85);color:#fff;font:600 13px system-ui;padding:8px 14px;border-radius:10px;max-width:calc(100vw - 32px);text-align:center;pointer-events:none';
+  document.body.appendChild(n);setTimeout(()=>n.remove(),4500);}
 const _sr=new R.Vector3(),_su=new R.Vector3(),_sp=new R.Vector3(),_sd=new R.Vector3();let shX=0,shZ=0;
 function snapSun(){ /* gölge haritası texel'e oturtulur: gölge titremesi/yüzmesi biter */
   /* gölge alanı arabanın değil, kameranın baktığı yönde 45 m ileriye ortalanır: arkada boşa gölge yok, önde gölgeler
@@ -781,7 +788,7 @@ function frame(t){
   if(++fN>=60){const av=fAcc/fN;
     if(av>.030&&pr>.6){pr=Math.max(.6,pr-.15);renderer.setPixelRatio(pr);resize();upBlock=900;}
     else if(upBlock<=0&&av<.014&&pr<Math.min(devicePixelRatio,prMax)){pr=Math.min(devicePixelRatio,prMax,pr+.1);renderer.setPixelRatio(pr);resize();upBlock=900;}
-    fAcc=0;fN=0;}
+    slowCheck(av);fAcc=0;fN=0;}
   if(upBlock>0)upBlock--;
   hitCd=Math.max(0,hitCd-dt);
   if(playing)steer=step(dt);
@@ -847,7 +854,7 @@ async function phSave(){const pm=$('phmsg');try{const url=renderer.domElement.to
 phui.onclick=e=>{const b=e.target.closest('button');if(!b)return;const a=b.dataset.a;if(a==='in')phZ=Math.max(.45,phZ/1.25);else if(a==='out')phZ=Math.min(3,phZ*1.25);else if(a==='snap')phSnap=true;else if(a==='x')phOff();};
 $('bPh').onclick=phOn;addEventListener('keydown',e=>{if(phM&&e.key==='Escape')phOff();});
 function resize(){renderer.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();FX.resize();}
-function applyQ(){if((S.q===0)!==(FX.Q===0)){try{localStorage.setItem('ist-set',JSON.stringify(S));}catch(e){}location.reload();return;}FX.setQuality(S.q);prMax=[.8,1,1.6][S.q]||1;pr=Math.min(devicePixelRatio,prMax);renderer.setPixelRatio(pr);sun.castShadow=S.q>0;resize();}
+function applyQ(){if((S.q===0)!==(FX.Q===0)){try{localStorage.setItem('ist-set',JSON.stringify(S));}catch(e){}location.reload();return;}FX.setQuality(S.q);prMax=[.8,1,1.6][S.q]||1;pr=Math.min(devicePixelRatio,prMax);renderer.setPixelRatio(pr);sun.castShadow=S.q>0&&!(S.slow&&!S.qm);resize();}
 addEventListener('resize',resize); resize(); look(); setTime('dusk'); applyTraffic();
 scene.updateMatrixWorld(true);
 {const dyn=new Set([...FX.dyn,car3,ferry,sea,sun,sun.target,...coins,beam,dockB,...ais.map(c=>c.m),...peds.map(p=>p.m),...puffs.map(q=>q.m)]);scene.children.forEach(o=>{if(!dyn.has(o))o.matrixAutoUpdate=false;});}
