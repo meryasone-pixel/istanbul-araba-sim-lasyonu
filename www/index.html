@@ -416,35 +416,16 @@ let mt; function msg(t){const e=$('msg');e.textContent=t;e.style.opacity=1;clear
 function pts(n){if(freeMode)return;score=clamp(score+n,0,100);$('score').textContent=score;}
 
 // Ses
-let ac,osc,gain,engO=null,engF=null,engL=null,engG=0;
-/* motor sesi her kare: vites + devir (hızlandıkça devir yükselir, vites atınca düşer — tek düze siren gibi değil) */
-const ENG_GR=[0,8,15,23,32,43,999];
-function engSnd(up){const t=ac.currentTime,v=Math.abs(car.v);let rpm;
-  if(boatM)rpm=900+Math.min(v/28,1)*3600;
-  else{while(engG<5&&v>ENG_GR[engG+1]+.5)engG++;while(engG>0&&v<ENG_GR[engG]-1.5)engG--;   // geri dönüşte biraz geç vites düşür: sınırda vites ileri-geri titremesin
-    const lo=ENG_GR[engG],hi=ENG_GR[engG+1],fr=clamp((v-lo)/(hi-lo),0,1);
-    rpm=v<.4?850:engG===0?900+fr*4300:2300+fr*3100;}
-  rpm+=(up?250:0)+Math.sin(t*7)*20;
-  const f0=rpm/30;   // 4 silindir: ateşleme frekansı devir/30 Hz
-  engO[0].frequency.setTargetAtTime(f0,t,.04);engO[1].frequency.setTargetAtTime(f0*2,t,.04);engO[2].frequency.setTargetAtTime(f0*.5,t,.04);engL.frequency.setTargetAtTime(f0*.5,t,.04);
-  engF.frequency.setTargetAtTime(350+rpm*.22+(up?500:0),t,.06);
-  gain.gain.setTargetAtTime((!playing||gOpen||totaled||!engineOn)?0:((boatM?.022:.03)+Math.min(rpm/6000,1)*.045+(up?.02:0))*1.25,t,.04);}
+let ac,osc,gain;
 function startAudio(){try{if(ac){if(ac.state==='suspended')ac.resume();return;}
   ac=new(window.AudioContext||window.webkitAudioContext)();
   /* ana çıkış: bütün sesler bir sınırlayıcıdan geçer — üst üste binince (çarpışma+motor+korna) taşıp cızırdamaz */
   master=ac.createDynamicsCompressor(); master.threshold.value=-12; master.knee.value=6; master.ratio.value=12; master.attack.value=.003; master.release.value=.25;
   const mg=ac.createGain(); mg.gain.value=.8; master.connect(mg); mg.connect(ac.destination);
-  /* motor: ana ton + hafif kaydırılmış 2. harmonik (kalın, canlı) + alt ton (gövde); hafif bozulma (hırıltı);
-     devirle açılan süzgeç (gaza basınca parlar); ateşleme darbesi (rölantide "pır pır", yüksek devirde uğultu).
-     Telefon hoparlörü 200 Hz altını çalamadığı için duyulan kısım üst tınılardır. */
-  const mk=(type,gv,det)=>{const o=ac.createOscillator(),g=ac.createGain();o.type=type;if(det)o.detune.value=det;g.gain.value=gv;o.connect(g);o.start();return[o,g];};
-  const [o1,g1]=mk('sawtooth',.55),[o2,g2]=mk('sawtooth',.3,9),[o3,g3]=mk('square',.22);
-  const ws=ac.createWaveShaper(),cv=new Float32Array(1024);for(let i=0;i<1024;i++){const x=i/511.5-1;cv[i]=Math.tanh(2*x);}ws.curve=cv;
-  engF=ac.createBiquadFilter(); engF.type='lowpass'; engF.frequency.value=700; engF.Q.value=3;
-  const am=ac.createGain(); am.gain.value=.75; engL=ac.createOscillator(); engL.type='sine'; const lg=ac.createGain(); lg.gain.value=.25; engL.connect(lg); lg.connect(am.gain); engL.start();
-  gain=ac.createGain(); gain.gain.value=0;
-  for(const g of[g1,g2,g3])g.connect(ws); ws.connect(engF); engF.connect(am); am.connect(gain); gain.connect(master);
-  osc=o1; engO=[o1,o2,o3];
+  osc=ac.createOscillator(); osc.type='sawtooth';
+  /* süzgeç 380→900 Hz: telefon hoparlörü 200 Hz altını çalamıyor, motorun üst tınıları duyulsun */
+  const f=ac.createBiquadFilter(); f.type='lowpass'; f.frequency.value=900;
+  gain=ac.createGain(); gain.gain.value=0; osc.connect(f); f.connect(gain); gain.connect(master); osc.start();
 }catch(e){}}
 let master=null, noiseB=null;
 const aOut=()=>master||ac.destination;
@@ -558,13 +539,14 @@ function repairCar(byAd){if(!needRp()){msg('Araba zaten sağlam');return false;}
  if(!fr)G.money-=c;dmg=0;totaled=false;twY=twZ=0;score=100;$('score').textContent=100;fixParts();mon.textContent='💰 '+G.money;saveG();msg('Araba yenilendi');return true;}
 const gbt=(k,t,on,bg)=>'<button data-k="'+k+'" style="margin:3px;padding:8px 11px;border-radius:9px;border:2px solid '+(on?'#ffd54a':'#555')+';background:'+(bg||'#33336a')+';color:#fff;font:inherit">'+t+'</button>';
 let fineT=0;function fine(n,f){if(freeMode)return;const t=performance.now();if(!f&&t<fineT)return;if(!f)fineT=t+1200;G.money=Math.max(0,G.money-n);mon.textContent='💰 '+G.money;saveG();}
-function saveG(){if(window.noSv)return;try{G.dmg=Math.round(dmg);localStorage.setItem('ist-gar',JSON.stringify(G));}catch(e){}}
+function saveG(){if(window.noSv||devAll())return;   /* deneme modunda (her şey açık) kayıt yok: kapatınca eski garaj geri gelir */try{G.dmg=Math.round(dmg);localStorage.setItem('ist-gar',JSON.stringify(G));}catch(e){}}
 addEventListener('pagehide',saveG);document.addEventListener('visibilitychange',()=>{if(document.hidden)saveG();});
 /* uygulama arka plana geçince (ana ekran, telefon araması, kilit) ses tamamen dursun; dönünce oyun sürüyorsa devam etsin */
 document.addEventListener('visibilitychange',()=>{try{if(!ac)return;if(document.hidden){if(hn)hornOff();ac.suspend();}else if(playing&&!ended)ac.resume();}catch(e){}});
 /* arka plana geçerken basılı tuşlar sıfırlanır: parmak kalkma olayı gelmeyebiliyor, dönünce araba kendi kendine gaz/direksiyon yapıyordu */
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)return;for(const k in keys)keys[k]=0;drag=null;document.querySelectorAll('.pad button.on').forEach(b=>b.classList.remove('on'));});
-let gMode='g';const own=id=>G.own.includes(id),hx=c=>'#'+c.toString(16).padStart(6,'0'),SH=REPAIR_SHOP?[-19,-19]:[1e6,1e6];
+function devAll(){return !!(window.IST_CONFIG&&IST_CONFIG.garage&&IST_CONFIG.garage.devUnlockAll===true);}
+let gMode='g';const own=id=>G.own.includes(id)||devAll(),hx=c=>'#'+c.toString(16).padStart(6,'0'),SH=REPAIR_SHOP?[-19,-19]:[1e6,1e6];
 function drawG(){let h;
  if(gMode==='s'){h='<b style="font-size:20px">🛠 Tamir</b> &nbsp; 💰 '+G.money+' altın<br><br>Hasar: %'+Math.round(dmg)+'<br>'+rpBtn()+'<br><br>'+gbt('x','Kapat ✕',false,'#8a2b2b');}
  else{h='<b style="font-size:20px">🔧 Garaj</b> &nbsp; 💰 '+G.money+' altın'+'<br><small>Arabayı döndürmek için sol tarafı parmağınla sürükle</small><br>'+rpBtn()+'<br>'+gbt('shop','🛒 Mağaza: kaplama, özel neon, özel jant, korna',false,'#5a3a8a')+'<br><br><b>Model</b><br>';
@@ -621,7 +603,7 @@ let selM=-1,cm=null;
 const beam=new R.Mesh(new R.CylinderGeometry(3,3,40,16,1,true),new R.MeshBasicMaterial({color:0x2ee06b,transparent:true,opacity:.25,side:R.DoubleSide,depthWrite:false}));beam.visible=false;scene.add(beam);
 const mh=document.createElement('div');mh.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:72px;z-index:5;color:#fff;font:700 15px system-ui;text-shadow:0 1px 3px #000;pointer-events:none';document.body.appendChild(mh);
 function drawMs(){const mb=G.mb||{};$('ms').innerHTML=dHtml()+MS.map((m,i)=>'<button data-v="'+i+'" style="display:block;width:100%;text-align:left;margin:4px 0;padding:10px 12px;border-radius:10px;border:2px solid '+(selM===i?'#ffd54a':'transparent')+';background:var(--glass);color:var(--ink);font-size:14px">'+m[0]+(mb[i]?' '+starTxt(mb[i]):'')+' — '+m[1]+' · '+(m[3]&&!G.rc&&!own('m4')?m[3]:m[2]+'–'+m[2]*2+' altın')+(i===3&&G.rb?' · rekor '+G.rb.toFixed(1)+' sn':'')+'</button>').join('');$('ms').querySelectorAll('button').forEach(b=>b.onclick=()=>{selM=+b.dataset.v;drawMs();});}
-seg('md',v=>{const bs=$('md').children;if(v==='1'&&!G.unl){bs[0].classList.add('on');bs[1].classList.remove('on');freeMode=true;selM=-1;$('ms').style.display='block';$('ms').innerHTML='🔒 Görevleri açmak için serbest sürüşte şehrin üçte birini gez (%'+Math.min(100,Math.floor(visS.size/(RT*UNL_K)*100))+'). Gezdiğin her yeni sokak +'+FREE_SEG+' altın kazandırır ve haritada yeşil işaretlenir.';return;}
+seg('md',v=>{const bs=$('md').children;if(v==='1'&&!G.unl&&!devAll()){bs[0].classList.add('on');bs[1].classList.remove('on');freeMode=true;selM=-1;$('ms').style.display='block';$('ms').innerHTML='🔒 Görevleri açmak için serbest sürüşte şehrin üçte birini gez (%'+Math.min(100,Math.floor(visS.size/(RT*UNL_K)*100))+'). Gezdiğin her yeni sokak +'+FREE_SEG+' altın kazandırır ve haritada yeşil işaretlenir.';return;}
  freeMode=v!=='1';$('ms').style.display=freeMode?'none':'block';if(!freeMode){if(selM<0)selM=0;drawMs();}else selM=-1;});
 const DK=[300,27];
 const nav=document.createElement('div');nav.style.cssText='position:fixed;left:50%;top:98px;width:80px;margin-left:-40px;z-index:5;display:none;text-align:center;color:#2ee06b;font:700 15px system-ui;text-shadow:0 1px 3px #000;pointer-events:none';nav.innerHTML='<div id="na" style="font-size:46px;line-height:46px">▲</div><div id="nd"></div>';document.body.appendChild(nav);
@@ -684,8 +666,9 @@ visS.clear();for(const id of G.s2){const ax=id>=864?1:0,u=(id-ax*864)%72;if(rlOK
 scene.add(rl);
 const FREE_SEG=1, UNL_K=.35; /* serbest sürüş: her yeni gezilen sokak parçası +1 altın; görevler haritanın %35'i gezilince açılır */
 if(!G.unl&&visS.size>=RT*UNL_K)G.unl=true;
-const rlOn=()=>{rl.visible=freeMode&&!G.unl;};
-function xp(){$('md').children[1].textContent=G.unl?'Görevler':'🔒 Görevler';}
+const rlOn=()=>{rl.visible=freeMode&&!G.unl&&!devAll();};
+function xp(){$('md').children[1].textContent=G.unl||devAll()?'Görevler':'🔒 Görevler';}
+addEventListener('load',()=>{xp();rlOn();});   /* deneme ayarı (devUnlockAll) sayfanın sonunda okunur: görev kilidi yüklenince yeniden çizilir */
 function applyMode(){mon.style.display='block';mx.style.display='none';$('score').parentElement.style.display=freeMode?'none':'';coins.forEach(g=>g.visible=!freeMode);if(freeMode)endM();buildPlayer();look();xp();rlOn();}
 const gd=document.createElement('div');gd.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:72px;z-index:6;display:none;align-items:center;gap:10px;padding:8px 16px;border-radius:999px;background:rgba(138,43,43,.92);color:#fff;font:700 16px system-ui;pointer-events:none';gd.innerHTML='<span id="gda" style="display:inline-block;font-size:26px;line-height:1">➤</span><span id="gdt"></span>';document.body.appendChild(gd);
 let warn80=false;
@@ -773,7 +756,7 @@ function step(dt){if(gOpen)return 0;gStep();mStep(dt);
   if(inside&&isLit(bx,bz)&&!inX&&Math.abs(car.v)>3&&light(Math.abs(fx)>.7071?1:0,bx,bz)==='r'){pts(-10);msg(freeMode?'Kırmızıda geçtin':'Kırmızıda geçtin −10');}
   inX=inside;
   /* motor sesi: değerler kare kare zıplamaz, ~40 ms'de yumuşakça kayar (ani adımlar tık/cızırtı yapıyordu) */
-  if(osc&&engO)engSnd(up);
+  if(osc){const tA=ac.currentTime;osc.frequency.setTargetAtTime(48+Math.abs(car.v)*3.2,tA,.04);gain.gain.setTargetAtTime((!playing||gOpen||totaled||!engineOn)?0:(boatM?.022:.03)+Math.min(Math.abs(car.v)/60,1)*.05+(up?.015:0),tA,.04);}
   const acc=(car.v-pv)/Math.max(dt,.001); pv=car.v; pitch+=(clamp(-acc*.004,-.06,.06)-pitch)*Math.min(1,dt*6);
   if(dmg>45){puffT-=dt;if(puffT<=0){puff();puffT=dmg>75?.06:.14;}}
   return steer;
@@ -895,7 +878,7 @@ scene.updateMatrixWorld(true);
 requestAnimationFrame(frame);
 </script>
 <!-- IST-MODULLER -->
-<script>window.IST_CONFIG={cloud:{apiKey:"",projectId:""},shop:{mock:false},ads:{mock:false,testing:true},districts:{devUnlockAll:false}};   /* ads: YAYINDAN ÖNCE testing:false yap ve ids:{rewarded:'...',interstitial:'...'} yaz */   /* devUnlockAll: DENEME için tüm bölgeler açık. Yayından önce true yerine false yazın. */</script>
+<script>window.IST_CONFIG={cloud:{apiKey:"",projectId:""},shop:{mock:false},ads:{mock:false,testing:true},districts:{devUnlockAll:true},garage:{devUnlockAll:true}};   /* DENEME: tüm bölgeler + tüm arabalar/jantlar/boyalar/parçalar açık; garaj.devUnlockAll açıkken garaj kaydı yapılmaz. YAYINDAN ÖNCE ikisini de false yap. */   /* ads: YAYINDAN ÖNCE testing:false yap ve ids:{rewarded:'...',interstitial:'...'} yaz */   /* devUnlockAll: DENEME için tüm bölgeler açık. Yayından önce true yerine false yazın. */</script>
 <script src="modules/loader.js"></script>
 <!-- IST-MODULLER -->
 </body>
