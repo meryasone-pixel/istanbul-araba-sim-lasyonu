@@ -2,6 +2,8 @@ package com.istanbulsurus.oyun;
 
 import android.os.Bundle;
 import android.view.WindowManager;
+import android.webkit.WebView;
+import androidx.activity.OnBackPressedCallback;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
@@ -13,6 +15,19 @@ public class MainActivity extends BridgeActivity {
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     hideBars();
+
+    /* Geri tuşu: önce oyuna sorulur (açık pencereyi kapatır / menüyü açar).
+       Oyun "hayır" derse uygulama kapatılmaz, arka plana alınır: ilerleme kaybolmaz, tekrar açınca kaldığı yerden sürer. */
+    getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+      @Override
+      public void handleOnBackPressed() {
+        WebView wv = (getBridge() != null) ? getBridge().getWebView() : null;
+        if (wv == null) { moveTaskToBack(true); return; }
+        wv.evaluateJavascript(
+          "(function(){try{return !!(window.istBack&&window.istBack());}catch(e){return false;}})()",
+          r -> { if (!"true".equals(r)) moveTaskToBack(true); });
+      }
+    });
   }
 
   @Override

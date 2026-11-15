@@ -10,10 +10,10 @@
 :root[data-theme="dark"]{--glass:rgba(16,12,26,.62);color-scheme:dark}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0;background:#2b2d5b;overflow:hidden;font-family:"Bricolage Grotesque",system-ui,sans-serif;color:var(--ink);touch-action:none;user-select:none}
-:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+:root{--sl:var(--safe-area-inset-left,env(safe-area-inset-left,0px));--sr:var(--safe-area-inset-right,env(safe-area-inset-right,0px));padding-top:var(--safe-area-inset-top,env(safe-area-inset-top,0px));padding-bottom:var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))}
+html{scroll-padding-top:var(--safe-area-inset-top,env(safe-area-inset-top,0px))}
 canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
-#hud{position:fixed;left:0;right:0;top:env(safe-area-inset-top,0px);display:flex;justify-content:space-between;align-items:flex-start;padding:14px 18px;pointer-events:none;gap:10px}
+#hud{position:fixed;left:var(--sl);right:var(--sr);top:var(--safe-area-inset-top,env(safe-area-inset-top,0px));display:flex;justify-content:space-between;align-items:flex-start;padding:14px 18px;pointer-events:none;gap:10px}
 .l{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
 .g{background:var(--glass);padding:8px 16px;border-radius:999px;font-weight:500;font-size:16px;backdrop-filter:blur(6px)}
 .g b{font-weight:800;font-size:20px;margin-left:4px}
@@ -34,13 +34,13 @@ canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
 button{font:inherit}
 #go{background:var(--accent);color:#06322f;border:0;border-radius:14px;padding:14px 26px;font-weight:800;font-size:18px;cursor:pointer}
 #go:focus-visible,#reset:focus-visible,.pad button:focus-visible{outline:3px solid #fff;outline-offset:3px}
-.pad{position:fixed;left:0;right:0;bottom:env(safe-area-inset-bottom,0px);display:none;justify-content:space-between;padding:18px 22px}
+.pad{position:fixed;left:var(--sl);right:var(--sr);bottom:var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px));display:none;justify-content:space-between;padding:18px 22px}
 .pad div{display:flex;gap:14px}
 .pad button{width:calc(78px*var(--bs,1.3));height:calc(78px*var(--bs,1.3));border-radius:24px;border:0;background:var(--glass);color:var(--ink);font-size:calc(30px*var(--bs,1.3));backdrop-filter:blur(6px);opacity:var(--bo,1)}
 .pad button.on{background:var(--accent);color:#06322f}
 @media (pointer:coarse){.pad{display:flex}}
 .pad.show{display:flex}.pad.swap{flex-direction:row-reverse}
-#panel{position:fixed;left:18px;top:calc(env(safe-area-inset-top,0px) + 250px);display:none;background:var(--glass);backdrop-filter:blur(8px);padding:14px 16px;border-radius:16px;font-size:15px;min-width:230px;z-index:5}
+#panel{position:fixed;left:calc(18px + var(--sl));top:calc(var(--safe-area-inset-top,env(safe-area-inset-top,0px)) + 250px);display:none;background:var(--glass);backdrop-filter:blur(8px);padding:14px 16px;border-radius:16px;font-size:15px;min-width:230px;z-index:5}
 #panel label{display:block;margin:8px 0}
 #panel input[type=range]{display:block;width:100%;margin-top:6px}
 .menu{margin:12px 0 4px;display:flex;flex-direction:column;gap:10px}
@@ -63,9 +63,9 @@ button{font:inherit}
 body.mn .r .tb,body.mn #reset{display:block}
 #smenu{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 4px}#smenu button{padding:10px 14px;border-radius:12px;border:0;background:var(--glass);color:var(--ink);font-size:14px;font-weight:600;cursor:pointer}
 #start #panel{position:static;display:none;margin:8px 0;min-width:0}#start #panel label{display:block;margin:6px 0}
-#mini{position:fixed;inset:auto;left:18px;top:calc(env(safe-area-inset-top,0px) + 112px);width:128px;height:128px;border-radius:14px;background:var(--glass);pointer-events:none}
+#mini{position:fixed;inset:auto;left:calc(18px + var(--sl));top:calc(var(--safe-area-inset-top,env(safe-area-inset-top,0px)) + 112px);width:128px;height:128px;border-radius:14px;background:var(--glass);pointer-events:none}
 /* oyun içi ☰ menü ekrana sığmazsa kaydırılabilir (telefon yatayda 11 düğme ekrandan taşıyordu) */
-body.mn #hud .r{max-height:calc(100vh - env(safe-area-inset-top,0px) - 16px);overflow-y:auto;pointer-events:auto;padding-bottom:8px;touch-action:pan-y}
+body.mn #hud .r{max-height:calc(100vh - var(--safe-area-inset-top,env(safe-area-inset-top,0px)) - 16px);overflow-y:auto;pointer-events:auto;padding-bottom:8px;touch-action:pan-y}
 /* kısa ekranlar (telefon yatay ~360-420 px): başlangıç ekranı sıkışık, "Sürmeye başla" hep görünür */
 @media (max-height:520px){
  #start{padding:10px 16px}
@@ -86,7 +86,7 @@ body.mn #hud .r{max-height:calc(100vh - env(safe-area-inset-top,0px) - 16px);ove
 }
 /* dokunmatik ekranda ☰ menü, alttaki sürüş tuşlarının üstünde biter (menü düğmeleri gaz/fren tuşlarının arkasına giriyordu) */
 @media (pointer:coarse){
- body.mn #hud .r{max-height:calc(100vh - env(safe-area-inset-top,0px) - min(calc(78px*var(--bs,1.3)),24vh) - 44px)}
+ body.mn #hud .r{max-height:calc(100vh - var(--safe-area-inset-top,env(safe-area-inset-top,0px)) - min(calc(78px*var(--bs,1.3)),24vh) - 44px)}
 }
 /* başlangıç ekranı açıkken altın sayacı ve bildirimler menünün üstüne binmesin */
 #start{z-index:6}
@@ -123,6 +123,10 @@ const R=THREE,$=id=>document.getElementById(id),clamp=(v,a,b)=>Math.max(a,Math.m
 const C=[];for(let k=-297;k<=297;k+=54)C.push(k);const BR_END=380;
 const renderer=new R.WebGLRenderer({antialias:FX.Q===0,powerPreference:'high-performance'});
 let pr=Math.min(devicePixelRatio,1.15), prMax=1.15; renderer.setPixelRatio(pr);
+/* grafik bağlamı kaybolursa (arka planda bellek az kalınca Android grafik belleğini geri alabiliyor → siyah/donmuş ekran):
+   ilerleme kaydedilir, grafik geri gelince oyun temiz şekilde yeniden açılır */
+renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();try{saveG();}catch(_){}},false);
+renderer.domElement.addEventListener('webglcontextrestored',()=>location.reload(),false);
 renderer.shadowMap.enabled=true; renderer.shadowMap.type=FX.Q>=2?R.PCFSoftShadowMap:R.PCFShadowMap; renderer.shadowMap.autoUpdate=false;
 document.body.prepend(renderer.domElement);
 const scene=new R.Scene(), cam=new R.PerspectiveCamera(58,1,1,1600);
@@ -519,7 +523,7 @@ const rcoin=(g,near)=>{for(let n=0;n<20;n++){const k=C[(Math.random()*C.length)|
 let pcx=0,pcz=0,bT=0;
 for(let i=0;i<70;i++){const g=new R.Group(),m=new R.Mesh(cg2,cm2);m.rotation.x=Math.PI/2;g.add(m);scene.add(g);rcoin(g);coins.push(g);}
 const mon=document.createElement('div');mon.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:44px;z-index:5;color:#ffd54a;font:700 18px system-ui;text-shadow:0 1px 3px #000;pointer-events:none';mon.textContent='💰 '+G.money;document.body.appendChild(mon);
-const gp=document.createElement('div');gp.style.cssText='position:fixed;top:0;right:0;bottom:0;width:min(50vw,470px);display:none;z-index:30;font:15px system-ui;color:#fff;background:#15153c;overflow-y:auto;overscroll-behavior:contain';gp.innerHTML='<div id="gi" style="padding:14px 14px 30px"></div>';document.body.appendChild(gp);
+const gp=document.createElement('div');gp.style.cssText='position:fixed;top:0;right:var(--sr,0px);bottom:0;width:min(50vw,470px);display:none;z-index:30;font:15px system-ui;color:#fff;background:#15153c;overflow-y:auto;overscroll-behavior:contain';gp.innerHTML='<div id="gi" style="padding:14px 14px 30px"></div>';document.body.appendChild(gp);
 {const cv=renderer.domElement;cv.style.touchAction='none';
  cv.addEventListener('pointerdown',e=>{drag={id:e.pointerId,x:e.clientX,y:e.clientY};try{cv.setPointerCapture(e.pointerId);}catch(_){}});
  cv.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;camYaw-=(e.clientX-drag.x)*.008;camPit=clamp(camPit+(e.clientY-drag.y)*.006,-1,.9);drag.x=e.clientX;drag.y=e.clientY;camT=performance.now();});
@@ -539,6 +543,8 @@ function saveG(){if(window.noSv)return;try{G.dmg=Math.round(dmg);localStorage.se
 addEventListener('pagehide',saveG);document.addEventListener('visibilitychange',()=>{if(document.hidden)saveG();});
 /* uygulama arka plana geçince (ana ekran, telefon araması, kilit) ses tamamen dursun; dönünce oyun sürüyorsa devam etsin */
 document.addEventListener('visibilitychange',()=>{try{if(!ac)return;if(document.hidden){if(hn)hornOff();ac.suspend();}else if(playing&&!ended)ac.resume();}catch(e){}});
+/* arka plana geçerken basılı tuşlar sıfırlanır: parmak kalkma olayı gelmeyebiliyor, dönünce araba kendi kendine gaz/direksiyon yapıyordu */
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)return;for(const k in keys)keys[k]=0;drag=null;document.querySelectorAll('.pad button.on').forEach(b=>b.classList.remove('on'));});
 let gMode='g';const own=id=>G.own.includes(id),hx=c=>'#'+c.toString(16).padStart(6,'0'),SH=REPAIR_SHOP?[-19,-19]:[1e6,1e6];
 function drawG(){let h;
  if(gMode==='s'){h='<b style="font-size:20px">🛠 Tamir</b> &nbsp; 💰 '+G.money+' altın<br><br>Hasar: %'+Math.round(dmg)+'<br>'+rpBtn()+'<br><br>'+gbt('x','Kapat ✕',false,'#8a2b2b');}
@@ -853,6 +859,14 @@ async function phSave(){const pm=$('phmsg');try{const url=renderer.domElement.to
   if(!native){const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();pm.textContent='Fotoğraf indirildi ✓';return;}
   pm.textContent='Kaydetmek için telefonunun ekran görüntüsü tuşlarını kullan';}catch(e){pm.textContent='Kaydedilemedi — ekran görüntüsü alabilirsin';}}
 phui.onclick=e=>{const b=e.target.closest('button');if(!b)return;const a=b.dataset.a;if(a==='in')phZ=Math.max(.45,phZ/1.25);else if(a==='out')phZ=Math.min(3,phZ*1.25);else if(a==='snap')phSnap=true;else if(a==='x')phOff();};
+/* Android geri tuşu (MainActivity çağırır): açık pencereyi kapatır; oyundaysa menüyü açar/kapatır.
+   false dönerse uygulama kapanmaz, arka plana alınır (ilerleme kaybolmaz) */
+window.istBack=function(){
+  const xs=[...document.querySelectorAll('.ist-x')].filter(b=>b.offsetParent!==null);if(xs.length){xs[xs.length-1].click();return true;}
+  if(phM){phOff();return true;}
+  if(gp.style.display==='block'){gOpen=false;gp.style.display='none';$('start').style.visibility='';gCool=performance.now()/1000+4;return true;}
+  if(playing&&$('start').style.display==='none'){document.body.classList.toggle('mn');return true;}
+  saveG();return false;};
 $('bPh').onclick=phOn;addEventListener('keydown',e=>{if(phM&&e.key==='Escape')phOff();});
 function resize(){renderer.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();FX.resize();}
 function applyQ(){if((S.q===0)!==(FX.Q===0)){try{localStorage.setItem('ist-set',JSON.stringify(S));}catch(e){}location.reload();return;}FX.setQuality(S.q);prMax=[.8,1,1.6][S.q]||1;pr=Math.min(devicePixelRatio,prMax);renderer.setPixelRatio(pr);sun.castShadow=S.q>0&&!(S.slow&&!S.qm);resize();}
