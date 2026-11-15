@@ -56,7 +56,7 @@
       const m = FX.facadeMat(+t, 0xffffff, true); bm.push(m);
       const me = new R.Mesh(merge(lists[t]), m); me.castShadow = me.receiveShadow = true; scene.add(me); lists[t] = [];
     }
-    if (roof.length) inst(new R.BoxGeometry(1, 1, 1), mat(0xffffff), roof.length, p => { for (const r of roof) p(r[0], r[1], r[2], 0, r[3], r[4], r[5], r[6]); }).castShadow = true;
+    if (roof.length) inst(new R.BoxGeometry(1, 1, 1), mat(0xffffff), roof.length, p => { for (const r of roof) p(r[0], r[1], r[2], 0, r[3], r[4], r[5], r[6]); }, true).castShadow = true;
   };
 
   // şehir dışı silüet (yalnız görüntü)
@@ -82,7 +82,7 @@
     for (let i = -5; i <= 5; i++) for (let j = -5; j <= 5; j++) { o.position.set(i * 54, .15, j * 54); o.updateMatrix(); sw.setMatrixAt(k++, o.matrix); }
     sw.receiveShadow = true; sw.frustumCulled = false; scene.add(sw);
     const cm = FX.Q === 0 ? mat(0x8f8a82) : new R.MeshStandardMaterial({ color: 0x8c8a86, roughness: .7 });
-    inst(new R.BoxGeometry(1, 1, 1), cm, n * 4, p => { for (let i = -5; i <= 5; i++) for (let j = -5; j <= 5; j++) { const x = i * 54, z = j * 54; p(x, .16, z - 19.88, 0, 40, .32, .26); p(x, .16, z + 19.88, 0, 40, .32, .26); p(x - 19.88, .16, z, 0, .26, .32, 40); p(x + 19.88, .16, z, 0, .26, .32, 40); } }).receiveShadow = true;
+    inst(new R.BoxGeometry(1, 1, 1), cm, n * 4, p => { for (let i = -5; i <= 5; i++) for (let j = -5; j <= 5; j++) { const x = i * 54, z = j * 54; p(x, .16, z - 19.88, 0, 40, .32, .26); p(x, .16, z + 19.88, 0, 40, .32, .26); p(x - 19.88, .16, z, 0, .26, .32, 40); p(x + 19.88, .16, z, 0, .26, .32, 40); } }, true).receiveShadow = true;
   };
 
   // yaya geçitleri + durma çizgileri (tüm kavşaklar)
@@ -95,8 +95,8 @@
     for (const [x, z] of its) for (const s of [-1, 1]) for (let i = 0; i < 9; i++) { const o = -5.6 + i * 1.4; A.push([x + o, z + s * 9.6, 0]); A.push([x + s * 9.6, z + o, Math.PI / 2]); }
     for (const [x, z] of its) { B.push([x + 3.5, z - 12.3, 0]); B.push([x - 3.5, z + 12.3, 0]); B.push([x - 12.3, z - 3.5, Math.PI / 2]); B.push([x + 12.3, z + 3.5, Math.PI / 2]); }
     const A2 = A.filter(q => q[0] < SEA), B2 = B.filter(q => q[0] < SEA);
-    const st = inst(new R.BoxGeometry(.7, .03, 3), ms, A2.length, p => { for (const q of A2) p(q[0], .045, q[1], q[2]); });
-    const sl = inst(new R.BoxGeometry(6.4, .03, .4), ms, B2.length, p => { for (const q of B2) p(q[0], .045, q[1], q[2]); });
+    const st = inst(new R.BoxGeometry(.7, .03, 3), ms, A2.length, p => { for (const q of A2) p(q[0], .045, q[1], q[2]); }, true);
+    const sl = inst(new R.BoxGeometry(6.4, .03, .4), ms, B2.length, p => { for (const q of B2) p(q[0], .045, q[1], q[2]); }, true);
     st.receiveShadow = sl.receiveShadow = true;
     CI.marks = [st, sl];
   };
@@ -110,15 +110,15 @@
     }
     for (const l of L) rects.push([l[0], l[1], .16, .16]);
     const pole = FX.Q === 0 ? mat(0x2a2c30) : new R.MeshStandardMaterial({ color: 0x2b2e33, roughness: .45, metalness: .7 });
-    inst(new R.CylinderGeometry(.08, .12, 7.4, 8), pole, L.length, p => { for (const l of L) p(l[0], 3.7 + .3, l[1]); }).castShadow = true;
-    inst(new R.BoxGeometry(.08, .08, 1.7), pole, L.length, p => { for (const l of L) p(l[0] + l[2] * .8, 7.55, l[1] + l[3] * .8, Math.atan2(l[2], l[3])); });
-    inst(new R.BoxGeometry(.32, .14, .7), pole, L.length, p => { for (const l of L) p(l[0] + l[2] * 1.55, 7.5, l[1] + l[3] * 1.55, Math.atan2(l[2], l[3])); });
+    inst(new R.CylinderGeometry(.08, .12, 7.4, 8), pole, L.length, p => { for (const l of L) p(l[0], 3.7 + .3, l[1]); }, true).castShadow = true;
+    inst(new R.BoxGeometry(.08, .08, 1.7), pole, L.length, p => { for (const l of L) p(l[0] + l[2] * .8, 7.55, l[1] + l[3] * .8, Math.atan2(l[2], l[3])); }, true);
+    inst(new R.BoxGeometry(.32, .14, .7), pole, L.length, p => { for (const l of L) p(l[0] + l[2] * 1.55, 7.5, l[1] + l[3] * 1.55, Math.atan2(l[2], l[3])); }, true);
     CI.headM = new R.MeshBasicMaterial({ color: 0x777777 });
-    inst(new R.BoxGeometry(.26, .04, .6), CI.headM, L.length, p => { for (const l of L) p(l[0] + l[2] * 1.55, 7.42, l[1] + l[3] * 1.55, Math.atan2(l[2], l[3])); });
+    inst(new R.BoxGeometry(.26, .04, .6), CI.headM, L.length, p => { for (const l of L) p(l[0] + l[2] * 1.55, 7.42, l[1] + l[3] * 1.55, Math.atan2(l[2], l[3])); }, true);
     if (FX.Q > 0) {
       CI.poolM = new R.MeshBasicMaterial({ map: FX.T.glow, transparent: true, depthWrite: false, blending: R.AdditiveBlending, color: 0x000000 });
       const pg = new R.PlaneGeometry(1, 1); pg.rotateX(-Math.PI / 2);
-      CI.pools = inst(pg, CI.poolM, L.length, p => { for (const l of L) p(l[0] + l[2] * 2.1, .06, l[1] + l[3] * 2.1, 0, 10, 1, 10); });
+      CI.pools = inst(pg, CI.poolM, L.length, p => { for (const l of L) p(l[0] + l[2] * 2.1, .06, l[1] + l[3] * 2.1, 0, 10, 1, 10); }, true);
       CI.pools.renderOrder = 3;
     }
     CI.L = L;

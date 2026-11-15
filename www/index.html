@@ -141,9 +141,28 @@ const litT=new R.CanvasTexture(lc); litT.wrapS=litT.wrapT=R.RepeatWrapping;
 const mat=(c,o)=>FX.mat(c,o);
 const bas=c=>new R.MeshBasicMaterial({color:c});
 function slab(w,h,d,c,x,y,z,sh){const m=new R.Mesh(new R.BoxGeometry(w,h,d),mat(c));m.position.set(x,y,z);m.receiveShadow=true;m.castShadow=!!sh;scene.add(m);return m;}
-function inst(geo,m,n,fn){const im=new R.InstancedMesh(geo,m,n),o=new R.Object3D(),cc=new R.Color();let i=0;
+function inst(geo,m,n,fn,cull){const im=new R.InstancedMesh(geo,m,n),o=new R.Object3D(),cc=new R.Color();let i=0;
   fn((x,y,z,ry,sx,sy,sz,col)=>{o.position.set(x,y,z);o.rotation.set(0,ry||0,0);o.scale.set(sx||1,sy||1,sz||1);o.updateMatrix();im.setMatrixAt(i,o.matrix);if(col!==undefined)im.setColorAt(i,cc.setHex(col));i++;});
-  im.frustumCulled=false;if(im.instanceColor)im.instanceColor.needsUpdate=true;scene.add(im);return im;}
+  im.frustumCulled=false;if(im.instanceColor)im.instanceColor.needsUpdate=true;scene.add(im);if(cull&&i>0)cullReg(im,geo,i);return im;}
+/* görünürlük ayıklama: şehirdeki sabit süs nesnelerinden (ağaç, lamba, bordür, çizgi...) yalnız ekranda görünenler
+   ve gölge için arabanın yakınındakiler çizilir; arkada/çok uzakta kalanlar o kare çizilmez (görünüm aynı, iş çok daha az) */
+const CULL=[],_cuF=new R.Frustum(),_cuM=new R.Matrix4(),_cuI=new R.Matrix4();
+function cullReg(im,geo,n){if(!geo.boundingSphere)geo.computeBoundingSphere();const gs=geo.boundingSphere,cx=gs.center.x,cy=gs.center.y,cz=gs.center.z,
+  M=im.instanceMatrix.array.slice(0,n*16),Cl=im.instanceColor?im.instanceColor.array.slice(0,n*3):null,S=new Float32Array(n*4);
+  for(let k=0;k<n;k++){const b=k*16,e=M;
+    S[k*4]=e[b]*cx+e[b+4]*cy+e[b+8]*cz+e[b+12];S[k*4+1]=e[b+1]*cx+e[b+5]*cy+e[b+9]*cz+e[b+13];S[k*4+2]=e[b+2]*cx+e[b+6]*cy+e[b+10]*cz+e[b+14];
+    S[k*4+3]=gs.radius*Math.sqrt(Math.max(e[b]*e[b]+e[b+1]*e[b+1]+e[b+2]*e[b+2],e[b+4]*e[b+4]+e[b+5]*e[b+5]+e[b+6]*e[b+6],e[b+8]*e[b+8]+e[b+9]*e[b+9]+e[b+10]*e[b+10]));}
+  im.instanceMatrix.setUsage(R.DynamicDrawUsage);if(im.instanceColor)im.instanceColor.setUsage(R.DynamicDrawUsage);
+  CULL.push({im,M,Cl,S,n});}
+function cullInst(){
+  cam.updateMatrixWorld();_cuM.multiplyMatrices(cam.projectionMatrix,_cuI.copy(cam.matrixWorld).invert());_cuF.setFromProjectionMatrix(_cuM);
+  const P=_cuF.planes,fx=cam.position.x,fz=cam.position.z,ff=(scene.fog?scene.fog.far:2000)+20,sx=car.x,sz=car.z,SH=115*115,MG=8;
+  for(const c of CULL){const im=c.im,M=c.M,Cl=c.Cl,S=c.S,A=im.instanceMatrix.array,CA=Cl?im.instanceColor.array:null;let k=0;
+    for(let j=0;j<c.n;j++){const x=S[j*4],y=S[j*4+1],z=S[j*4+2],r=S[j*4+3],dx=x-sx,dz=z-sz;let ok=true;
+      if(dx*dx+dz*dz>SH){const ex=x-fx,ez=z-fz,fr=ff+r;if(ex*ex+ez*ez>fr*fr)ok=false;else for(let p=0;p<6;p++){const pl=P[p],nn=pl.normal;if(nn.x*x+nn.y*y+nn.z*z+pl.constant<-(r+MG)){ok=false;break;}}}
+      if(ok){const a=j*16,b=k*16;for(let t=0;t<16;t++)A[b+t]=M[a+t];if(CA){CA[k*3]=Cl[j*3];CA[k*3+1]=Cl[j*3+1];CA[k*3+2]=Cl[j*3+2];}k++;}}
+    im.count=k;const U=im.instanceMatrix;U.updateRange.offset=0;U.updateRange.count=k*16;U.needsUpdate=true;
+    if(CA){const V=im.instanceColor;V.updateRange.offset=0;V.updateRange.count=k*3;V.needsUpdate=true;}}}
 
 const ter=(x,z)=>0;
 {const tg=new R.PlaneGeometry(1400,2400,70,120),col=[];tg.rotateX(-Math.PI/2);const p=tg.attributes.position;
@@ -161,7 +180,7 @@ const dashM=new R.MeshBasicMaterial({map:dash,transparent:true});
 
 const dash2=new R.CanvasTexture(dc);dash2.wrapS=R.RepeatWrapping;dash2.repeat.set(5,1);const dashM2=FX.Q>0?FX.wetify(new R.MeshStandardMaterial({map:dash2,transparent:true,color:0xe8e2d4,roughness:.5}),{pud:0,refl:.6}):new R.MeshBasicMaterial({map:dash2,transparent:true}),dg=new R.PlaneGeometry(38,.3);
 for(const m of[dashM,dashM2]){m.polygonOffset=true;m.polygonOffsetFactor=-6;m.polygonOffsetUnits=-6;}dg.rotateX(-Math.PI/2);
-for(const ang of[0,1])FX.reflHide.push(inst(dg,dashM2,C.length*(C.length-1)*3,p=>{for(const r of C)for(let i=0;i<C.length-1;i++){const m=(C[i]+C[i+1])/2;for(const o of[-3.5,0,3.5]){if(ang===0)p(m,.05,r+o,0);else p(r+o,.05,m,Math.PI/2);}}}));FX.reflHide.push(road);
+for(const ang of[0,1])FX.reflHide.push(inst(dg,dashM2,C.length*(C.length-1)*3,p=>{for(const r of C)for(let i=0;i<C.length-1;i++){const m=(C[i]+C[i+1])/2;for(const o of[-3.5,0,3.5]){if(ang===0)p(m,.05,r+o,0);else p(r+o,.05,m,Math.PI/2);}}},true));FX.reflHide.push(road);
 
 // Binalar
 const pal=[0xd9a066,0xe6c9a0,0xb86b4b,0xcdb08a,0xa8845f,0xe9d8bd,0xc77d5a,0x9aa3a8], rects=[], bm=[];
@@ -175,8 +194,8 @@ const tl=[];
 for(let i=-5;i<=5;i++)for(let j=-5;j<=5;j++)for(const t of[-13.5,-4.5,4.5,13.5])for(const [a,b] of[[t,-19.7],[19.7,t],[t,19.7],[-19.7,t]]){tl.push([i*54+a,j*54+b,.3,1]);rects.push([i*54+a,j*54+b,.4,.4]);}
 for(let i=0;i<0;i++){const x=rnd(-1100,300),z=rnd(-900,900);if(Math.abs(x+8)<350&&Math.abs(z)<350)continue;tl.push([x,z,ter(x,z),rnd(1,1.5)]);}
 const tc=[0x4f7a3a,0x5d8c43,0x3f6b34,0x6b9a4d,0xc77d3a,0x8a9a3e];
-inst(new R.CylinderGeometry(.13,.19,1.8,6),mat(0x5b4636),tl.length,p=>{for(const [x,z,y,s] of tl)p(x,y+.9*s,z,0,s,s,s);});
-inst(City.treeGeo(),mat(0xffffff,{roughness:.9}),tl.length,p=>{for(const [x,z,y,s] of tl)p(x,y+2.5*s,z,rnd(0,6),1.15*s,1.35*s,1.15*s,tc[(Math.random()*tc.length)|0]);});
+inst(new R.CylinderGeometry(.13,.19,1.8,6),mat(0x5b4636),tl.length,p=>{for(const [x,z,y,s] of tl)p(x,y+.9*s,z,0,s,s,s);},true);
+inst(City.treeGeo(),mat(0xffffff,{roughness:.9}),tl.length,p=>{for(const [x,z,y,s] of tl)p(x,y+2.5*s,z,rnd(0,6),1.15*s,1.35*s,1.15*s,tc[(Math.random()*tc.length)|0]);},true);
 const SB=[];inst(new R.BoxGeometry(1,1,1),mat(0xffffff),12,p=>{for(let i=0;i<12;i++){const x=rnd(340,640),z0=rnd(-320,320),z=Math.abs(z0)<16?z0+40:z0,ry=rnd(0,3),sx=rnd(2.5,4),sy=rnd(1,1.6),sz=rnd(7,12);SB.push([x,z,ry,sx,sz]);p(x,-.4,z,ry,sx,sy,sz,[0xf2f2f2,0xc0392b,0x1d4e89,0xf2cc8f][i%4]);}});
 for(let i=-5;i<=5;i++)for(let j=-5;j<=5;j++){
   if((i===MOSQUE[0]&&j===MOSQUE[1])||(i===GALATA[0]&&j===GALATA[1]))continue;
@@ -215,12 +234,12 @@ function light(ax,x,z){const o=x===undefined?0:((x+297)+(z+297))/54*GW,t=(((perf
 /* sahildeki kavşağın deniz tarafına (olmayan yol) direk konmaz */
 const AP=[];for(const [x,z] of ints)for(const [fx,fz] of[[1,0],[-1,0],[0,1],[0,-1]]){const a={x:x-fx*10.5-fz*8.2,z:z-fz*10.5+fx*8.2,fx,fz,ax:fx?1:0,ix:x,iz:z};if(a.x>305)continue;AP.push(a);rects.push([a.x,a.z,.25,.25]);}
 const pNS=bas(0xffffff),pEW=bas(0xffffff),disc=new R.CircleGeometry(.26,14),dsm=new R.CircleGeometry(.14,12),ry0=a=>Math.atan2(-a.fx,-a.fz);
-inst(new R.CylinderGeometry(.12,.14,5,6),mat(0x2a2a30),AP.length,p=>{for(const a of AP)p(a.x,2.5,a.z);});
-inst(new R.BoxGeometry(.6,.9,.6),mat(0x1b1b20),AP.length,p=>{for(const a of AP)p(a.x,4.6,a.z,ry0(a));});
+inst(new R.CylinderGeometry(.12,.14,5,6),mat(0x2a2a30),AP.length,p=>{for(const a of AP)p(a.x,2.5,a.z);},true);
+inst(new R.BoxGeometry(.6,.9,.6),mat(0x1b1b20),AP.length,p=>{for(const a of AP)p(a.x,4.6,a.z,ry0(a));},true);
 const lampNS=AP.filter(a=>!a.ax),lampEW=AP.filter(a=>a.ax);
 const lNS=inst(disc,mNS,lampNS.length,p=>{for(const a of lampNS)p(a.x-a.fx*.31,4.6,a.z-a.fz*.31,ry0(a),1,1,1,0xffffff);});
 const lEW=inst(disc,mEW,lampEW.length,p=>{for(const a of lampEW)p(a.x-a.fx*.31,4.6,a.z-a.fz*.31,ry0(a),1,1,1,0xffffff);});
-inst(new R.BoxGeometry(.34,.5,.34),mat(0x1b1b20),AP.length,p=>{for(const a of AP)p(a.x,2.7,a.z,ry0(a));});
+inst(new R.BoxGeometry(.34,.5,.34),mat(0x1b1b20),AP.length,p=>{for(const a of AP)p(a.x,2.7,a.z,ry0(a));},true);
 const pIm=[];for(const [m,ax,list] of[[pNS,0,lampNS],[pEW,1,lampEW]])pIm.push([inst(dsm,m,list.length*2,p=>{for(const a of list)for(const sd of[1,-1]){p(a.x-a.fz*sd*.2,2.7,a.z+a.fx*sd*.2,Math.atan2(-a.fz*sd,a.fx*sd),1,1,1,0xffffff);}}),list,ax]);
 /* her lamba kendi kavşağının ışığını gösterir (yeşil dalga nedeniyle kavşaklar farklı renkte olabilir) */
 const _lc=new R.Color();
@@ -796,7 +815,7 @@ function frame(t){
   const kv=Math.round(Math.abs(car.v)*3.6); if(kv!==lastKmh){lastKmh=kv;$('kmh').textContent=kv;} const gv=car.v<-.3?' R':Math.abs(car.v)<.3?' N':' D'; if(gv!==lastGr){lastGr=gv;$('gr').textContent=gv;}
   shell.visible=camM!==1; for(const w of wh)w.visible=camM!==1&&!boatM&&!w.userData.off;
   tM.color.setHex((keys.down||keys.space)?0xff6a5a:hlOn?0xd9342a:0x7a2a24);if(FX.Q>0)tM.color.multiplyScalar((keys.down||keys.space)?3.4:hlOn?1.5:1);
-  renderer.shadowMap.needsUpdate=!FX.lite||(fc&1)===0; /* Düşük: gölge iki karede bir */ FX.update(dt,car.v); FX.render(); if(phSnap){phSnap=false;phSave();} requestAnimationFrame(frame);
+  renderer.shadowMap.needsUpdate=!FX.lite||(fc&1)===0; /* Düşük: gölge iki karede bir */ if((fc&1)===0)cullInst(); FX.update(dt,car.v); FX.render(); if(phSnap){phSnap=false;phSave();} requestAnimationFrame(frame);
 }
 /* ---- fotoğraf modu: arayüz gizlenir, araba durur, kamera parmakla döndürülür, +/− ile yakınlaşır ---- */
 let phM=false,phZ=1,phSnap=false;
