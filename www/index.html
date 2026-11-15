@@ -416,16 +416,35 @@ let mt; function msg(t){const e=$('msg');e.textContent=t;e.style.opacity=1;clear
 function pts(n){if(freeMode)return;score=clamp(score+n,0,100);$('score').textContent=score;}
 
 // Ses
-let ac,osc,gain;
+let ac,osc,gain,engO=null,engF=null,engL=null,engG=0;
+/* motor sesi her kare: vites + devir (hızlandıkça devir yükselir, vites atınca düşer — tek düze siren gibi değil) */
+const ENG_GR=[0,8,15,23,32,43,999];
+function engSnd(up){const t=ac.currentTime,v=Math.abs(car.v);let rpm;
+  if(boatM)rpm=900+Math.min(v/28,1)*3600;
+  else{while(engG<5&&v>ENG_GR[engG+1]+.5)engG++;while(engG>0&&v<ENG_GR[engG]-1.5)engG--;   // geri dönüşte biraz geç vites düşür: sınırda vites ileri-geri titremesin
+    const lo=ENG_GR[engG],hi=ENG_GR[engG+1],fr=clamp((v-lo)/(hi-lo),0,1);
+    rpm=v<.4?850:engG===0?900+fr*4300:2300+fr*3100;}
+  rpm+=(up?250:0)+Math.sin(t*7)*20;
+  const f0=rpm/30;   // 4 silindir: ateşleme frekansı devir/30 Hz
+  engO[0].frequency.setTargetAtTime(f0,t,.04);engO[1].frequency.setTargetAtTime(f0*2,t,.04);engO[2].frequency.setTargetAtTime(f0*.5,t,.04);engL.frequency.setTargetAtTime(f0*.5,t,.04);
+  engF.frequency.setTargetAtTime(350+rpm*.22+(up?500:0),t,.06);
+  gain.gain.setTargetAtTime((!playing||gOpen||totaled||!engineOn)?0:((boatM?.022:.03)+Math.min(rpm/6000,1)*.045+(up?.02:0))*1.25,t,.04);}
 function startAudio(){try{if(ac){if(ac.state==='suspended')ac.resume();return;}
   ac=new(window.AudioContext||window.webkitAudioContext)();
   /* ana çıkış: bütün sesler bir sınırlayıcıdan geçer — üst üste binince (çarpışma+motor+korna) taşıp cızırdamaz */
   master=ac.createDynamicsCompressor(); master.threshold.value=-12; master.knee.value=6; master.ratio.value=12; master.attack.value=.003; master.release.value=.25;
   const mg=ac.createGain(); mg.gain.value=.8; master.connect(mg); mg.connect(ac.destination);
-  osc=ac.createOscillator(); osc.type='sawtooth';
-  /* süzgeç 380→900 Hz: telefon hoparlörü 200 Hz altını çalamıyor, motorun üst tınıları duyulsun */
-  const f=ac.createBiquadFilter(); f.type='lowpass'; f.frequency.value=900;
-  gain=ac.createGain(); gain.gain.value=0; osc.connect(f); f.connect(gain); gain.connect(master); osc.start();
+  /* motor: ana ton + hafif kaydırılmış 2. harmonik (kalın, canlı) + alt ton (gövde); hafif bozulma (hırıltı);
+     devirle açılan süzgeç (gaza basınca parlar); ateşleme darbesi (rölantide "pır pır", yüksek devirde uğultu).
+     Telefon hoparlörü 200 Hz altını çalamadığı için duyulan kısım üst tınılardır. */
+  const mk=(type,gv,det)=>{const o=ac.createOscillator(),g=ac.createGain();o.type=type;if(det)o.detune.value=det;g.gain.value=gv;o.connect(g);o.start();return[o,g];};
+  const [o1,g1]=mk('sawtooth',.55),[o2,g2]=mk('sawtooth',.3,9),[o3,g3]=mk('square',.22);
+  const ws=ac.createWaveShaper(),cv=new Float32Array(1024);for(let i=0;i<1024;i++){const x=i/511.5-1;cv[i]=Math.tanh(2*x);}ws.curve=cv;
+  engF=ac.createBiquadFilter(); engF.type='lowpass'; engF.frequency.value=700; engF.Q.value=3;
+  const am=ac.createGain(); am.gain.value=.75; engL=ac.createOscillator(); engL.type='sine'; const lg=ac.createGain(); lg.gain.value=.25; engL.connect(lg); lg.connect(am.gain); engL.start();
+  gain=ac.createGain(); gain.gain.value=0;
+  for(const g of[g1,g2,g3])g.connect(ws); ws.connect(engF); engF.connect(am); am.connect(gain); gain.connect(master);
+  osc=o1; engO=[o1,o2,o3];
 }catch(e){}}
 let master=null, noiseB=null;
 const aOut=()=>master||ac.destination;
@@ -445,7 +464,7 @@ $('bH').onclick=()=>{try{startAudio();}catch(e){}horn();};
 function impact(vn){
   if(vn<1.2||hitCd>0)return; hitCd=.3; const k=clamp(vn/18,.12,1);
   crash(k); dmg=Math.min(100,dmg+vn*1.6*(boatM?1:DR[G.model])); const p=Math.max(1,Math.round(vn*.6)); pts(-p); fine(5); msg(freeMode?'Çarpışma':'Çarpışma −5 altın');
-  shake=Math.max(shake,k); twY=clamp(twY+rnd(-.05,.05)*k*3,-.15,.15); twZ=clamp(twZ+rnd(-.04,.04)*k*3,-.1,.1); look();
+  shake=Math.max(shake,k); twY=clamp(twY+rnd(-.02,.02)*k*3,-.04,.04); twZ=clamp(twZ+rnd(-.03,.03)*k*3,-.06,.06); /* çarpışma sonrası gövde eğikliği: yana dönük durunca araba yan yan gidiyormuş gibi görünüyordu (eskiden 8,6°'ye kadar) */ look();
   if(dmg>=100&&!totaled){totaled=true;}
 }
 
@@ -715,7 +734,7 @@ function step(dt){if(gOpen)return 0;gStep();mStep(dt);
   if(keys.space||totaled)car.v-=Math.sign(car.v)*Math.min(Math.abs(car.v),28*dt);
   car.v=clamp(car.v,-8,vmax);
   const steer=(keys.left?1:0)-(keys.right?1:0);if(window.pSig&&pSig.moto)pcur.rotation.z+=(-steer*.38*Math.min(1,Math.abs(car.v)/10)-pcur.rotation.z)*Math.min(1,dt*8);for(let i=0;i<2;i++)wh[i].rotation.y+=(steer*.5-wh[i].rotation.y)*Math.min(1,dt*10);{const bo=((performance.now()/350)|0)%2;if(window.pSig){pSig.mL.color.setHex(steer>0&&bo?0xffa000:0x4a2c00);pSig.mR.color.setHex(steer<0&&bo?0xffa000:0x4a2c00);}}
-  car.a+=(steer*1.9*clamp(car.v/6,-1,1)*(1-Math.min(Math.abs(car.v)/70,.5))+(dmg>30?.12*car.v/36:0))*dt;
+  car.a+=(steer*1.9*clamp(car.v/6,-1,1)*(1-Math.min(Math.abs(car.v)/70,.5))+(dmg>50?.06*(dmg-50)/50*car.v/36:0))*dt; /* hasarlı araba bir yana çeker: %50'den sonra, hasarla artarak (eskiden %30'da birden ve iki kat güçlüydü) */
   car.x+=Math.sin(car.a)*car.v*dt; car.z+=Math.cos(car.a)*car.v*dt;
   if(!boatM&&car.x<-320){car.x=-320;car.v*=.6;}
   if(boatM){car.z=clamp(car.z,-700,700);if(car.x<314){car.x=314;car.v*=.6;}if(car.x>1000){car.x=1000;car.v*=.6;}}else{car.z=clamp(car.z,-320,320);car.x=Math.min(car.x,305);}
@@ -754,7 +773,7 @@ function step(dt){if(gOpen)return 0;gStep();mStep(dt);
   if(inside&&isLit(bx,bz)&&!inX&&Math.abs(car.v)>3&&light(Math.abs(fx)>.7071?1:0,bx,bz)==='r'){pts(-10);msg(freeMode?'Kırmızıda geçtin':'Kırmızıda geçtin −10');}
   inX=inside;
   /* motor sesi: değerler kare kare zıplamaz, ~40 ms'de yumuşakça kayar (ani adımlar tık/cızırtı yapıyordu) */
-  if(osc){const tA=ac.currentTime;osc.frequency.setTargetAtTime(48+Math.abs(car.v)*3.2,tA,.04);gain.gain.setTargetAtTime((!playing||gOpen||totaled||!engineOn)?0:(boatM?.022:.03)+Math.min(Math.abs(car.v)/60,1)*.05+(up?.015:0),tA,.04);}
+  if(osc&&engO)engSnd(up);
   const acc=(car.v-pv)/Math.max(dt,.001); pv=car.v; pitch+=(clamp(-acc*.004,-.06,.06)-pitch)*Math.min(1,dt*6);
   if(dmg>45){puffT-=dt;if(puffT<=0){puff();puffT=dmg>75?.06:.14;}}
   return steer;
