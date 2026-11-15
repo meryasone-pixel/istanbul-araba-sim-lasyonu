@@ -756,7 +756,7 @@ function step(dt){if(gOpen)return 0;gStep();mStep(dt);
   if(inside&&isLit(bx,bz)&&!inX&&Math.abs(car.v)>3&&light(Math.abs(fx)>.7071?1:0,bx,bz)==='r'){pts(-10);msg(freeMode?'Kırmızıda geçtin':'Kırmızıda geçtin −10');}
   inX=inside;
   /* motor sesi: değerler kare kare zıplamaz, ~40 ms'de yumuşakça kayar (ani adımlar tık/cızırtı yapıyordu) */
-  if(osc){const tA=ac.currentTime;osc.frequency.setTargetAtTime(48+Math.abs(car.v)*3.2,tA,.04);gain.gain.setTargetAtTime((!playing||gOpen||totaled||!engineOn)?0:(boatM?.022:.03)+Math.min(Math.abs(car.v)/60,1)*.05+(up?.015:0),tA,.04);}
+  if(osc){const tA=ac.currentTime;osc.frequency.setTargetAtTime(48+Math.abs(car.v)*3.2,tA,.04);gain.gain.setTargetAtTime((!playing||gOpen||totaled||!engineOn)?0:((boatM?.022:.03)+Math.min(Math.abs(car.v)/60,1)*.05+(up?.015:0))*1.6,tA,.04);} /* ×1.6: zayıf telefonda (J7) kısık geliyordu; iyi telefonlarda fazla gelmesin diye ölçülü (ton aynı, kırpılmaz) */
   const acc=(car.v-pv)/Math.max(dt,.001); pv=car.v; pitch+=(clamp(-acc*.004,-.06,.06)-pitch)*Math.min(1,dt*6);
   if(dmg>45){puffT-=dt;if(puffT<=0){puff();puffT=dmg>75?.06:.14;}}
   return steer;
