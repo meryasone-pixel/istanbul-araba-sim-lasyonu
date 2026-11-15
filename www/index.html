@@ -815,7 +815,7 @@ function frame(t){
   const kv=Math.round(Math.abs(car.v)*3.6); if(kv!==lastKmh){lastKmh=kv;$('kmh').textContent=kv;} const gv=car.v<-.3?' R':Math.abs(car.v)<.3?' N':' D'; if(gv!==lastGr){lastGr=gv;$('gr').textContent=gv;}
   shell.visible=camM!==1; for(const w of wh)w.visible=camM!==1&&!boatM&&!w.userData.off;
   tM.color.setHex((keys.down||keys.space)?0xff6a5a:hlOn?0xd9342a:0x7a2a24);if(FX.Q>0)tM.color.multiplyScalar((keys.down||keys.space)?3.4:hlOn?1.5:1);
-  renderer.shadowMap.needsUpdate=FX.q>=2||(fc&1)===0; /* Orta: gölge iki karede bir (Yüksek her kare) */ if((fc&1)===0)cullInst(); FX.update(dt,car.v); FX.render(); if(phSnap){phSnap=false;phSave();} requestAnimationFrame(frame);
+  renderer.shadowMap.needsUpdate=true; if((fc&1)===0)cullInst(); FX.update(dt,car.v); FX.render(); if(phSnap){phSnap=false;phSave();} requestAnimationFrame(frame);
 }
 /* ---- fotoğraf modu: arayüz gizlenir, araba durur, kamera parmakla döndürülür, +/− ile yakınlaşır ---- */
 let phM=false,phZ=1,phSnap=false;
