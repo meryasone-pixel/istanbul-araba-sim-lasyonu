@@ -4,7 +4,12 @@
   var cur = document.currentScript, base = cur ? cur.src.replace(/[^\/]*$/, '') : 'modules/';
   var files = ['core.js', 'districts.js', 'shop.js', 'economy.js', 'ads.js', 'cloud.js'], i = 0;
   function next() {
-    if (i >= files.length) { if (window.IST) window.IST.boot(); return; }
+    if (i >= files.length) {
+      try { if (window.IST) window.IST.boot(); } catch (e) { console.error(e); }
+      /* başlangıç menüsü her şey hazır olunca tek seferde görünür (telefonda parça parça geliyordu); ilk kare çizildikten sonra */
+      requestAnimationFrame(function () { requestAnimationFrame(window.istReady || function () {}); });
+      return;
+    }
     var s = document.createElement('script'); s.src = base + files[i++];
     s.onload = next; s.onerror = function () { console.error('[IST] yüklenemedi: ' + s.src); next(); };
     document.head.appendChild(s);

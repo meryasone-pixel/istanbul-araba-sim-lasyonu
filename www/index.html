@@ -90,6 +90,11 @@ body.mn #hud .r{max-height:calc(100vh - env(safe-area-inset-top,0px) - 16px);ove
 }
 /* başlangıç ekranı açıkken altın sayacı ve bildirimler menünün üstüne binmesin */
 #start{z-index:6}
+/* oyun yüklenirken menü gizli, "Yükleniyor…" yazar; hazır olunca menü tek seferde belirir */
+#start:not(.ready) .card{visibility:hidden}
+#start:not(.ready)::after{content:'Yükleniyor…';position:fixed;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-size:22px;font-weight:700;opacity:.9}
+#start.ready .card{animation:stIn .25s ease-out}
+@keyframes stIn{from{opacity:0}to{opacity:1}}
 </style>
 </head>
 <body>
@@ -98,7 +103,7 @@ body.mn #hud .r{max-height:calc(100vh - env(safe-area-inset-top,0px) - 16px);ove
 <canvas id="mini" width="128" height="128"></canvas>
 <div id="msg"></div>
 <div class="pad"><div><button data-k="left" aria-label="Sol">◀</button><button data-k="right" aria-label="Sağ">▶</button></div><div><button data-k="horn" aria-label="Korna">📯</button><button data-k="down" aria-label="Fren">■</button><button data-k="up" aria-label="Gaz">▲</button></div></div>
-<div id="start"><div class="card">
+<div id="start"><script>window.istReady=function(){document.getElementById('start').classList.add('ready');};setTimeout(window.istReady,20000);/* yedek: bir şey takılırsa 20 sn sonra yine görünür */</script><div class="card">
 <h1 id="ttl">Boğaz Drive</h1>
 <p id="res" style="display:none;font-weight:800;font-size:20px"></p>
 <p>Trafik ışıklarına uy, yayalara dikkat et, diğer araçlara çarpma. Ağır çarpmalar arabanı parçalar.</p>
@@ -156,7 +161,7 @@ function cullReg(im,geo,n){if(!geo.boundingSphere)geo.computeBoundingSphere();co
   CULL.push({im,M,Cl,S,n});}
 function cullInst(){
   cam.updateMatrixWorld();_cuM.multiplyMatrices(cam.projectionMatrix,_cuI.copy(cam.matrixWorld).invert());_cuF.setFromProjectionMatrix(_cuM);
-  const P=_cuF.planes,fx=cam.position.x,fz=cam.position.z,ff=(scene.fog?scene.fog.far:2000)+20,sx=car.x,sz=car.z,SH=115*115,MG=8;
+  const P=_cuF.planes,fx=cam.position.x,fz=cam.position.z,ff=(scene.fog?scene.fog.far:2000)+20,sx=shX,sz=shZ,SH=115*115,MG=8;   /* gölge alanının merkezi (snapSun) çevresindekiler hep çizilir */
   for(const c of CULL){const im=c.im,M=c.M,Cl=c.Cl,S=c.S,A=im.instanceMatrix.array,CA=Cl?im.instanceColor.array:null;let k=0;
     for(let j=0;j<c.n;j++){const x=S[j*4],y=S[j*4+1],z=S[j*4+2],r=S[j*4+3],dx=x-sx,dz=z-sz;let ok=true;
       if(dx*dx+dz*dz>SH){const ex=x-fx,ez=z-fz,fr=ff+r;if(ex*ex+ez*ez>fr*fr)ok=false;else for(let p=0;p<6;p++){const pl=P[p],nn=pl.normal;if(nn.x*x+nn.y*y+nn.z*z+pl.constant<-(r+MG)){ok=false;break;}}}
@@ -414,7 +419,8 @@ function startAudio(){try{if(ac){if(ac.state==='suspended')ac.resume();return;}
   master=ac.createDynamicsCompressor(); master.threshold.value=-12; master.knee.value=6; master.ratio.value=12; master.attack.value=.003; master.release.value=.25;
   const mg=ac.createGain(); mg.gain.value=.8; master.connect(mg); mg.connect(ac.destination);
   osc=ac.createOscillator(); osc.type='sawtooth';
-  const f=ac.createBiquadFilter(); f.type='lowpass'; f.frequency.value=380;
+  /* süzgeç 380→900 Hz: telefon hoparlörü 200 Hz altını çalamıyor, motorun üst tınıları duyulsun */
+  const f=ac.createBiquadFilter(); f.type='lowpass'; f.frequency.value=900;
   gain=ac.createGain(); gain.gain.value=0; osc.connect(f); f.connect(gain); gain.connect(master); osc.start();
 }catch(e){}}
 let master=null, noiseB=null;
@@ -741,7 +747,7 @@ function step(dt){if(gOpen)return 0;gStep();mStep(dt);
   if(inside&&isLit(bx,bz)&&!inX&&Math.abs(car.v)>3&&light(Math.abs(fx)>.7071?1:0,bx,bz)==='r'){pts(-10);msg(freeMode?'Kırmızıda geçtin':'Kırmızıda geçtin −10');}
   inX=inside;
   /* motor sesi: değerler kare kare zıplamaz, ~40 ms'de yumuşakça kayar (ani adımlar tık/cızırtı yapıyordu) */
-  if(osc){const tA=ac.currentTime;osc.frequency.setTargetAtTime(48+Math.abs(car.v)*3.2,tA,.04);gain.gain.setTargetAtTime((!playing||gOpen||totaled||!engineOn)?0:(boatM?.008:.01)+Math.min(Math.abs(car.v)/60,1)*.02+(up?.006:0),tA,.04);}
+  if(osc){const tA=ac.currentTime;osc.frequency.setTargetAtTime(48+Math.abs(car.v)*3.2,tA,.04);gain.gain.setTargetAtTime((!playing||gOpen||totaled||!engineOn)?0:(boatM?.022:.03)+Math.min(Math.abs(car.v)/60,1)*.05+(up?.015:0),tA,.04);}
   const acc=(car.v-pv)/Math.max(dt,.001); pv=car.v; pitch+=(clamp(-acc*.004,-.06,.06)-pitch)*Math.min(1,dt*6);
   if(dmg>45){puffT-=dt;if(puffT<=0){puff();puffT=dmg>75?.06:.14;}}
   return steer;
@@ -760,12 +766,15 @@ function drawMini(){
   mc.save();mc.translate(W/2,W/2);mc.rotate(Math.PI-car.a);mc.fillStyle='#19e0cf';mc.beginPath();mc.moveTo(0,-6);mc.lineTo(4.5,5);mc.lineTo(-4.5,5);mc.closePath();mc.fill();mc.restore();
 }
 let tPrev=0,fc=0,fAcc=0,fN=0,lastKmh=-1,lastGr='',upBlock=0,camFree=null,camF=1;
-const _sr=new R.Vector3(),_su=new R.Vector3(),_sp=new R.Vector3();
+const _sr=new R.Vector3(),_su=new R.Vector3(),_sp=new R.Vector3(),_sd=new R.Vector3();let shX=0,shZ=0;
 function snapSun(){ /* gölge haritası texel'e oturtulur: gölge titremesi/yüzmesi biter */
+  /* gölge alanı arabanın değil, kameranın baktığı yönde 45 m ileriye ortalanır: arkada boşa gölge yok, önde gölgeler
+     ~120 m'ye kadar var (eskiden ~75 m'de bitiyordu; gölgesiz bölge araba ilerledikçe önde kayıyormuş gibi görünüyordu) */
+  cam.getWorldDirection(_sd);const dl=Math.hypot(_sd.x,_sd.z)||1;shX=car.x+_sd.x/dl*45;shZ=car.z+_sd.z/dl*45;
   const o=FX.sunOff,L=_sr.set(o.x,o.y,o.z).normalize(),r=_su.set(0,1,0).cross(L).normalize(),u=_sp.copy(L).cross(r).normalize(),
     tx=(sun.shadow.camera.right-sun.shadow.camera.left)/sun.shadow.mapSize.x;
-  const a=car.x*r.x+car.z*r.z,b=car.x*u.x+car.z*u.z,da=Math.round(a/tx)*tx-a,db=Math.round(b/tx)*tx-b;
-  const px=car.x+r.x*da+u.x*db,py=r.y*da+u.y*db,pz=car.z+r.z*da+u.z*db;
+  const a=shX*r.x+shZ*r.z,b=shX*u.x+shZ*u.z,da=Math.round(a/tx)*tx-a,db=Math.round(b/tx)*tx-b;
+  const px=shX+r.x*da+u.x*db,py=r.y*da+u.y*db,pz=shZ+r.z*da+u.z*db;
   sun.position.set(px+o.x,py+o.y,pz+o.z); sun.target.position.set(px,py,pz);}
 function frame(t){
   const dt=Math.min((t-(tPrev||t))/1000,.05); tPrev=t; let steer=0; fc++; fAcc+=dt;

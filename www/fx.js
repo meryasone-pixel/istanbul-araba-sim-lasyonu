@@ -226,7 +226,7 @@
       sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWP; varying vec4 vRC; uniform mat4 mRefl;')
         .replace('#include <fog_vertex>', '#include <fog_vertex>\n#ifdef USE_INSTANCING\nvWP=(modelMatrix*instanceMatrix*vec4(transformed,1.)).xyz;\n#else\nvWP=(modelMatrix*vec4(transformed,1.)).xyz;\n#endif\nvRC=mRefl*vec4(vWP,1.);');
       sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
-        varying vec3 vWP; varying vec4 vRC; uniform float uTime,uWet,uRain,uReflOn,uPudK,uReflK,uPS; uniform sampler2D tRefl,tPud; ${GLSL_HASH}
+        varying vec3 vWP; varying vec4 vRC; uniform float uTime,uWet,uRain,uReflOn,uPudK,uReflK,uPS,uNight; uniform sampler2D tRefl,tPud; ${GLSL_HASH}
         float fxWet; float fxPud;
         vec2 fxRipple(vec2 p, float t){ vec2 i=floor(p), f=fract(p)-.5; float h=fxH(i); float ph=fract(t*.9+h); vec2 c=(vec2(fxH(i+3.1),fxH(i+7.7))-.5)*.5; vec2 d=f-c; float r=length(d);
           float ring=sin((r-ph*.45)*55.)*(1.-ph)*smoothstep(.45*ph+.06,.45*ph,r)*smoothstep(.45*ph-.12,.45*ph,r); return normalize(d+1e-4)*ring; }`)
@@ -248,7 +248,8 @@
           float sp=mix(.018,.0025,fxPud)*rc.w; vec3 rf=vec3(0.);
           rf+=texture2DProj(tRefl,rc).rgb*.3; rf+=texture2DProj(tRefl,rc+vec4(0.,sp,0.,0.)).rgb*.2; rf+=texture2DProj(tRefl,rc-vec4(0.,sp,0.,0.)).rgb*.2;
           rf+=texture2DProj(tRefl,rc+vec4(sp*.35,sp*2.3,0.,0.)).rgb*.15; rf+=texture2DProj(tRefl,rc-vec4(sp*.35,sp*2.3,0.,0.)).rgb*.15;
-          float k=clamp(fxWet*mix(.35,1.,fxPud)*(.18+.82*F)*uReflK,0.,.92);
+          rf=min(rf,vec3(1.));   // parlak gök/ışık yansıması parlamaya (bloom) taşıp yolu beyazlatmasın
+          float k=clamp(fxWet*mix(.35,1.,fxPud)*(.18+.82*F)*uReflK*mix(.55,1.,uNight),0.,mix(.6,.92,uNight));   // gündüz yansıma daha hafif
           gl_FragColor.rgb=mix(gl_FragColor.rgb,rf,k);
         }
         #include <tonemapping_fragment>`);
@@ -536,7 +537,8 @@
     const U = compM.uniforms;
     U.tS.value = rtS.texture; U.tB0.value = bA[0].texture; U.tB1.value = bA[1].texture; U.tB2.value = (levels > 2 ? bA[2] : bA[1]).texture;
     U.uBloom.value = GR.bloom * (FX.weather === 'rain' ? 1.25 : 1); U.uExpo.value = GR.expo; U.uSat.value = GR.sat * (FX.weather === 'rain' ? .9 : 1); U.uCon.value = GR.con; U.uLift.value.copy(GR.lift); U.uGain.value.copy(GR.gain); U.uVig.value = GR.vig;
-    const sp = Math.max(0, Math.abs(speed) - 16) / 50; U.uBlur.value = Math.min(.018, sp * .02); U.uCA.value = .0012 + Math.min(.004, sp * .004); U.uGrain.value = FX.night ? .035 : .022; U.uFlash.value = flash;
+    // hız bulanıklığı ve hızla artan renk kayması kapalı: telefonda sürerken renkler birbirine karışıyordu
+    U.uBlur.value = 0; U.uCA.value = .0012; U.uGrain.value = FX.night ? .035 : .022; U.uFlash.value = flash;
     pass(compM, null);
   };
 })();
