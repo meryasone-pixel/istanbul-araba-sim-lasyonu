@@ -403,7 +403,7 @@
     ren.getDrawingBufferSize(sz); const w = Math.max(2, sz.x | 0), h = Math.max(2, sz.y | 0);
     rtS = mkRT(w, h, msaa);
     if (FX.refl()) { const k = FX.q >= 3 ? .75 : .5; rtR = mkRT(Math.max(2, w * k | 0), Math.max(2, h * k | 0), false); }
-    levels = FX.q >= 2 ? 3 : 2;
+    levels = 3;   // Orta'da da 3 katman: 2 katmanda 2. katman iki kez eklenip beyazların etrafında kalın hale yapıyordu (3. katman 1/8 boyut, yükü çok az)
     for (let i = 0; i < 3; i++) { const d = 2 << i, bw = Math.max(2, w / d | 0), bh = Math.max(2, h / d | 0); bA.push(mkRT(bw, bh)); bB.push(mkRT(bw, bh)); bA[i].depthBuffer = bB[i].depthBuffer = false; }
     compM.uniforms.uRes.value.set(w, h);
   }
