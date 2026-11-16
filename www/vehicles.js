@@ -273,6 +273,32 @@
     c.m.add(window.carMesh(0, c.type, c)); c.vm = vm;
     if (old) { c.m.remove(old); old.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
   };
+  /* Alev kaplaması: gerçek ateş renginde (sarı→turuncu→kırmızı) alev dilleri, arabanın ön yan kenarlarından arkaya doğru.
+     Boyayla çarpılmasın diye ayrı saydam katman olarak yan yüzlerin üstüne çizilir (gövde rengi altta kalır). */
+  let FLT = null;
+  function flameTex() {
+    if (FLT) return FLT;
+    const c = FX.cv(512, 128), x = c.getContext('2d');
+    const tongue = (y0, h, len, wob) => {   // sağ kenardan (ön) sola (arka) uzanan alev dili
+      const g = x.createLinearGradient(512, 0, 512 - len, 0); g.addColorStop(0, '#fff3a0'); g.addColorStop(.25, '#ffd21f'); g.addColorStop(.6, '#ff7a00'); g.addColorStop(1, '#d81e00');
+      x.fillStyle = g; x.beginPath(); x.moveTo(512, y0 - h / 2);
+      x.bezierCurveTo(512 - len * .35, y0 - h * .6 - wob, 512 - len * .7, y0 - h * .1 + wob, 512 - len, y0 - wob * .5);
+      x.bezierCurveTo(512 - len * .65, y0 + h * .25, 512 - len * .3, y0 + h * .55 + wob, 512, y0 + h / 2); x.closePath(); x.fill();
+      x.strokeStyle = 'rgba(120,10,0,.55)'; x.lineWidth = 3; x.stroke();
+    };
+    [[30, 34, 330, 10], [62, 40, 430, -8], [95, 34, 300, 9], [46, 22, 220, -5], [80, 24, 250, 6]].forEach(a => tongue(...a));
+    FLT = new R.CanvasTexture(c); FLT.encoding = R.sRGBEncoding; return FLT;
+  }
+  function flameLayer(k) {   // yan yüzlerin kopyası, alev dokusu için kendi uv'si: u 0 arka → 1 ön, v alt → üst
+    const g = k.side.clone(), p = g.attributes.position.array, uv = g.attributes.uv.array;
+    let y0 = 1e9, y1 = -1e9; for (let i = 1; i < p.length; i += 3) { y0 = Math.min(y0, p[i]); y1 = Math.max(y1, p[i]); }   // yan panelin alt/üst kenarı: alev bütün kapı yüksekliğine yayılır
+    for (let i = 0, j = 0; i < p.length; i += 3, j += 2) { uv[j] = (p[i + 2] - k.bz) / (k.fz - k.bz); uv[j + 1] = 1 - (p[i + 1] - y0) / (y1 - y0 || 1); }
+    g.attributes.uv.needsUpdate = true;
+    const m = FX.Q === 0 ? new R.MeshLambertMaterial({ map: flameTex(), transparent: true, alphaTest: .05 })
+      : new R.MeshStandardMaterial({ map: flameTex(), transparent: true, alphaTest: .05, roughness: .35 });
+    m.polygonOffset = true; m.polygonOffsetFactor = -2; m.polygonOffsetUnits = -2; m.depthWrite = false;
+    const me = new R.Mesh(g, m); me.visible = false; me.renderOrder = 3; return me;
+  }
   function kenneyCar(t, c, body, pl) {
     const k = KM[t], m = mats(), d = TY[t], W = d.W, g = new R.Group();
     let paint = body;
@@ -295,7 +321,7 @@
       c.sL = mL; c.sR = mR; c.tl = tl; if (c.type !== t && c.vm) c.vm *= V.SPD[t] || 1; c.type = t;
       V.bake(g);
       if (FX.Q > 0) decals(g, d, m);
-    } else g.userData = { mL, mR, kw: k.wl, kenney: true };
+    } else { const fl = k.side ? flameLayer(k) : null; if (fl) g.add(fl); g.userData = { mL, mR, kw: k.wl, kenney: true, flame: fl }; }
     return g;
   }
 

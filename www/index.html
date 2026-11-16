@@ -554,7 +554,7 @@ function devAll(){return !!(window.IST_CONFIG&&IST_CONFIG.garage&&IST_CONFIG.gar
 let gMode='g';const own=id=>G.own.includes(id)||devAll(),hx=c=>'#'+c.toString(16).padStart(6,'0'),SH=REPAIR_SHOP?[-19,-19]:[1e6,1e6];
 function drawG(){let h;
  if(gMode==='s'){h='<b style="font-size:20px">🛠 Tamir</b> &nbsp; 💰 '+G.money+' altın<br><br>Hasar: %'+Math.round(dmg)+'<br>'+rpBtn()+'<br><br>'+gbt('x','Kapat ✕',false,'#8a2b2b');}
- else{h='<b style="font-size:20px">🔧 Garaj</b> &nbsp; 💰 '+G.money+' altın'+'<br><small>Arabayı döndürmek için sol tarafı parmağınla sürükle</small><br>'+rpBtn()+'<br>'+gbt('shop','🛒 Mağaza: kaplama, özel jant, korna',false,'#5a3a8a')+'<br><br><b>Model</b><br>';
+ else{h='<b style="font-size:20px">🔧 Garaj</b> &nbsp; 💰 '+G.money+' altın'+'<br><small>Arabayı döndürmek için sol tarafı parmağınla sürükle</small><br>'+rpBtn()+'<br>'+gbt('shop','🛒 Mağaza: kaplama, korna',false,'#5a3a8a')+'<br><br><b>Model</b><br>';
   GM.forEach((m,i)=>h+=gbt('m:'+i,(DR[i]<1?'🛡 ':'')+(own('m'+i)?m[0]:(i===4&&!G.rc?'🔒 '+m[0]+' — önce Yarış görevini bitir':m[0]+' — '+m[2]+' altın')),G.model===i));
   if(DR[G.model]<1)h+='<br><small>🛡 '+GM[G.model][0]+' çarpışmada %'+Math.round((1-DR[G.model])*100)+' daha az hasar alır</small>';
   {const lv=engLv();h+='<br><br><b>Motor</b> <small>· Seviye '+lv+'/'+ENG.length+' · Azami hız '+carKmh()+' km/sa</small><br>'+(lv<ENG.length?gbt('e','⚙ Yükselt +'+ENG_K+' km/sa — '+ENG[lv]+' altın',false):gbt('e','En üst seviye ✓',true));}

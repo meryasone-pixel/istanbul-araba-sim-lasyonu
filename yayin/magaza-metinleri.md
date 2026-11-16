@@ -15,7 +15,7 @@ Boğaz Drive, İstanbul'un ışıklı sokaklarında geçen düşük poligonlu bi
 • Her gün yenilenen günlük hedefler ve bonus altın
 • Ortaköy ve Boğaziçi Köprüsü, Caddebostan sahil yolu: her bölgenin kendi görevi var, kilitli bölgeyi 60 saniye bedava dene
 • 8 araç: sedan, hatchback, taksi, minibüs, SUV, motosiklet, spor coupe ve yarış arabası — her birinin kendi hızı; motor yükseltmesiyle daha hızlı git
-• Garajda boya, jant ve motor yükseltmesi; mağazada kaplama, jant ve korna sesleri
+• Garajda boya, jant ve motor yükseltmesi; mağazada kaplama ve korna sesleri
 • Fotoğraf modu: arabanı her açıdan çek, paylaş
 • Yeşil dalgalı trafik ışıkları, karşıdan karşıya geçen yayalar, gerçekçi çarpışma ve hasar
 • Gündüz, akşam ve gece; kuru, ıslak ve yağmurlu hava
@@ -37,7 +37,7 @@ Boğaz Drive is a low-poly driving game set in the glowing streets of Istanbul.
 • Daily goals with bonus gold, refreshed every day
 • Ortaköy and the Bosphorus Bridge, Caddebostan coast road: each district has its own mission — try locked districts free for 60 seconds
 • 8 vehicles: sedan, hatchback, taxi, minibus, SUV, motorcycle, sports coupe and race car — each with its own top speed; upgrade the engine to go faster
-• Garage: paint, rims and engine upgrades; shop: liveries, rims and horn sounds
+• Garage: paint, rims and engine upgrades; shop: liveries and horn sounds
 • Photo mode: shoot your car from any angle and share it
 • Green-wave traffic lights, pedestrians crossing the street, realistic crashes and damage
 • Day, dusk and night; dry, wet and rainy weather

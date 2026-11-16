@@ -23,18 +23,15 @@
       { id: 'lv_flame', cat: 'livery', name: 'Alev', cur: 'gold', price: 2000, tex: 'flame' },
       { id: 'lv_vipgold', cat: 'livery', name: 'VIP Altın', cur: 'gold', price: 0, vip: true, tex: 'gold' },
       { id: 'lv_sunset', cat: 'livery', name: 'Boğaz Gün Batımı', cur: 'gold', price: 0, vip: true, tex: 'sunset' },
+      /* mağaza jantları kaldırıldı (kullanıcı isteği; jant rengi garajda) */
       /* neonlar kaldırıldı (kullanıcı isteği): eski kayıtlarda takılı neon varsa bulunamaz → görünmez */
-      { id: 'ri_gold', cat: 'rim', name: 'Altın Jant', cur: 'gold', price: 700, color: 0xffc400 },
-      { id: 'ri_red', cat: 'rim', name: 'Kırmızı Jant', cur: 'gold', price: 500, color: 0xd32f2f },
-      { id: 'ri_chrome', cat: 'rim', name: 'Krom Jant', cur: 'gold', price: 800, color: 0xf2f5f8, emissive: 0x333333 },
-      { id: 'ri_neon', cat: 'rim', name: 'Neon Mavi Jant', cur: 'gold', price: 1000, color: 0x2979ff, emissive: 0x1144aa },
       { id: 'hn_ship', cat: 'horn', name: 'Vapur Düdüğü', cur: 'gold', price: 800, horn: { f: [98, 147], type: 'sawtooth', lp: 700 } },
       { id: 'hn_taxi', cat: 'horn', name: 'Taksi Bip-Bip', cur: 'gold', price: 400, horn: { f: [440, 554], type: 'square', lp: 1800, double: true } },
       { id: 'hn_sport', cat: 'horn', name: 'Spor Korna', cur: 'gold', price: 600, horn: { f: [523, 659, 784], type: 'sawtooth', lp: 2400 } },
       { id: 'hn_melody', cat: 'horn', name: 'Melodi', cur: 'gold', price: 800, horn: { seq: [392, 494, 587, 784], type: 'triangle', lp: 2200 } },
       { id: 'hn_vip', cat: 'horn', name: 'VIP Korna', cur: 'gold', price: 0, vip: true, horn: { seq: [523, 659, 784, 1047], type: 'sine', lp: 3000 } }
     ];
-    const CATS = [['iap', '💰 Altın & Premium'], ['livery', '🎨 Kaplama'], ['rim', '⚙ Jant'], ['horn', '📯 Korna']];
+    const CATS = [['iap', '💰 Altın & Premium'], ['livery', '🎨 Kaplama'], ['horn', '📯 Korna']];
     const item = id => ITEMS.find(x => x.id === id);
 
     /* günün fırsatı: her gün bir ürün %30 indirimli (gün içinde sabit kalır, alınca zincirleme indirim olmaz) */
@@ -155,7 +152,9 @@
         if (typeof bodyM === 'undefined') return;
         const eq = S.eq;   // süsler artık serbest sürüşte de görünür
         const lv = eq.livery ? item(eq.livery) : null;
-        bodyM.map = lv ? makeTex(lv.tex) : null; bodyM.needsUpdate = true;
+        const fl = typeof pcur !== 'undefined' && pcur && pcur.userData && pcur.userData.flame;   // alev: ayrı ateş renkli katman (boyayla çarpılmaz)
+        if (fl) fl.visible = !!lv && lv.tex === 'flame';
+        bodyM.map = lv && !(fl && lv.tex === 'flame') ? makeTex(lv.tex) : null; bodyM.needsUpdate = true;
         const ri = eq.rim ? item(eq.rim) : null;
         if (ri && typeof rimP !== 'undefined') { rimP.color.setHex(ri.color); if (rimP.emissive) rimP.emissive.setHex(ri.emissive || 0); }
         else if (typeof rimP !== 'undefined' && rimP.emissive) rimP.emissive.setHex(0);
