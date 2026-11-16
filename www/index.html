@@ -108,10 +108,13 @@ body.mn #hud .r{max-height:calc(100vh - var(--safe-area-inset-top,env(safe-area-
 <p id="res" style="display:none;font-weight:800;font-size:20px"></p>
 <p>Trafik ışıklarına uy, yayalara dikkat et, diğer araçlara çarpma. Ağır çarpmalar arabanı parçalar.</p>
 <div class="menu"><div class="row"><span>Mod</span><div class="seg" id="md"><button data-v="0" class="on">Serbest sürüş</button><button data-v="1">Görevler</button></div></div><div id="ms" style="display:none"></div><div class="row" id="rc"><span>Araba rengi</span><div id="sw"></div><input type="color" id="cc" value="#19b3a6" aria-label="Özel renk"></div><div class="row" style="display:none"><span>Zaman</span><div class="seg" id="tm"><button data-v="day">Gündüz</button><button data-v="dusk" class="on">Akşam</button><button data-v="night">Gece</button></div></div><div class="row" style="display:none"><span>Hava</span><div class="seg" id="wx"><button data-v="dry">Kuru</button><button data-v="wet">Islak</button><button data-v="rain">Yağmur</button></div></div><div class="row"><span>Trafik</span><div class="seg" id="tf"><button data-v="14">Az</button><button data-v="30" class="on">Orta</button><button data-v="46">Çok</button></div></div></div>
-<small>Ekrandaki ◀ ▶ ile dön, ▲ gaz, ■ fren, 📯 korna. Ekranı parmağınla sürükleyerek kamerayı her yöne çevir. Sürüş sırasında far, korna, kamera, zaman ve hava sağ üstteki ☰ menüde.</small>
+<button id="more" style="margin:10px 0 6px;padding:10px 14px;border-radius:12px;border:0;background:var(--glass);color:var(--ink);font-size:14px;font-weight:700;cursor:pointer">☰ Menü</button>
+<div id="moreBox" style="display:none"><!-- Ayarlar, Günlük, Oyunu sıfırla tek düğmenin altında -->
 <div id="smenu"><button id="gear" aria-label="Ayarlar">⚙ Ayarlar</button></div>
 <div id="panel"><label>Düğme boyutu<input type="range" id="sBs" min="0.8" max="2.2" step="0.1"></label><label>Düğme şeffaflığı<input type="range" id="sBo" min="0.3" max="1" step="0.05"></label><label><input type="checkbox" id="sSw"> Sol/sağ düğmeleri yer değiştir</label><label><input type="checkbox" id="sSh"> Bilgisayarda da göster</label><label>Grafik kalitesi<select id="sQ"><option value="0">Düşük</option><option value="1">Orta</option><option value="2">Yüksek</option></select></label></div>
-<button id="rs" style="margin-right:10px;padding:12px 14px;border-radius:12px;border:0;background:var(--glass);color:var(--ink);font-size:14px;cursor:pointer">♻ Oyunu sıfırla</button><button id="gm" style="display:none;margin-right:10px;padding:14px 20px;border-radius:12px;border:0;background:var(--glass);color:var(--ink);font-size:16px;font-weight:700;cursor:pointer">🔧 Garaj</button><button id="go">Sürmeye başla</button>
+<button id="rs" style="margin-right:10px;padding:12px 14px;border-radius:12px;border:0;background:var(--glass);color:var(--ink);font-size:14px;cursor:pointer">♻ Oyunu sıfırla</button>
+</div>
+<br><button id="gm" style="display:none;margin-right:10px;padding:14px 20px;border-radius:12px;border:0;background:var(--glass);color:var(--ink);font-size:16px;font-weight:700;cursor:pointer">🔧 Garaj</button><button id="go">Sürmeye başla</button>
 </div></div>
 <script src="three.min.js"></script>
 <script src="fx.js"></script>
@@ -472,7 +475,7 @@ $('sQ').value=S.q;$('sQ').onchange=e=>{S.q=+e.target.value;S.qm=true;applySet();
 $('sBs').value=S.bs;$('sBo').value=S.bo;$('sSw').checked=S.sw;$('sSh').checked=S.sh;
 $('sBs').oninput=e=>{S.bs=+e.target.value;applySet();};$('sBo').oninput=e=>{S.bo=+e.target.value;applySet();};
 $('sSw').onchange=e=>{S.sw=e.target.checked;applySet();};$('sSh').onchange=e=>{S.sh=e.target.checked;applySet();};
-$('gear').onclick=()=>{const q=$('panel');q.style.display=q.style.display==='block'?'none':'block';};
+$('more').onclick=()=>{const b=$('moreBox');b.style.display=b.style.display==='block'?'none':'block';};$('gear').onclick=()=>{const q=$('panel');q.style.display=q.style.display==='block'?'none':'block';};
 const TM={
  day:{sky:['#4f9bd8','#9fd0f0','#f1eedd','#f6f1de'],fog:0xcfe2ee,hs:[0xffffff,0x7a7566,.72],sun:[0xfff1d0,.88],sea:0x2a86a8,win:0},
  dusk:{sky:['#2f3466','#b9648a','#f2a56b','#f7c58a'],fog:0xeba46f,hs:[0xffd9b0,0x4b3a4a,.85],sun:[0xffc98a,1.05],sea:0x1d6b86,win:.35},
