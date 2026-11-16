@@ -13,7 +13,7 @@
     /* ---------------- katalog ---------------- */
     /* yalnızca 2 ürün: Premium (tek seferlik, reklamsız dahil) + altın paketi (tekrar alınabilir) */
     const IAP = [
-      { id: (cfg.ids && cfg.ids.vip) || 'vip_pack', kind: 'nc', title: '⭐ Premium Paket', desc: 'Reklamsız oyun • Tüm kazançlara +%50 altın • 5000 altın • Premium kaplamalar, neon ve korna', gold: 5000 },
+      { id: (cfg.ids && cfg.ids.vip) || 'vip_pack', kind: 'nc', title: '⭐ Premium Paket', desc: 'Reklamsız oyun • Tüm kazançlara +%50 altın • 5000 altın • Premium kaplamalar ve korna', gold: 5000 },
       { id: 'gold_5500', kind: 'c', title: '5500 Altın', gold: 5500 }
     ];
     const ITEMS = [
@@ -22,11 +22,8 @@
       { id: 'lv_camo', cat: 'livery', name: 'Kamuflaj', cur: 'gold', price: 1200, tex: 'camo' },
       { id: 'lv_flame', cat: 'livery', name: 'Alev', cur: 'gold', price: 2000, tex: 'flame' },
       { id: 'lv_vipgold', cat: 'livery', name: 'VIP Altın', cur: 'gold', price: 0, vip: true, tex: 'gold' },
-      { id: 'ne_pink', cat: 'neon', name: 'Pembe Neon', cur: 'gold', price: 600, color: 0xff2fd2 },
-      { id: 'ne_cyan', cat: 'neon', name: 'Turkuaz Neon', cur: 'gold', price: 600, color: 0x19e0cf },
       { id: 'lv_sunset', cat: 'livery', name: 'Boğaz Gün Batımı', cur: 'gold', price: 0, vip: true, tex: 'sunset' },
-      { id: 'ne_sunset', cat: 'neon', name: 'Gün Batımı Neonu', cur: 'gold', price: 0, vip: true, color: 0xff8a3d },
-      { id: 'ne_rainbow', cat: 'neon', name: 'Gökkuşağı', cur: 'gold', price: 2500, rainbow: true },
+      /* neonlar kaldırıldı (kullanıcı isteği): eski kayıtlarda takılı neon varsa bulunamaz → görünmez */
       { id: 'ri_gold', cat: 'rim', name: 'Altın Jant', cur: 'gold', price: 700, color: 0xffc400 },
       { id: 'ri_red', cat: 'rim', name: 'Kırmızı Jant', cur: 'gold', price: 500, color: 0xd32f2f },
       { id: 'ri_chrome', cat: 'rim', name: 'Krom Jant', cur: 'gold', price: 800, color: 0xf2f5f8, emissive: 0x333333 },
@@ -37,7 +34,7 @@
       { id: 'hn_melody', cat: 'horn', name: 'Melodi', cur: 'gold', price: 800, horn: { seq: [392, 494, 587, 784], type: 'triangle', lp: 2200 } },
       { id: 'hn_vip', cat: 'horn', name: 'VIP Korna', cur: 'gold', price: 0, vip: true, horn: { seq: [523, 659, 784, 1047], type: 'sine', lp: 3000 } }
     ];
-    const CATS = [['iap', '💰 Altın & Premium'], ['livery', '🎨 Kaplama'], ['neon', '✨ Neon'], ['rim', '⚙ Jant'], ['horn', '📯 Korna']];
+    const CATS = [['iap', '💰 Altın & Premium'], ['livery', '🎨 Kaplama'], ['rim', '⚙ Jant'], ['horn', '📯 Korna']];
     const item = id => ITEMS.find(x => x.id === id);
 
     /* günün fırsatı: her gün bir ürün %30 indirimli (gün içinde sabit kalır, alınca zincirleme indirim olmaz) */
@@ -146,6 +143,13 @@
       const t = new R.CanvasTexture(c); t.wrapS = t.wrapT = R.RepeatWrapping; t.repeat.set(.3, .3); return (texCache[kind] = t);
     }
     let neon = null;
+    /* neon: arabanın altını komple kaplayan dikdörtgen yerine yalnız iki yanda ince ışık şeritleri (2.8×6.2 ölçeğinde; aşağıda araca göre ölçeklenir) */
+    function neonStrips(R) {
+      const a = new R.PlaneGeometry(.55, 5.4), b = new R.PlaneGeometry(.55, 5.4); a.translate(-1.12, 0, 0); b.translate(1.12, 0, 0);
+      const g = new R.BufferGeometry(), P = new Float32Array(24), U = new Float32Array(16), I = [];
+      [a, b].forEach((q, k) => { P.set(q.attributes.position.array, k * 12); U.set(q.attributes.uv.array, k * 8); q.index.array.forEach(i => I.push(i + k * 4)); });
+      g.setAttribute('position', new R.BufferAttribute(P, 3)); g.setAttribute('uv', new R.BufferAttribute(U, 2)); g.setIndex(I); return g;
+    }
     function applyAll() {
       try {
         if (typeof bodyM === 'undefined') return;
@@ -157,7 +161,7 @@
         else if (typeof rimP !== 'undefined' && rimP.emissive) rimP.emissive.setHex(0);
         const ne = eq.neon ? item(eq.neon) : null, R = R_();
         if (R && typeof shell !== 'undefined') {
-          if (!neon) { neon = new R.Mesh(new R.PlaneGeometry(2.8, 6.2), new R.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .55, blending: R.AdditiveBlending, depthWrite: false })); neon.rotation.x = -Math.PI / 2; neon.position.y = .09; shell.add(neon); }
+          if (!neon) { neon = new R.Mesh(neonStrips(R), new R.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .55, blending: R.AdditiveBlending, depthWrite: false })); neon.rotation.x = -Math.PI / 2; neon.position.y = .09; shell.add(neon); }
           neon.visible = !!ne && !(typeof boatM !== 'undefined' && boatM); if (ne && !ne.rainbow) neon.material.color.setHex(ne.color);
           // neon her aracın kendi boyutunda (eskiden her araca 2.8×6.2 m çiziliyordu; motosiklette kocaman dikdörtgen oluyordu)
           try { const t = GM[G.model][1]; let w = 1.1, l = 2.7; if (t !== 5 && typeof CT !== 'undefined' && CT[t]) { l = CT[t][0] + .9; w = CT[t][1] + .9; } neon.scale.set(w / 2.8, l / 6.2, 1); } catch (e) {}

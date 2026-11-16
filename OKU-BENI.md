@@ -23,7 +23,7 @@ Android Studio: Build → Generate Signed App Bundle → Android App Bundle → 
 
 ## Google Play ürün kimlikleri (uygulama içi ürünler)
 Tek para birimi altın. Yalnızca 2 ürün var. Play Console > Ürünler bölümünde şunları oluştur:
-- Tüketilemez: `vip_pack` (Premium Paket: reklamsız + %50 fazla kazanç + 5000 altın + Premium kaplama, neon ve korna)
+- Tüketilemez: `vip_pack` (Premium Paket: reklamsız + %50 fazla kazanç + 5000 altın + Premium kaplama ve korna)
 - Tüketilebilir: `gold_5500` (5500 altın)
 
 ## Reklamlar (AdMob)

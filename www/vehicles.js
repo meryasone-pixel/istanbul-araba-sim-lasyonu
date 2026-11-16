@@ -215,10 +215,11 @@
     let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9, y1 = 0;
     for (let i = 0; i < pos.length; i += 3) { x0 = Math.min(x0, pos[i]); x1 = Math.max(x1, pos[i]); y1 = Math.max(y1, pos[i + 1]); z0 = Math.min(z0, pos[i + 2]); z1 = Math.max(z1, pos[i + 2]); }
     const sx = d.W / (x1 - x0), sz = Math.min(d.L / (z1 - z0), sx * 1.42), sy = sx, zc = (z0 + z1) / 2;
-    const groups = { paint: [], head: [], tail: [], glass: [], tex: [] };
+    const groups = { paint: [], side: [], head: [], tail: [], glass: [], tex: [] };
     for (let v0 = 0; v0 < pos.length / 3; v0 += 3) {
       const u = (uv[v0 * 2] + uv[v0 * 2 + 2] + uv[v0 * 2 + 4]) / 3, v = (uv[v0 * 2 + 1] + uv[v0 * 2 + 3] + uv[v0 * 2 + 5]) / 3, cu = Math.floor(u * 8), cv = Math.floor(v * 4);
-      groups[u < 0 || cv === 1 ? 'paint' : cv === 3 && cu === 1 ? 'head' : cv === 3 && cu === 2 ? 'tail' : cv === 3 && cu === 0 ? 'glass' : 'tex'].push(v0);   // (0,3) = cam
+      const sideF = Math.abs(nor[v0 * 3] + nor[v0 * 3 + 3] + nor[v0 * 3 + 6]) / 3 > .6;   // yan yüz (kapılar): kaplama yalnız burada
+      groups[u < 0 || cv === 1 ? (sideF ? 'side' : 'paint') : cv === 3 && cu === 1 ? 'head' : cv === 3 && cu === 2 ? 'tail' : cv === 3 && cu === 0 ? 'glass' : 'tex'].push(v0);   // (0,3) = cam
     }
     const out = { wl: null, hy: .45 * sy, ty: .45 * sy, fz: (z1 - zc) * sz, bz: (z0 - zc) * sz };
     Object.keys(groups).forEach(k => {
@@ -227,7 +228,7 @@
       l.forEach((v0, i) => { p.set(pos.subarray(v0 * 3, v0 * 3 + 9), i * 9); nn.set(nor.subarray(v0 * 3, v0 * 3 + 9), i * 9); q.set(uv.subarray(v0 * 2, v0 * 2 + 6), i * 6); });
       for (let i = 0; i < p.length; i += 3) { p[i] *= sx; p[i + 1] *= sy; p[i + 2] = (p[i + 2] - zc) * sz; ys += p[i + 1]; }
       for (let i = 0; i < nn.length; i += 3) { const a = nn[i] / sx, b = nn[i + 1] / sy, c = nn[i + 2] / sz, m = Math.hypot(a, b, c) || 1; nn[i] = a / m; nn[i + 1] = b / m; nn[i + 2] = c / m; }
-      if (k === 'paint') for (let i = 0, j = 0; i < p.length; i += 3, j += 2) { q[j] = p[i + 2] * .5; q[j + 1] = (Math.abs(nn[i]) > .5 ? p[i + 1] : p[i]) * .5; }   // kaplama (livery) dokusu için düz izdüşüm
+      if (k === 'paint' || k === 'side') for (let i = 0, j = 0; i < p.length; i += 3, j += 2) { q[j] = p[i + 2] * .5; q[j + 1] = (Math.abs(nn[i]) > .5 ? p[i + 1] : p[i]) * .5; }   // kaplama (livery) dokusu için düz izdüşüm
       if (k === 'head') out.hy = ys / (p.length / 3);
       if (k === 'tail') out.ty = ys / (p.length / 3);
       const g = new R.BufferGeometry(); g.setAttribute('position', new R.BufferAttribute(p, 3)); g.setAttribute('normal', new R.BufferAttribute(nn, 3)); g.setAttribute('uv', new R.BufferAttribute(q, 2));
@@ -273,8 +274,12 @@
     if (!paint) { let pc = 0xf2f2f0, met = 1; if (d.taxi) { pc = 0xf2b90c; met = 0; } else { const p = V.PAINT[(Math.random() * V.PAINT.length) | 0]; pc = p[0]; met = p[1]; } paint = V.paint(pc, met); }
     paint.userData.cast = true;
     const tl = pl ? tM : new R.MeshBasicMaterial({ color: 0x701010 });
-    const put = (geo, mt) => { if (!geo) return; const q = new R.Mesh(c ? geo.clone() : geo, mt); q.castShadow = true; g.add(q); };
-    put(k.paint, paint); put(k.tex, kMat()); put(k.glass, kGlass()); put(k.head, pl ? hM : m.head); put(k.tail, tl);
+    const put = (geo, mt) => { if (!geo) return null; const q = new R.Mesh(c ? geo.clone() : geo, mt); q.castShadow = true; g.add(q); return q; };
+    /* oyuncu: kaplama (livery) yalnız yan kapılarda; tavan/kaput/tamponlar düz boya (aynı renk, desen yok) */
+    let plain = paint;
+    if (pl) { plain = V._plain || (V._plain = paint.clone()); plain.map = null; plain.userData.cast = true; }
+    const pm = put(k.paint, plain); if (pm && plain !== paint) pm.onBeforeRender = () => plain.color.copy(paint.color);
+    put(k.side, paint); put(k.tex, kMat()); put(k.glass, kGlass()); put(k.head, pl ? hM : m.head); put(k.tail, tl);
     if (!k.tail) for (const sx of [-1, 1]) add(g, new R.BoxGeometry(.4, .09, .05), tl, sx * (W / 2 - .3), k.ty, k.bz - .02);
     const mL = new R.MeshBasicMaterial({ color: 0x4a2c00 }), mR = new R.MeshBasicMaterial({ color: 0x4a2c00 }), sb = new R.BoxGeometry(.12, .06, .05);
     for (const sx of [-1, 1]) { const mm = sx > 0 ? mL : mR; add(g, sb, mm, sx * (W / 2 - .14), k.hy - .08, k.fz - .01); add(g, sb, mm, sx * (W / 2 - .14), k.ty - .1, k.bz + .01); }
