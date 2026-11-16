@@ -47,6 +47,6 @@ Boğaz Drive is a low-poly driving game set in the glowing streets of Istanbul.
 ## Play Console cevapları
 - Kategori: Oyunlar → Yarış (veya Simülasyon)
 - Reklam: VAR (Google AdMob) → Play Console'da "Reklam içeriyor" = Evet; "uygulama içi satın alma var" de işaretlenir. Veri güvenliği formunda reklam kimliği/cihaz kimlikleri "reklam" amacıyla işaretlenir (AdMob). Gizlilik politikasını güncel haliyle yayınla.
-- Uygulama içi satın alma: VAR (Google Play Faturalandırma, cordova-plugin-purchase). Play Console → Para kazanma → Ürünler: tek seferlik `vip_pack`, `remove_ads`, `starter_pack`; tüketilebilir `gold_1000`, `gold_5500`, `gold_12000`. Kimlikler kodla birebir aynı olmalı.
+- Uygulama içi satın alma: VAR (Google Play Faturalandırma, cordova-plugin-purchase). Play Console → Para kazanma → Ürünler: tek seferlik `vip_pack` (Premium Paket, reklamsız dahil); tüketilebilir `gold_5500`. Kimlikler kodla birebir aynı olmalı.
 - Veri güvenliği: Oyunda sohbet/mesajlaşma YOK. Bulut kaydı açıksa (BULUT-KURULUM.md): "Uygulama etkinliği → Diğer uygulama içi işlemler" (oyun ilerlemesi) ve "Kimlikler → Kullanıcı kimlikleri" (isimsiz Firebase kimliği) işaretlenir, Firebase'de saklanır; amaç "Uygulama işlevselliği"; aktarım şifreli (HTTPS); kişisel bilgi (ad, e-posta, telefon) toplanmaz; kullanıcı silme isteğini e-postayla iletebilir.
 - Görseller: simge 512×512 (`yayin/gorseller/play-simge-512.png`), öne çıkan görsel 1024×500 (`yayin/gorseller/ozellikli-gorsel-1024x500.png`)

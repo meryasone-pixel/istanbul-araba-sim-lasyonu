@@ -22,10 +22,9 @@ Android Studio: Build → Generate Signed App Bundle → Android App Bundle → 
 `www/index.html` içinde `REPAIR_SHOP=false`. Dükkanı geri açmak için `true` yap. Tamir şu an her yerde ücretsiz (`repFree=()=>true`); ücretli yapmak için `false` döndür. Tamir Mağaza ve Garaj panelindeki butondan yapılır.
 
 ## Google Play ürün kimlikleri (uygulama içi ürünler)
-Tek para birimi altın. Play Console > Ürünler bölümünde şunları oluştur:
-- Tüketilebilir: `gold_1000`, `gold_5500`, `gold_12000`
-- Tüketilemez: `vip_pack` (+%50 kazanç, 5000 altın, VIP ürünler), `remove_ads`
-- Tüketilemez: `starter_pack` (tek seferlik Başlangıç Paketi: 3000 altın + Gün Batımı kaplaması ve neonu)
+Tek para birimi altın. Yalnızca 2 ürün var. Play Console > Ürünler bölümünde şunları oluştur:
+- Tüketilemez: `vip_pack` (Premium Paket: reklamsız + %50 fazla kazanç + 5000 altın + Premium kaplama, neon ve korna)
+- Tüketilebilir: `gold_5500` (5500 altın)
 
 ## Reklamlar (AdMob)
 - `kur.bat` `@capacitor-community/admob` eklentisini kurar ve AndroidManifest'e **Google'ın TEST uygulama kimliğini** yazar.

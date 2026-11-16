@@ -11,13 +11,10 @@
     const save = () => store.save(S);
 
     /* ---------------- katalog ---------------- */
+    /* yalnızca 2 ürün: Premium (tek seferlik, reklamsız dahil) + altın paketi (tekrar alınabilir) */
     const IAP = [
-      { id: (cfg.ids && cfg.ids.vip) || 'vip_pack', kind: 'nc', title: 'VIP Sürücü Paketi', desc: 'Tüm kazançlara +%50 altın • 5000 altın • VIP kaplama ve korna', gold: 5000 },
-      { id: (cfg.ids && cfg.ids.noads) || 'remove_ads', kind: 'nc', title: 'Reklam Kaldırma', desc: 'Reklamları kalıcı olarak kapatır' },
-      { id: 'starter_pack', kind: 'nc', title: '⭐ Başlangıç Paketi (tek seferlik)', desc: '3000 altın • Gün Batımı kaplaması • Gün Batımı neonu', gold: 3000 },
-      { id: 'gold_1000', kind: 'c', title: '1000 Altın', gold: 1000 },
-      { id: 'gold_5500', kind: 'c', title: '5500 Altın', desc: '+%10 bonus', gold: 5500 },
-      { id: 'gold_12000', kind: 'c', title: '12000 Altın', desc: '+%20 bonus', gold: 12000 }
+      { id: (cfg.ids && cfg.ids.vip) || 'vip_pack', kind: 'nc', title: '⭐ Premium Paket', desc: 'Reklamsız oyun • Tüm kazançlara +%50 altın • 5000 altın • Premium kaplamalar, neon ve korna', gold: 5000 },
+      { id: 'gold_5500', kind: 'c', title: '5500 Altın', gold: 5500 }
     ];
     const ITEMS = [
       { id: 'lv_stripes', cat: 'livery', name: 'Yarış Şeritleri', cur: 'gold', price: 800, tex: 'stripes' },
@@ -27,8 +24,8 @@
       { id: 'lv_vipgold', cat: 'livery', name: 'VIP Altın', cur: 'gold', price: 0, vip: true, tex: 'gold' },
       { id: 'ne_pink', cat: 'neon', name: 'Pembe Neon', cur: 'gold', price: 600, color: 0xff2fd2 },
       { id: 'ne_cyan', cat: 'neon', name: 'Turkuaz Neon', cur: 'gold', price: 600, color: 0x19e0cf },
-      { id: 'lv_sunset', cat: 'livery', name: 'Boğaz Gün Batımı', cur: 'gold', price: 0, pack: 'starter_pack', tex: 'sunset' },
-      { id: 'ne_sunset', cat: 'neon', name: 'Gün Batımı Neonu', cur: 'gold', price: 0, pack: 'starter_pack', color: 0xff8a3d },
+      { id: 'lv_sunset', cat: 'livery', name: 'Boğaz Gün Batımı', cur: 'gold', price: 0, vip: true, tex: 'sunset' },
+      { id: 'ne_sunset', cat: 'neon', name: 'Gün Batımı Neonu', cur: 'gold', price: 0, vip: true, color: 0xff8a3d },
       { id: 'ne_rainbow', cat: 'neon', name: 'Gökkuşağı', cur: 'gold', price: 2500, rainbow: true },
       { id: 'ri_gold', cat: 'rim', name: 'Altın Jant', cur: 'gold', price: 700, color: 0xffc400 },
       { id: 'ri_red', cat: 'rim', name: 'Kırmızı Jant', cur: 'gold', price: 500, color: 0xd32f2f },
@@ -40,7 +37,7 @@
       { id: 'hn_melody', cat: 'horn', name: 'Melodi', cur: 'gold', price: 800, horn: { seq: [392, 494, 587, 784], type: 'triangle', lp: 2200 } },
       { id: 'hn_vip', cat: 'horn', name: 'VIP Korna', cur: 'gold', price: 0, vip: true, horn: { seq: [523, 659, 784, 1047], type: 'sine', lp: 3000 } }
     ];
-    const CATS = [['iap', '💰 Altın & VIP'], ['livery', '🎨 Kaplama'], ['neon', '✨ Neon'], ['rim', '⚙ Jant'], ['horn', '📯 Korna']];
+    const CATS = [['iap', '💰 Altın & Premium'], ['livery', '🎨 Kaplama'], ['neon', '✨ Neon'], ['rim', '⚙ Jant'], ['horn', '📯 Korna']];
     const item = id => ITEMS.find(x => x.id === id);
 
     /* günün fırsatı: her gün bir ürün %30 indirimli (gün içinde sabit kalır, alınca zincirleme indirim olmaz) */
@@ -56,7 +53,7 @@
     const priceOf = it => { const dl = dealItem(); return dl && dl.id === it.id ? Math.round(it.price * DEAL) : it.price; };
 
     const isVip = () => !!S.iap[IAP[0].id];
-    const isAdFree = () => !!S.iap[IAP[1].id];
+    const isAdFree = () => isVip() || !!S.iap.remove_ads;   // Premium reklamları da kapatır
     const gameFree = () => typeof freeMode !== 'undefined' && freeMode === true;   // oyunun 'let freeMode' değişkeni (ortak global kapsam)
 
     /* ---------------- ödeme sağlayıcıları ---------------- */
@@ -97,7 +94,7 @@
       save(); IST.bus.emit('shop:changed', { id }); refresh(); applyAll();
       IST.toast(p.title + ' etkinleştirildi');
     }
-    /* daha önce satın alınmış tek seferlik ürünü (VIP, reklamsız, başlangıç paketi) geri ver — altın bonusu tekrar verilmez */
+    /* daha önce satın alınmış tek seferlik ürünü (Premium) geri ver — altın bonusu tekrar verilmez */
     function markOwned(id) {
       const p = IAP.find(x => x.id === id); if (!p || p.kind !== 'nc' || S.iap[id]) return;
       S.iap[id] = true; save(); IST.bus.emit('shop:changed', { id }); refresh(); applyAll();
@@ -125,7 +122,7 @@
     }
     function buyItem(id) {
       const it = item(id); if (!it || S.owned[id]) return false;
-      if (it.vip && !isVip()) { IST.toast('Bu ürün VIP Sürücü Paketi gerektirir'); return false; }
+      if (it.vip && !isVip()) { IST.toast('Bu ürün Premium Paket gerektirir'); return false; }
       if (it.pack && !S.iap[it.pack]) { IST.toast('Bu ürün Başlangıç Paketi gerektirir'); return false; }
       if (!IST.gold.add(-priceOf(it))) { IST.toast('Yetersiz altın — altın paketlerine bak'); tab = 'iap'; refresh(); return false; }
       S.owned[id] = 1; S.eq[it.cat] = id; save(); applyAll(); refresh(); IST.bus.emit('shop:changed', { id }); return true;
@@ -202,7 +199,7 @@
     }
 
     /* VIP: tüm altın kazançlarına +%50 (oyun koduna dokunmadan, kazanç olayından) */
-    IST.bus.on('gold:gain', e => { if (isVip() && e.amount > 0) { const b = Math.floor(e.amount * .5); if (b > 0 && IST.gold.add(b)) IST.toast('VIP bonus +' + b + ' altın'); } });
+    IST.bus.on('gold:gain', e => { if (isVip() && e.amount > 0) { const b = Math.floor(e.amount * .5); if (b > 0 && IST.gold.add(b)) IST.toast('Premium bonus +' + b + ' altın'); } });
 
     /* ---------------- arayüz ---------------- */
     const panel = IST.ui.panel('ist-shop', '🛒 Mağaza');
@@ -210,7 +207,7 @@
     panel.onOpen = () => refresh();
     function refresh() {
       const b = panel.body; if (!b || !panel.isOpen) return; b.textContent = '';
-      const top = document.createElement('div'); top.textContent = '💰 ' + IST.gold.get() + ' altın' + (isVip() ? '   ⭐ VIP' : ''); b.appendChild(top);
+      const top = document.createElement('div'); top.textContent = '💰 ' + IST.gold.get() + ' altın' + (isVip() ? '   ⭐ Premium' : ''); b.appendChild(top);
       const tabs = document.createElement('div'); tabs.className = 'ist-tabs';
       CATS.forEach(c => { const t = document.createElement('button'); t.textContent = c[1]; if (c[0] === tab) t.className = 'on'; t.onclick = () => { tab = c[0]; refresh(); }; tabs.appendChild(t); });
       b.appendChild(tabs);
@@ -222,7 +219,7 @@
         } }
       if (tab === 'iap') {
         if (!provider) { const n = document.createElement('small'); n.textContent = 'Not: Google Play ödemesi bu cihazda hazır değil (eklenti/ürünler eksik).'; b.appendChild(n); }
-        IAP.slice().sort((x, y) => (y.id === 'starter_pack') - (x.id === 'starter_pack')).forEach(p => {
+        IAP.forEach(p => {
           const owned = p.kind === 'nc' && S.iap[p.id], row = document.createElement('div'); row.className = 'ist-row';
           const d = document.createElement('div'); const nm = document.createElement('b'); nm.textContent = p.title; d.appendChild(nm);
           if (p.desc) { const s = document.createElement('small'); s.textContent = p.desc; d.appendChild(s); }
@@ -237,7 +234,7 @@
       ITEMS.filter(i => i.cat === tab).forEach(it => {
         const row = document.createElement('div'), own = !!S.owned[it.id], eqp = S.eq[it.cat] === it.id; row.className = 'ist-row';
         const d = document.createElement('div'); const nm = document.createElement('b'); nm.textContent = it.name + (it.vip ? ' ⭐' : ''); d.appendChild(nm);
-        const s = document.createElement('small'); s.textContent = own ? (eqp ? 'Takılı' : 'Sahipsin') : (it.vip && !isVip() ? 'VIP gerekli' : it.pack && !S.iap[it.pack] ? 'Başlangıç Paketi gerekli' : (priceOf(it) < it.price ? '🔥 ' + priceOf(it) + ' altın (indirimde, normal ' + it.price + ')' : it.price + ' altın')); d.appendChild(s);
+        const s = document.createElement('small'); s.textContent = own ? (eqp ? 'Takılı' : 'Sahipsin') : (it.vip && !isVip() ? 'Premium gerekli' : it.pack && !S.iap[it.pack] ? 'Başlangıç Paketi gerekli' : (priceOf(it) < it.price ? '🔥 ' + priceOf(it) + ' altın (indirimde, normal ' + it.price + ')' : it.price + ' altın')); d.appendChild(s);
         const bt = document.createElement('button'); bt.className = 'ist-btn' + (eqp ? ' ok' : '');
         bt.textContent = own ? (eqp ? 'Çıkar' : 'Tak') : 'Satın al'; bt.onclick = () => (own ? equip(it.id) : buyItem(it.id));
         row.append(d, bt); b.appendChild(row);
@@ -253,7 +250,7 @@
     }
     initProvider().then(refresh);
     IST.bus.on('ready', applyAll); applyAll();
-    IST.bus.on('mission:done', () => { if (!S.iap.starter_pack && !S.nudged) { S.nudged = 1; save(); setTimeout(() => IST.toast('⭐ Başlangıç Paketi Mağaza\'da seni bekliyor'), 2500); } });
+    IST.bus.on('mission:done', () => { if (!isVip() && !S.nudged) { S.nudged = 1; save(); setTimeout(() => IST.toast('⭐ Premium Paket Mağaza\'da seni bekliyor'), 2500); } });
 
     IST.shop = { catalog: { iap: IAP, items: ITEMS }, isVip, isAdFree, giveItem(id) { const it = item(id); if (!it || S.owned[id]) return false; S.owned[id] = 1; save(); refresh(); IST.bus.emit('shop:changed', { id }); return true; },   // günlük ödül gibi ücretsiz hediyeler için
       openGold() { tab = 'iap'; if (panel.isOpen) refresh(); else panel.open(); }, buyItem, equip, owned: id => !!S.owned[id], open: () => panel.open(), restore: () => (provider ? provider.restore() : Promise.resolve()), _grant: grant, _state: S };
