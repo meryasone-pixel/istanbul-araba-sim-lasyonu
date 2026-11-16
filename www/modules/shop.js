@@ -18,11 +18,11 @@
     ];
     const ITEMS = [
       { id: 'lv_stripes', cat: 'livery', name: 'Yarış Şeritleri', cur: 'gold', price: 800, tex: 'stripes' },
-      { id: 'lv_checker', cat: 'livery', name: 'Damalı Bayrak', cur: 'gold', price: 1200, tex: 'checker' },
-      { id: 'lv_camo', cat: 'livery', name: 'Kamuflaj', cur: 'gold', price: 1200, tex: 'camo' },
+      { id: 'lv_checker', cat: 'livery', name: 'Damalı Bayrak', cur: 'gold', price: 1200, tex: 'checker', full: true },
+      { id: 'lv_camo', cat: 'livery', name: 'Kamuflaj', cur: 'gold', price: 1200, tex: 'camo', full: true },
       { id: 'lv_flame', cat: 'livery', name: 'Alev', cur: 'gold', price: 2000, tex: 'flame' },
-      { id: 'lv_vipgold', cat: 'livery', name: 'VIP Altın', cur: 'gold', price: 0, vip: true, tex: 'gold' },
-      { id: 'lv_sunset', cat: 'livery', name: 'Boğaz Gün Batımı', cur: 'gold', price: 0, vip: true, tex: 'sunset' },
+      { id: 'lv_vipgold', cat: 'livery', name: 'VIP Altın', cur: 'gold', price: 0, vip: true, tex: 'gold', full: true },
+      { id: 'lv_sunset', cat: 'livery', name: 'Boğaz Gün Batımı', cur: 'gold', price: 0, vip: true, tex: 'sunset', full: true },
       /* mağaza jantları kaldırıldı (kullanıcı isteği; jant rengi garajda) */
       /* neonlar kaldırıldı (kullanıcı isteği): eski kayıtlarda takılı neon varsa bulunamaz → görünmez */
       { id: 'hn_ship', cat: 'horn', name: 'Vapur Düdüğü', cur: 'gold', price: 800, horn: { f: [98, 147], type: 'sawtooth', lp: 700 } },
@@ -133,10 +133,11 @@
       x.fillStyle = '#fff'; x.fillRect(0, 0, 128, 128);
       if (kind === 'stripes') { x.fillStyle = '#222'; x.fillRect(40, 0, 14, 128); x.fillRect(74, 0, 14, 128); }
       else if (kind === 'checker') { for (let i = 0; i < 8; i++)for (let j = 0; j < 8; j++) { x.fillStyle = (i + j) % 2 ? '#fff' : '#222'; x.fillRect(i * 16, j * 16, 16, 16); } }
-      else if (kind === 'camo') { const cl = ['#6b7a3a', '#4d5a2a', '#8c8a54', '#2f3a1e']; for (let i = 0; i < 26; i++) { x.fillStyle = cl[i % 4]; x.beginPath(); x.ellipse(Math.random() * 128, Math.random() * 128, 10 + Math.random() * 18, 6 + Math.random() * 12, Math.random() * 3, 0, 7); x.fill(); } }
+      else if (kind === 'camo') { let sd = 7; const rn = () => (sd = (sd * 16807) % 2147483647) / 2147483647;   // askeri kamuflaj: zeytin zemin + koyu yeşil/kahve/siyah lekeler (her seferinde aynı)
+        x.fillStyle = '#6f7a3c'; x.fillRect(0, 0, 128, 128); const cl = ['#3f4d22', '#7a5a35', '#1f2414', '#93945a']; for (let i = 0; i < 40; i++) { x.fillStyle = cl[i % 4]; const ex = rn() * 128, ey = rn() * 128, rx = 8 + rn() * 16, ry = 5 + rn() * 10, ro = rn() * 3; for (const ox of [-128, 0, 128]) for (const oy of [-128, 0, 128]) { x.beginPath(); x.ellipse(ex + ox, ey + oy, rx, ry, ro, 0, 7); x.fill(); } } }
       else if (kind === 'flame') { const g = x.createLinearGradient(0, 128, 0, 0); g.addColorStop(0, '#d32f2f'); g.addColorStop(.5, '#ff9800'); g.addColorStop(1, '#fff'); x.fillStyle = g; x.fillRect(0, 0, 128, 128); }
-      else if (kind === 'gold') { const g = x.createLinearGradient(0, 0, 128, 128); g.addColorStop(0, '#fff3b0'); g.addColorStop(.5, '#e0b030'); g.addColorStop(1, '#fff3b0'); x.fillStyle = g; x.fillRect(0, 0, 128, 128); }
-      else if (kind === 'sunset') { const g = x.createLinearGradient(0, 0, 0, 128); g.addColorStop(0, '#3b2a7a'); g.addColorStop(.5, '#e0527a'); g.addColorStop(1, '#ffb347'); x.fillStyle = g; x.fillRect(0, 0, 128, 128); }
+      else if (kind === 'gold') { const g = x.createLinearGradient(0, 0, 128, 128); g.addColorStop(0, '#b8860b'); g.addColorStop(.3, '#ffd75a'); g.addColorStop(.5, '#fff1a8'); g.addColorStop(.7, '#e8b923'); g.addColorStop(1, '#a8740a'); x.fillStyle = g; x.fillRect(0, 0, 128, 128); }   // parlak altın
+      else if (kind === 'sunset') { const g = x.createLinearGradient(0, 0, 0, 128); g.addColorStop(0, '#ffb347'); g.addColorStop(.45, '#f0607a'); g.addColorStop(1, '#3b2a7a'); x.fillStyle = g; x.fillRect(0, 0, 128, 128); x.fillStyle = 'rgba(255,236,150,.9)'; x.beginPath(); x.arc(64, 70, 18, 0, 7); x.fill(); }   // gün batımı: üstte turuncu gökyüzü, altta mor deniz, ortada güneş
       const t = new R.CanvasTexture(c); t.wrapS = t.wrapT = R.RepeatWrapping; t.repeat.set(.3, .3); return (texCache[kind] = t);
     }
     let neon = null;
@@ -155,6 +156,7 @@
         const fl = typeof pcur !== 'undefined' && pcur && pcur.userData && pcur.userData.flame;   // alev: ayrı ateş renkli katman (boyayla çarpılmaz)
         if (fl) fl.visible = !!lv && lv.tex === 'flame';
         bodyM.map = lv && !(fl && lv.tex === 'flame') ? makeTex(lv.tex) : null; bodyM.needsUpdate = true;
+        window.lvFull = !!(lv && lv.full); if (typeof look === 'function') { try { look(); } catch (e) {} }   // tam kaplamada gövde beyaz: desen kendi renginde görünsün
         const ri = eq.rim ? item(eq.rim) : null;
         if (ri && typeof rimP !== 'undefined') { rimP.color.setHex(ri.color); if (rimP.emissive) rimP.emissive.setHex(ri.emissive || 0); }
         else if (typeof rimP !== 'undefined' && rimP.emissive) rimP.emissive.setHex(0);
