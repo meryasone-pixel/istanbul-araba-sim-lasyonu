@@ -25,11 +25,11 @@
       { id: 'lv_sunset', cat: 'livery', name: 'Boğaz Gün Batımı', cur: 'gold', price: 0, vip: true, tex: 'sunset', full: true },
       /* mağaza jantları kaldırıldı (kullanıcı isteği; jant rengi garajda) */
       /* neonlar kaldırıldı (kullanıcı isteği): eski kayıtlarda takılı neon varsa bulunamaz → görünmez */
-      { id: 'hn_ship', cat: 'horn', name: 'Vapur Düdüğü', cur: 'gold', price: 800, horn: { f: [98, 147], type: 'sawtooth', lp: 700 } },
-      { id: 'hn_taxi', cat: 'horn', name: 'Taksi Bip-Bip', cur: 'gold', price: 400, horn: { f: [440, 554], type: 'square', lp: 1800, double: true } },
-      { id: 'hn_sport', cat: 'horn', name: 'Spor Korna', cur: 'gold', price: 600, horn: { f: [523, 659, 784], type: 'sawtooth', lp: 2400 } },
-      { id: 'hn_melody', cat: 'horn', name: 'Melodi', cur: 'gold', price: 800, horn: { seq: [392, 494, 587, 784], type: 'triangle', lp: 2200 } },
-      { id: 'hn_vip', cat: 'horn', name: 'VIP Korna', cur: 'gold', price: 0, vip: true, horn: { seq: [523, 659, 784, 1047], type: 'sine', lp: 3000 } }
+      { id: 'hn_ship', cat: 'horn', name: 'Vapur Düdüğü', cur: 'gold', price: 800, horn: { kind: 'hold', lp: 520, q: 3, att: .2, rel: .8, min: 1, vib: [4.5, 1.2], voices: [{ type: 'sawtooth', f: 73.4, v: .07 }, { type: 'sawtooth', f: 110, v: .06 }, { type: 'square', f: 146.8, v: .022 }] } },   // derin, uzun vapur düdüğü (tek basışta en az 1 sn)
+      { id: 'hn_taxi', cat: 'horn', name: 'Taksi Bip-Bip', cur: 'gold', price: 400, horn: { kind: 'beeps', lp: 2300, beeps: [[0, .12], [.19, .15]], voices: [{ type: 'square', f: 415, v: .05 }, { type: 'square', f: 523, v: .045 }] } },   // klasik çift tonlu araba kornası: bip-bip
+      { id: 'hn_sport', cat: 'horn', name: 'Spor Korna', cur: 'gold', price: 600, horn: { kind: 'hold', lp: 3600, q: 1.5, att: .012, rel: .08, min: .18, voices: [{ type: 'sawtooth', f: 554, v: .05 }, { type: 'sawtooth', f: 698, v: .045 }, { type: 'square', f: 1108, v: .012 }] } },   // keskin, parlak spor araba kornası
+      { id: 'hn_melody', cat: 'horn', name: 'Melodi', cur: 'gold', price: 800, horn: { kind: 'seq', lp: 2800, gap: .025, notes: [[392, .11], [523, .11], [659, .11], [784, .22], [659, .11], [784, .36]], voices: [{ type: 'square', v: .035 }, { type: 'triangle', mul: 2, v: .03 }] } },   // neşeli kısa korna melodisi
+      { id: 'hn_vip', cat: 'horn', name: 'VIP Korna', cur: 'gold', price: 0, vip: true, horn: { kind: 'bell', lp: 6000, v: .07, dec: 1.6, notes: [[523, 0], [659, .1], [784, .2], [1047, .3]] } }   // lüks çan akoru
     ];
     const CATS = [['iap', '💰 Altın & Premium'], ['livery', '🎨 Kaplama'], ['horn', '📯 Korna']];
     const item = id => ITEMS.find(x => x.id === id);
@@ -176,30 +176,47 @@
       window.buildPlayer = function () { const r = bp.apply(this, arguments); applyAll(); return r; };
     }
 
-    /* özel korna sesleri */
+    /* özel korna sesleri — her korna adına uygun, sentezle (dosya yok):
+       hold  = basılı tuttukça çalar (vapur, spor)  ·  beeps = kısa bip-bip (taksi)
+       seq   = kısa melodi  ·  bell = zil/çan akoru (VIP) */
     let HN = null;
     const curHorn = () => { const it = S.eq.horn && item(S.eq.horn); return it && it.horn ? it.horn : null; };
-    function tone(h, f, t0, dur, vol) {
-      const o = ac.createOscillator(), g = ac.createGain(), lp = ac.createBiquadFilter();
-      o.type = h.type || 'triangle'; o.frequency.value = f; lp.type = 'lowpass'; lp.frequency.value = h.lp || 2000;
-      g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + .02); g.gain.setValueAtTime(vol, t0 + dur); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur + .12);
-      o.connect(lp); lp.connect(g); g.connect(typeof aOut === 'function' ? aOut() : ac.destination); o.start(t0); o.stop(t0 + dur + .15); return { o, g };
+    function hVoice(ctx, bus, type, f, v, t0, att, vib) {
+      const o = ctx.createOscillator(), g = ctx.createGain(); o.type = type; o.frequency.value = f;
+      if (vib) { const l = ctx.createOscillator(), lg = ctx.createGain(); l.frequency.value = vib[0]; lg.gain.value = vib[1]; l.connect(lg); lg.connect(o.frequency); l.start(t0); o._l = l; }
+      g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(v, t0 + att); o.connect(g); g.connect(bus); o.start(t0); return { o, g, v };
+    }
+    function hEnd(vs, t, rel) {
+      vs.forEach(x => { x.g.gain.cancelScheduledValues(t); x.g.gain.setValueAtTime(x.v, t); x.g.gain.exponentialRampToValueAtTime(.0001, t + rel); x.o.stop(t + rel + .05); if (x.o._l) x.o._l.stop(t + rel + .05); });
+    }
+    function playHorn(ctx, dest, h, t) {
+      const bus = ctx.createBiquadFilter(); bus.type = 'lowpass'; bus.frequency.value = h.lp || 2400; bus.Q.value = h.q || .8; bus.connect(dest);
+      if (h.kind === 'hold') {
+        const vs = h.voices.map(v => hVoice(ctx, bus, v.type, v.f, v.v, t, h.att || .02, h.vib));
+        return { stop: te => hEnd(vs, Math.max(te, t + (h.min || .2)), h.rel || .12) };
+      }
+      let len = 0;
+      if (h.kind === 'beeps') h.beeps.forEach(([s, d]) => { const vs = h.voices.map(v => hVoice(ctx, bus, v.type, v.f, v.v, t + s, h.att || .008)); hEnd(vs, t + s + d, h.rel || .04); len = Math.max(len, s + d + .1); });
+      if (h.kind === 'seq') { let s = 0; h.notes.forEach(([f, d]) => { const vs = h.voices.map(v => hVoice(ctx, bus, v.type, f * (v.mul || 1), v.v, t + s, .01)); hEnd(vs, t + s + d - .015, .03); s += d + (h.gap || .02); }); len = s + .1; }
+      if (h.kind === 'bell') h.notes.forEach(([f, s]) => [[1, 1], [2.76, .3], [5.4, .1]].forEach(([m, a]) => {   // çan: temel + iki metalik kısmi ton, uzun sönüm
+        const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = f * m;
+        g.gain.setValueAtTime(.0001, t + s); g.gain.exponentialRampToValueAtTime(h.v * a, t + s + .006); g.gain.exponentialRampToValueAtTime(.0001, t + s + h.dec / m ** .3);
+        o.connect(g); g.connect(bus); o.start(t + s); o.stop(t + s + h.dec + .1); len = Math.max(len, s + h.dec);
+      }));
+      return { once: true, len };
     }
     if (typeof window.hornOn === 'function') {
       const on = window.hornOn, off = window.hornOff;
       window.hornOn = function () {
         const h = curHorn(); if (!h) return on.apply(this, arguments);
         try { startAudio(); } catch (e) {} if (typeof ac === 'undefined' || !ac || HN) return;
-        const t = ac.currentTime;
-        if (h.seq) { h.seq.forEach((f, i) => tone(h, f, t + i * .11, .1, .08)); HN = { once: true, until: t + h.seq.length * .11 + .2 }; setTimeout(() => { HN = null; }, h.seq.length * 110 + 200); }
-        else if (h.double) { tone(h, h.f[0], t, .12, .07); tone(h, h.f[1], t + .2, .12, .07); HN = { once: true }; setTimeout(() => { HN = null; }, 450); }
-        else { HN = { voices: h.f.map(f => tone(h, f, t, 30, .08)), t0: t }; }
+        const p = playHorn(ac, typeof aOut === 'function' ? aOut() : ac.destination, h, ac.currentTime);
+        HN = p; if (p.once) setTimeout(() => { if (HN === p) HN = null; }, p.len * 1000);
       };
       window.hornOff = function () {
         if (!curHorn() && !HN) return off.apply(this, arguments);
         if (!HN || HN.once) return;
-        const h = HN, end = Math.max(ac.currentTime, h.t0 + .22); HN = null;
-        h.voices.forEach(v => { v.g.gain.cancelScheduledValues(0); v.g.gain.setValueAtTime(.08, end); v.g.gain.exponentialRampToValueAtTime(.0001, end + .14); v.o.stop(end + .16); });
+        HN.stop(ac.currentTime); HN = null;
       };
     }
 
@@ -258,6 +275,6 @@
     IST.bus.on('mission:done', () => { if (!isVip() && !S.nudged) { S.nudged = 1; save(); setTimeout(() => IST.toast('⭐ Premium Paket Mağaza\'da seni bekliyor'), 2500); } });
 
     IST.shop = { catalog: { iap: IAP, items: ITEMS }, isVip, isAdFree, giveItem(id) { const it = item(id); if (!it || S.owned[id]) return false; S.owned[id] = 1; save(); refresh(); IST.bus.emit('shop:changed', { id }); return true; },   // günlük ödül gibi ücretsiz hediyeler için
-      openGold() { tab = 'iap'; if (panel.isOpen) refresh(); else panel.open(); }, buyItem, equip, owned: id => !!S.owned[id], open: () => panel.open(), restore: () => (provider ? provider.restore() : Promise.resolve()), _grant: grant, _state: S };
+      _playHorn: playHorn, openGold() { tab = 'iap'; if (panel.isOpen) refresh(); else panel.open(); }, buyItem, equip, owned: id => !!S.owned[id], open: () => panel.open(), restore: () => (provider ? provider.restore() : Promise.resolve()), _grant: grant, _state: S };
   });
 })();
