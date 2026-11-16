@@ -90,7 +90,7 @@
     const m = FX.Q === 0 ? new R.MeshLambertMaterial({ color: 0xbcb6a8 }) :   // düşükte de ışık alsın (ışıksız beyaz gündüz parlıyordu)
       new R.MeshStandardMaterial({ color: 0xbcb6a8, roughness: .6 });
     const ms = FX.wetify ? FX.wetify(m, { pud: 0, refl: .6 }) : m;
-    ms.polygonOffset = true; ms.polygonOffsetFactor = -4; ms.polygonOffsetUnits = -4;   // yere yapışık çizgi titremesin
+    ms.polygonOffset = true; ms.polygonOffsetFactor = -1; ms.polygonOffsetUnits = -1;   // yere yapışık çizgi titremesin (hafif: güçlüsü teker altını örtüyordu)
     const its = []; for (const x of C) for (const z of C) its.push([x, z]);
     // sahildeki son kavşaklarda doğuya (denize) giden bir yol yok: o tarafa yaya geçidi/durma çizgisi çizilmez (deniz duvarının içinde kalıyordu)
     const SEA = 305, A = [], B = [];   // sahil yolu x≈297±7; deniz duvarı x≈306–310

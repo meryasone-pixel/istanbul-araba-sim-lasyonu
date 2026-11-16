@@ -150,6 +150,7 @@ const litT=new R.CanvasTexture(lc); litT.wrapS=litT.wrapT=R.RepeatWrapping;
 const mat=(c,o)=>FX.mat(c,o);
 const bas=c=>new R.MeshBasicMaterial({color:c});
 function slab(w,h,d,c,x,y,z,sh){const m=new R.Mesh(new R.BoxGeometry(w,h,d),mat(c));m.position.set(x,y,z);m.receiveShadow=true;m.castShadow=!!sh;scene.add(m);return m;}
+function shRecv(o){o.receiveShadow=true;return o;}/* araba gölgesi şeritlerin üstüne de düşsün */
 function inst(geo,m,n,fn,cull){const im=new R.InstancedMesh(geo,m,n),o=new R.Object3D(),cc=new R.Color();let i=0;
   fn((x,y,z,ry,sx,sy,sz,col)=>{o.position.set(x,y,z);o.rotation.set(0,ry||0,0);o.scale.set(sx||1,sy||1,sz||1);o.updateMatrix();im.setMatrixAt(i,o.matrix);if(col!==undefined)im.setColorAt(i,cc.setHex(col));i++;});
   im.frustumCulled=false;if(im.instanceColor)im.instanceColor.needsUpdate=true;scene.add(im);if(cull&&i>0)cullReg(im,geo,i);return im;}
@@ -188,8 +189,8 @@ const dash=new R.CanvasTexture(dc); dash.wrapS=R.RepeatWrapping; dash.repeat.set
 const dashM=new R.MeshBasicMaterial({map:dash,transparent:true});
 
 const dash2=new R.CanvasTexture(dc);dash2.wrapS=R.RepeatWrapping;dash2.repeat.set(3.5,1);const dashM2=FX.Q>0?FX.wetify(new R.MeshStandardMaterial({map:dash2,transparent:true,color:0xe8e2d4,roughness:.5}),{pud:0,refl:.6}):new R.MeshBasicMaterial({map:dash2,transparent:true}),dg=new R.PlaneGeometry(27,.3); /* şeritler 27 m: yaya geçidi (kavşaktan 8–11 m) ve durma çizgisinden (12,3 m) önce biter */
-for(const m of[dashM,dashM2]){m.polygonOffset=true;m.polygonOffsetFactor=-6;m.polygonOffsetUnits=-6;}dg.rotateX(-Math.PI/2);
-for(const ang of[0,1])FX.reflHide.push(inst(dg,dashM2,C.length*(C.length-1)*3,p=>{for(const r of C)for(let i=0;i<C.length-1;i++){const m=(C[i]+C[i+1])/2;for(const o of[-3.5,0,3.5]){if(ang===0)p(m,.026,r+o,0);else p(r+o,.026,m,Math.PI/2);}}},true));FX.reflHide.push(road);
+for(const m of[dashM,dashM2]){m.polygonOffset=true;m.polygonOffsetFactor=-1;m.polygonOffsetUnits=-1;}/* -6 çok güçlüydü: çizgiler teker altının önüne çiziliyordu */dg.rotateX(-Math.PI/2);
+for(const ang of[0,1])FX.reflHide.push(shRecv(inst(dg,dashM2,C.length*(C.length-1)*3,p=>{for(const r of C)for(let i=0;i<C.length-1;i++){const m=(C[i]+C[i+1])/2;for(const o of[-3.5,0,3.5]){if(ang===0)p(m,.026,r+o,0);else p(r+o,.026,m,Math.PI/2);}}},true)));FX.reflHide.push(road);
 
 // Binalar
 const pal=[0xd9a066,0xe6c9a0,0xb86b4b,0xcdb08a,0xa8845f,0xe9d8bd,0xc77d5a,0x9aa3a8], rects=[], bm=[];
@@ -338,7 +339,7 @@ function buildPlayer(){if(pcur)shell.remove(pcur);if(boatM){pcur=boatMesh(bodyM)
  if(px('dif')){ad(bx(W-.5,.1,.32),darkM,0,.28,-h-.08);for(const sx of[-.3,0,.3])ad(bx(.04,.16,.32),darkM,sx*W,.3,-h-.08);}
  if(px('num')){const nm2=bas([0,0xffffff,0xffd54a][P.num]);for(const sx of[-1,1])ad(bx(.02,.55,.55),nm2,sx*(W/2+.01),bt-.15,(zf+zr)/2);}
  const kw=pcur.userData.kw;   /* hazır model (Kenney CC0): tekerlekleri modelin çamurluklarına oturt; taksinin kendi tepe lambası var */
- if(kw){wh.forEach((w,i)=>{if(w.parent!==whP)return;const r=kw.r*ts;w.position.set((i%2?-1:1)*kw.x,r+.02,i<2?kw.zf:kw.zb);w.scale.set(r/.36,kw.w/.3,r/.36);});sheds.forEach(q=>{if(q.p.parent===q.par)q.pos.copy(q.p.position);});/* taksi lambası yalnızca garajdan "taksi lambası" parçası alındıysa (boya rengine göre otomatik değil), tavana oturur */
+ if(kw){wh.forEach((w,i)=>{if(w.parent!==whP)return;const r=kw.r*ts;w.position.set((i%2?-1:1)*kw.x,r+.028,i<2?kw.zf:kw.zb);w.scale.set(r/.36,kw.w/.3,r/.36);});sheds.forEach(q=>{if(q.p.parent===q.par)q.pos.copy(q.p.position);});/* taksi lambası yalnızca garajdan "taksi lambası" parçası alındıysa (boya rengine göre otomatik değil), tavana oturur */
   sign.visible=t!==6&&!!px('txl');sign.position.y=kw.top+.12;}
 }
 buildPlayer();
