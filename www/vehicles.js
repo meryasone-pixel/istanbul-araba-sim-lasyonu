@@ -235,7 +235,9 @@
     });
     if (wl.length) {
       const xs = Math.max(...wl.map(w => Math.abs(w[0]))), zf = Math.max(...wl.map(w => w[2])), zb = Math.min(...wl.map(w => w[2]));
-      out.wl = { x: (xs + .15) * sx, zf: (zf - zc) * sz, zb: (zb - zc) * sz, r: wl[0][1] * sy, top: y1 * sy };   // top: tavan yüksekliği
+      // teker boyu modelin kendi yarıçapı; genişlik %50 fazla (ince duruyordu)
+      // yarış arabası çok geniş/yüksek ölçeklendiği için tekerleri kocaman oluyordu: diğer arabalarla aynı normal teker (.37 yarıçap, .55 genişlik)
+      out.wl = { x: (xs + .15) * sx, zf: (zf - zc) * sz, zb: (zb - zc) * sz, r: t === 4 ? .37 : wl[0][1] * sy, w: t === 4 ? .55 : .3 * sx * 1.5, top: y1 * sy };   // top: tavan yüksekliği
     }
     KM[t] = out;
   }
@@ -270,8 +272,8 @@
     const mL = new R.MeshBasicMaterial({ color: 0x4a2c00 }), mR = new R.MeshBasicMaterial({ color: 0x4a2c00 }), sb = new R.BoxGeometry(.12, .06, .05);
     for (const sx of [-1, 1]) { const mm = sx > 0 ? mL : mR; add(g, sb, mm, sx * (W / 2 - .14), k.hy - .08, k.fz - .01); add(g, sb, mm, sx * (W / 2 - .14), k.ty - .1, k.bz + .01); }
     if (!pl && k.wl) for (const sx of [-1, 1]) for (const z of [k.wl.zf, k.wl.zb]) {
-      add(g, new R.CylinderGeometry(k.wl.r, k.wl.r, .26, 14), m.tire, sx * k.wl.x, k.wl.r + .02, z, 0, 0, Math.PI / 2);   // +.02: asfalt y .02'de
-      add(g, new R.CircleGeometry(k.wl.r * .66, 12), m.rim, sx * (k.wl.x + .133), k.wl.r + .02, z, 0, sx * Math.PI / 2, 0);
+      add(g, new R.CylinderGeometry(k.wl.r, k.wl.r, k.wl.w, 14), m.tire, sx * k.wl.x, k.wl.r + .02, z, 0, 0, Math.PI / 2);   // +.02: asfalt y .02'de
+      add(g, new R.CircleGeometry(k.wl.r * .66, 12), m.rim, sx * (k.wl.x + k.wl.w / 2 + .005), k.wl.r + .02, z, 0, sx * Math.PI / 2, 0);
     }
     if (c) {
       c.sL = mL; c.sR = mR; c.tl = tl; if (c.type !== t && c.vm) c.vm *= V.SPD[t] || 1; c.type = t;
@@ -319,8 +321,8 @@
     paint.userData.cast = true;
     const frame = m.trim, eng = m.grille, bx = (w, h, d) => new R.BoxGeometry(w, h, d);
     if (!pl) for (const z of [.95, -.95]) {
-      add(g, new R.CylinderGeometry(.36, .36, .15, 18), m.tire, 0, .36, z, 0, 0, Math.PI / 2);
-      for (const sx of [-1, 1]) add(g, new R.CircleGeometry(.25, 14), m.rim, sx * .078, .36, z, 0, sx * Math.PI / 2, 0);
+      add(g, new R.CylinderGeometry(.42, .42, .19, 18), m.tire, 0, .44, z, 0, 0, Math.PI / 2);   // teker büyütüldü (.36→.42, .15→.19 geniş)
+      for (const sx of [-1, 1]) add(g, new R.CircleGeometry(.29, 14), m.rim, sx * .098, .44, z, 0, sx * Math.PI / 2, 0);
     }
     add(g, bx(.3, .36, .55), eng, 0, .56, -.02);                                      // motor
     add(g, bx(.08, .08, .7), m.chrome, .16, .38, -.55, -.12);                          // egzoz

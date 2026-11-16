@@ -309,7 +309,7 @@ const PX=[['rly','Ralli farları',[['Yok',0],['Var',500]],[0,1]],['txl','Taksi t
 const PC={str:[0,0xffffff,0x111111,0xd32f2f],neo:[0,0x2979ff,0xb026ff,0x2ee06b,0xff3b30],tnt:[0x1c2a35,0x050709,0x1d3b6b]},PS=mat(0xffffff),glP=FX.glass();
 function buildPlayer(){if(pcur)shell.remove(pcur);if(boatM){pcur=boatMesh(bodyM);shell.add(pcur);window.pSig={mL:bas(0),mR:bas(0)};hood.visible=false;fb.visible=rb.visible=false;sign.visible=false;wh.forEach(w=>w.visible=false);return;}let mi=G.model;const t=GM[mi][1];rimP.color.setHex(GR[G.rim][1]);
  if(t===5){pcur=motoMesh(0,null,true,bodyM);shell.add(pcur);window.pSig=pcur.userData;hood.visible=false;fb.visible=rb.visible=false;sign.visible=false;
-  wh.forEach((w,i)=>{if(w.parent!==whP)return;w.visible=(i===0||i===2);w.userData.off=!(i===0||i===2);w.position.set(0,.36,i<2?.95:-.95);w.scale.set(1,.5,1);});
+  wh.forEach((w,i)=>{if(w.parent!==whP)return;w.visible=(i===0||i===2);w.userData.off=!(i===0||i===2);w.position.set(0,.44,i<2?.95:-.95);w.scale.set(.42/.36,.19/.3,.42/.36);/* motosiklet tekeri büyük */});
   sheds.forEach(q=>{if(q.p.parent===q.par)q.pos.copy(q.p.position);});glP.color.setHex(0x1c2a35);return;}
  fb.visible=rb.visible=true;wh.forEach(w=>{w.visible=true;w.userData.off=false;});sign.visible=(G.col===0x19b3a6||G.col===0xffb300);
  pcur=carMesh(0,t,null,bodyM,true);shell.add(pcur);window.pSig=pcur.userData;
@@ -338,7 +338,7 @@ function buildPlayer(){if(pcur)shell.remove(pcur);if(boatM){pcur=boatMesh(bodyM)
  if(px('dif')){ad(bx(W-.5,.1,.32),darkM,0,.28,-h-.08);for(const sx of[-.3,0,.3])ad(bx(.04,.16,.32),darkM,sx*W,.3,-h-.08);}
  if(px('num')){const nm2=bas([0,0xffffff,0xffd54a][P.num]);for(const sx of[-1,1])ad(bx(.02,.55,.55),nm2,sx*(W/2+.01),bt-.15,(zf+zr)/2);}
  const kw=pcur.userData.kw;   /* hazır model (Kenney CC0): tekerlekleri modelin çamurluklarına oturt; taksinin kendi tepe lambası var */
- if(kw){wh.forEach((w,i)=>{if(w.parent!==whP)return;const r=kw.r*ts;w.position.set((i%2?-1:1)*kw.x,r+.02,i<2?kw.zf:kw.zb);w.scale.set(r/.36,.87,r/.36);});sheds.forEach(q=>{if(q.p.parent===q.par)q.pos.copy(q.p.position);});/* taksi lambası yalnızca garajdan "taksi lambası" parçası alındıysa (boya rengine göre otomatik değil), tavana oturur */
+ if(kw){wh.forEach((w,i)=>{if(w.parent!==whP)return;const r=kw.r*ts;w.position.set((i%2?-1:1)*kw.x,r+.02,i<2?kw.zf:kw.zb);w.scale.set(r/.36,kw.w/.3,r/.36);});sheds.forEach(q=>{if(q.p.parent===q.par)q.pos.copy(q.p.position);});/* taksi lambası yalnızca garajdan "taksi lambası" parçası alındıysa (boya rengine göre otomatik değil), tavana oturur */
   sign.visible=t!==6&&!!px('txl');sign.position.y=kw.top+.12;}
 }
 buildPlayer();
