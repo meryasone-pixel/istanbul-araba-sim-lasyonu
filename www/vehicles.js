@@ -269,8 +269,8 @@
     const mL = new R.MeshBasicMaterial({ color: 0x4a2c00 }), mR = new R.MeshBasicMaterial({ color: 0x4a2c00 }), sb = new R.BoxGeometry(.12, .06, .05);
     for (const sx of [-1, 1]) { const mm = sx > 0 ? mL : mR; add(g, sb, mm, sx * (W / 2 - .14), k.hy - .08, k.fz - .01); add(g, sb, mm, sx * (W / 2 - .14), k.ty - .1, k.bz + .01); }
     if (!pl && k.wl) for (const sx of [-1, 1]) for (const z of [k.wl.zf, k.wl.zb]) {
-      add(g, new R.CylinderGeometry(k.wl.r, k.wl.r, .26, 14), m.tire, sx * k.wl.x, k.wl.r, z, 0, 0, Math.PI / 2);
-      add(g, new R.CircleGeometry(k.wl.r * .66, 12), m.rim, sx * (k.wl.x + .133), k.wl.r, z, 0, sx * Math.PI / 2, 0);
+      add(g, new R.CylinderGeometry(k.wl.r, k.wl.r, .26, 14), m.tire, sx * k.wl.x, k.wl.r + .02, z, 0, 0, Math.PI / 2);   // +.02: asfalt y .02'de
+      add(g, new R.CircleGeometry(k.wl.r * .66, 12), m.rim, sx * (k.wl.x + .133), k.wl.r + .02, z, 0, sx * Math.PI / 2, 0);
     }
     if (c) {
       c.sL = mL; c.sR = mR; c.tl = tl; if (c.type !== t && c.vm) c.vm *= V.SPD[t] || 1; c.type = t;

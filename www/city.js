@@ -87,16 +87,18 @@
 
   // yaya geçitleri + durma çizgileri (tüm kavşaklar)
   CI.crossings = function () {
-    const m = FX.Q === 0 ? bas(0xe9dfc9) : new R.MeshStandardMaterial({ color: 0xe8e2d4, roughness: .55 });
+    const m = FX.Q === 0 ? new R.MeshLambertMaterial({ color: 0xbcb6a8 }) :   // düşükte de ışık alsın (ışıksız beyaz gündüz parlıyordu)
+      new R.MeshStandardMaterial({ color: 0xbcb6a8, roughness: .6 });
     const ms = FX.wetify ? FX.wetify(m, { pud: 0, refl: .6 }) : m;
+    ms.polygonOffset = true; ms.polygonOffsetFactor = -4; ms.polygonOffsetUnits = -4;   // yere yapışık çizgi titremesin
     const its = []; for (const x of C) for (const z of C) its.push([x, z]);
     // sahildeki son kavşaklarda doğuya (denize) giden bir yol yok: o tarafa yaya geçidi/durma çizgisi çizilmez (deniz duvarının içinde kalıyordu)
     const SEA = 305, A = [], B = [];   // sahil yolu x≈297±7; deniz duvarı x≈306–310
     for (const [x, z] of its) for (const s of [-1, 1]) for (let i = 0; i < 9; i++) { const o = -5.6 + i * 1.4; A.push([x + o, z + s * 9.6, 0]); A.push([x + s * 9.6, z + o, Math.PI / 2]); }
     for (const [x, z] of its) { B.push([x + 3.5, z - 12.3, 0]); B.push([x - 3.5, z + 12.3, 0]); B.push([x - 12.3, z - 3.5, Math.PI / 2]); B.push([x + 12.3, z + 3.5, Math.PI / 2]); }
     const A2 = A.filter(q => q[0] < SEA), B2 = B.filter(q => q[0] < SEA);
-    const st = inst(new R.BoxGeometry(.7, .03, 3), ms, A2.length, p => { for (const q of A2) p(q[0], .045, q[1], q[2]); }, true);
-    const sl = inst(new R.BoxGeometry(6.4, .03, .4), ms, B2.length, p => { for (const q of B2) p(q[0], .045, q[1], q[2]); }, true);
+    const st = inst(new R.BoxGeometry(.7, .004, 3), ms, A2.length, p => { for (const q of A2) p(q[0], .024, q[1], q[2]); }, true);   // asfaltın (y .02) hemen üstünde: eskiden 6 cm havadaydı, teker içine gömülüyordu
+    const sl = inst(new R.BoxGeometry(6.4, .004, .4), ms, B2.length, p => { for (const q of B2) p(q[0], .024, q[1], q[2]); }, true);
     st.receiveShadow = sl.receiveShadow = true;
     CI.marks = [st, sl];
   };

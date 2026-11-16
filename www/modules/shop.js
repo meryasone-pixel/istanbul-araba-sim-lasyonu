@@ -240,7 +240,7 @@
         row.append(d, bt); b.appendChild(row);
       });
     }
-    IST.ui.menuButton('bShop', '🛒 Mağaza', () => panel.open());
+    /* başlangıç ekranındaki Mağaza düğmesi kaldırıldı: mağaza oyun içi ☰ menüsündeki Garaj / Mağaza'nın içinde */
     /* araba yenileme: mağazadan çıkarıldı, ana menüde ayrı düğme */
     if (typeof repairCar === 'function') {
       const short = () => !repFree() && G.money < rpCost() && adOk();   // parası yetmiyor ama reklam var → reklamla ücretsiz tamir

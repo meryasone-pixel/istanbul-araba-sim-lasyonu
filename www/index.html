@@ -107,11 +107,11 @@ body.mn #hud .r{max-height:calc(100vh - var(--safe-area-inset-top,env(safe-area-
 <h1 id="ttl">Boğaz Drive</h1>
 <p id="res" style="display:none;font-weight:800;font-size:20px"></p>
 <p>Trafik ışıklarına uy, yayalara dikkat et, diğer araçlara çarpma. Ağır çarpmalar arabanı parçalar.</p>
-<div class="menu"><div class="row"><span>Mod</span><div class="seg" id="md"><button data-v="0" class="on">Serbest sürüş</button><button data-v="1">Görevler</button></div></div><div id="ms" style="display:none"></div><div class="row" id="rc"><span>Araba rengi</span><div id="sw"></div><input type="color" id="cc" value="#19b3a6" aria-label="Özel renk"></div><div class="row"><span>Zaman</span><div class="seg" id="tm"><button data-v="day">Gündüz</button><button data-v="dusk" class="on">Akşam</button><button data-v="night">Gece</button></div></div><div class="row"><span>Hava</span><div class="seg" id="wx"><button data-v="dry">Kuru</button><button data-v="wet">Islak</button><button data-v="rain">Yağmur</button></div></div><div class="row"><span>Trafik</span><div class="seg" id="tf"><button data-v="14">Az</button><button data-v="30" class="on">Orta</button><button data-v="46">Çok</button></div></div></div>
+<div class="menu"><div class="row"><span>Mod</span><div class="seg" id="md"><button data-v="0" class="on">Serbest sürüş</button><button data-v="1">Görevler</button></div></div><div id="ms" style="display:none"></div><div class="row" id="rc"><span>Araba rengi</span><div id="sw"></div><input type="color" id="cc" value="#19b3a6" aria-label="Özel renk"></div><div class="row" style="display:none"><span>Zaman</span><div class="seg" id="tm"><button data-v="day">Gündüz</button><button data-v="dusk" class="on">Akşam</button><button data-v="night">Gece</button></div></div><div class="row" style="display:none"><span>Hava</span><div class="seg" id="wx"><button data-v="dry">Kuru</button><button data-v="wet">Islak</button><button data-v="rain">Yağmur</button></div></div><div class="row"><span>Trafik</span><div class="seg" id="tf"><button data-v="14">Az</button><button data-v="30" class="on">Orta</button><button data-v="46">Çok</button></div></div></div>
 <small>Ekrandaki ◀ ▶ ile dön, ▲ gaz, ■ fren, 📯 korna. Ekranı parmağınla sürükleyerek kamerayı her yöne çevir. Sürüş sırasında far, korna, kamera, zaman ve hava sağ üstteki ☰ menüde.</small>
 <div id="smenu"><button id="gear" aria-label="Ayarlar">⚙ Ayarlar</button></div>
 <div id="panel"><label>Düğme boyutu<input type="range" id="sBs" min="0.8" max="2.2" step="0.1"></label><label>Düğme şeffaflığı<input type="range" id="sBo" min="0.3" max="1" step="0.05"></label><label><input type="checkbox" id="sSw"> Sol/sağ düğmeleri yer değiştir</label><label><input type="checkbox" id="sSh"> Bilgisayarda da göster</label><label>Grafik kalitesi<select id="sQ"><option value="0">Düşük</option><option value="1">Orta</option><option value="2">Yüksek</option></select></label></div>
-<button id="rs" style="margin-right:10px;padding:12px 14px;border-radius:12px;border:0;background:var(--glass);color:var(--ink);font-size:14px;cursor:pointer">♻ Oyunu sıfırla</button><button id="gm" style="margin-right:10px;padding:14px 20px;border-radius:12px;border:0;background:var(--glass);color:var(--ink);font-size:16px;font-weight:700;cursor:pointer">🔧 Garaj</button><button id="go">Sürmeye başla</button>
+<button id="rs" style="margin-right:10px;padding:12px 14px;border-radius:12px;border:0;background:var(--glass);color:var(--ink);font-size:14px;cursor:pointer">♻ Oyunu sıfırla</button><button id="gm" style="display:none;margin-right:10px;padding:14px 20px;border-radius:12px;border:0;background:var(--glass);color:var(--ink);font-size:16px;font-weight:700;cursor:pointer">🔧 Garaj</button><button id="go">Sürmeye başla</button>
 </div></div>
 <script src="three.min.js"></script>
 <script src="fx.js"></script>
@@ -183,13 +183,13 @@ const sea=new R.Mesh(new R.PlaneGeometry(1500,3000),FX.makeSea());
 sea.rotation.x=-Math.PI/2; sea.position.set(1060,-.8,0); scene.add(sea);
 const road=new R.Mesh(new R.PlaneGeometry(632,632),FX.makeRoad(79));
 road.rotation.x=-Math.PI/2; road.position.set(-8,.02,0); road.receiveShadow=true; scene.add(road);const dc=document.createElement('canvas'); dc.width=64; dc.height=8;
-const dx=dc.getContext('2d'); dx.fillStyle='#e9dfc9'; dx.fillRect(0,0,32,8);
+const dx=dc.getContext('2d'); dx.fillStyle='#aea898'; dx.fillRect(0,0,32,8);
 const dash=new R.CanvasTexture(dc); dash.wrapS=R.RepeatWrapping; dash.repeat.set(83,1);
 const dashM=new R.MeshBasicMaterial({map:dash,transparent:true});
 
-const dash2=new R.CanvasTexture(dc);dash2.wrapS=R.RepeatWrapping;dash2.repeat.set(5,1);const dashM2=FX.Q>0?FX.wetify(new R.MeshStandardMaterial({map:dash2,transparent:true,color:0xe8e2d4,roughness:.5}),{pud:0,refl:.6}):new R.MeshBasicMaterial({map:dash2,transparent:true}),dg=new R.PlaneGeometry(38,.3);
+const dash2=new R.CanvasTexture(dc);dash2.wrapS=R.RepeatWrapping;dash2.repeat.set(3.5,1);const dashM2=FX.Q>0?FX.wetify(new R.MeshStandardMaterial({map:dash2,transparent:true,color:0xe8e2d4,roughness:.5}),{pud:0,refl:.6}):new R.MeshBasicMaterial({map:dash2,transparent:true}),dg=new R.PlaneGeometry(27,.3); /* şeritler 27 m: yaya geçidi (kavşaktan 8–11 m) ve durma çizgisinden (12,3 m) önce biter */
 for(const m of[dashM,dashM2]){m.polygonOffset=true;m.polygonOffsetFactor=-6;m.polygonOffsetUnits=-6;}dg.rotateX(-Math.PI/2);
-for(const ang of[0,1])FX.reflHide.push(inst(dg,dashM2,C.length*(C.length-1)*3,p=>{for(const r of C)for(let i=0;i<C.length-1;i++){const m=(C[i]+C[i+1])/2;for(const o of[-3.5,0,3.5]){if(ang===0)p(m,.05,r+o,0);else p(r+o,.05,m,Math.PI/2);}}},true));FX.reflHide.push(road);
+for(const ang of[0,1])FX.reflHide.push(inst(dg,dashM2,C.length*(C.length-1)*3,p=>{for(const r of C)for(let i=0;i<C.length-1;i++){const m=(C[i]+C[i+1])/2;for(const o of[-3.5,0,3.5]){if(ang===0)p(m,.026,r+o,0);else p(r+o,.026,m,Math.PI/2);}}},true));FX.reflHide.push(road);
 
 // Binalar
 const pal=[0xd9a066,0xe6c9a0,0xb86b4b,0xcdb08a,0xa8845f,0xe9d8bd,0xc77d5a,0x9aa3a8], rects=[], bm=[];
@@ -313,7 +313,8 @@ function buildPlayer(){if(pcur)shell.remove(pcur);if(boatM){pcur=boatMesh(bodyM)
   sheds.forEach(q=>{if(q.p.parent===q.par)q.pos.copy(q.p.position);});glP.color.setHex(0x1c2a35);return;}
  fb.visible=rb.visible=true;wh.forEach(w=>{w.visible=true;w.userData.off=false;});sign.visible=(G.col===0x19b3a6||G.col===0xffb300);
  pcur=carMesh(0,t,null,bodyM,true);shell.add(pcur);window.pSig=pcur.userData;
- const [L,W,H,zb,zr,zf,zw,bt,ov,wr]=CT[t],h=L/2,P=G.parts,ts=[1,1.18,1.35][P.tyr||0];
+ /* hazır modellerde (Kenney) kutu parçalar ve garaj alt neonu kaldırıldı (neon mağazada) */
+ const [L,W,H,zb,zr,zf,zw,bt,ov,wr]=CT[t],h=L/2,P=pcur.userData.kenney?{}:G.parts,ts=[1,1.18,1.35][P.tyr||0];
  hood.visible=false;
  wh.forEach((w,i)=>{if(w.parent!==whP)return;w.position.set((i%2?-1:1)*(W/2-.17),wr*ts,(i<2?1:-1)*(h-ov));w.scale.set(ts*wr/.36,.87,ts*wr/.36);});
  fb.position.set(0,.38,h+.05);rb.position.set(0,.38,-h-.05);fb.scale.set(W/2.2,.6,.6);rb.scale.copy(fb.scale);sign.position.set(0,H+.25,(zf+zr)/2);
@@ -337,7 +338,7 @@ function buildPlayer(){if(pcur)shell.remove(pcur);if(boatM){pcur=boatMesh(bodyM)
  if(px('dif')){ad(bx(W-.5,.1,.32),darkM,0,.28,-h-.08);for(const sx of[-.3,0,.3])ad(bx(.04,.16,.32),darkM,sx*W,.3,-h-.08);}
  if(px('num')){const nm2=bas([0,0xffffff,0xffd54a][P.num]);for(const sx of[-1,1])ad(bx(.02,.55,.55),nm2,sx*(W/2+.01),bt-.15,(zf+zr)/2);}
  const kw=pcur.userData.kw;   /* hazır model (Kenney CC0): tekerlekleri modelin çamurluklarına oturt; taksinin kendi tepe lambası var */
- if(kw){wh.forEach((w,i)=>{if(w.parent!==whP)return;const r=kw.r*ts;w.position.set((i%2?-1:1)*kw.x,r,i<2?kw.zf:kw.zb);w.scale.set(r/.36,.87,r/.36);});sheds.forEach(q=>{if(q.p.parent===q.par)q.pos.copy(q.p.position);});/* taksi lambası yalnızca garajdan "taksi lambası" parçası alındıysa (boya rengine göre otomatik değil), tavana oturur */
+ if(kw){wh.forEach((w,i)=>{if(w.parent!==whP)return;const r=kw.r*ts;w.position.set((i%2?-1:1)*kw.x,r+.02,i<2?kw.zf:kw.zb);w.scale.set(r/.36,.87,r/.36);});sheds.forEach(q=>{if(q.p.parent===q.par)q.pos.copy(q.p.position);});/* taksi lambası yalnızca garajdan "taksi lambası" parçası alındıysa (boya rengine göre otomatik değil), tavana oturur */
   sign.visible=t!==6&&!!px('txl');sign.position.y=kw.top+.12;}
 }
 buildPlayer();
@@ -405,7 +406,7 @@ let baseCol=G.col||0xf5f5f5, nAI=30, camM=0, hlOn=false, curTime='dusk';
 let dist=0, ended=false, dmg=Math.min(100,G.dmg||0), score=100, shake=0, hitCd=0, twY=0, twZ=0, pitch=0, pv=0, inX=false, totaled=(G.dmg||0)>=100, puffT=0;
 const car={x:23.5,z:-40,a:0,v:0}; let carY=0, shedD=dmg; cam.position.set(23.5,6,-52); People.build(scene,peds,rects);
 function look(){
-  bodyM.color.setHex(baseCol).lerp(new R.Color(0x3a3a3a),clamp(dmg/130,0,1));
+  FX.capCol(bodyM.color.setHex(baseCol)).lerp(new R.Color(0x3a3a3a),clamp(dmg/130,0,1));
   hood.rotation.x=-dmg*.011; hood.position.y=.72+dmg*.004; shell.scale.z=1-dmg*.0015;
   for(const s of sheds)if(dmg>=s.t&&shedD<s.t&&s.p.parent===s.par&&!(window.pSig&&pSig.moto&&wh.includes(s.p)))eject(s.p);
   shedD=dmg; $('dm').style.width=dmg+'%';
@@ -472,7 +473,7 @@ $('sBs').oninput=e=>{S.bs=+e.target.value;applySet();};$('sBo').oninput=e=>{S.bo
 $('sSw').onchange=e=>{S.sw=e.target.checked;applySet();};$('sSh').onchange=e=>{S.sh=e.target.checked;applySet();};
 $('gear').onclick=()=>{const q=$('panel');q.style.display=q.style.display==='block'?'none':'block';};
 const TM={
- day:{sky:['#4f9bd8','#9fd0f0','#f1eedd','#f6f1de'],fog:0xcfe2ee,hs:[0xffffff,0x7a7566,.9],sun:[0xfff1d0,1.05],sea:0x2a86a8,win:0},
+ day:{sky:['#4f9bd8','#9fd0f0','#f1eedd','#f6f1de'],fog:0xcfe2ee,hs:[0xffffff,0x7a7566,.72],sun:[0xfff1d0,.88],sea:0x2a86a8,win:0},
  dusk:{sky:['#2f3466','#b9648a','#f2a56b','#f7c58a'],fog:0xeba46f,hs:[0xffd9b0,0x4b3a4a,.85],sun:[0xffc98a,1.05],sea:0x1d6b86,win:.35},
  night:{sky:['#04060d','#0a1030','#162040','#25335c'],fog:0x0c1124,hs:[0x7084c8,0x151226,.4],sun:[0x8196d6,.45],sea:0x0b2a3d,win:1}};
 function applyLights(){hl.visible=hlOn&&!boatM;hM.color.setHex(hlOn?0xfff3c0:0x8a8470);if(FX.Q>0)hM.color.multiplyScalar(hlOn?3.2:1);$('bL').classList.toggle('act',hlOn);}
@@ -498,7 +499,7 @@ if(FX.Q===0){nAI=14;[...$('tf').children].forEach(b=>b.classList.toggle('on',b.d
 $('mn').onclick=()=>document.body.classList.toggle('mn');
 $('bL').onclick=toggleL;$('bN').onclick=cycleTime;$('bC').onclick=()=>{camM=(camM+1)%3;};
 const SW=[0x19b3a6,0xf5f5f5,0xb71c1c,0x1a237e,0x111111,0xffb300,0x2e7d32,0x8e24aa], swb=[];
-function setCol(c){baseCol=c;sign.visible=c===0x19b3a6||c===0xffb300||!!(G.parts.txl&&G.model===6);look();swb.forEach((b,i)=>b.classList.toggle('on',SW[i]===c));}
+function setCol(c){baseCol=c;if(!(pcur&&pcur.userData.kenney))sign.visible=c===0x19b3a6||c===0xffb300||!!(G.parts.txl&&G.model===6);look();swb.forEach((b,i)=>b.classList.toggle('on',SW[i]===c));}
 SW.forEach((c,i)=>{const b=document.createElement('button');b.style.background='#'+c.toString(16).padStart(6,'0');b.setAttribute('aria-label','Renk '+(i+1));b.onclick=()=>setCol(c);$('sw').appendChild(b);swb.push(b);});
 $('cc').oninput=e=>setCol(parseInt(e.target.value.slice(1),16));
 setCol(G.col||0xf5f5f5); /* garajda alınan boya açılışta da görünsün */
@@ -561,9 +562,9 @@ function drawG(){let h;
   SW.forEach((c,i)=>h+=gbt('c:'+i,own('c'+i)?'&nbsp;&nbsp;&nbsp;':'🔒 '+PAINT+' altın',baseCol===c,hx(c)));
   /* neon artık mağazada satılıyor: garajdaki eski neon satırı yalnızca daha önce neon almış oyunculara görünür */
   /* motosiklette araba parçaları (spoyler, egzoz, bagaj, lip, lastik, çizgi, cam filmi, neon) görünmez: satışa da çıkmaz */
-  const moto=GM[G.model][1]===5;if(moto)h+='<br><br><small>🏍 Motosiklete araba parçaları (spoyler, egzoz, bagaj vb.) takılmaz. Kaplama, neon ve korna için 🛒 Mağaza\'ya bak.</small>';
-  PT.forEach(p=>{if(moto)return;if(p[0]==='neo'&&!p[2].some((o,i)=>i&&own('p:neo:'+i)))return;h+='<br><br><b>'+p[1]+'</b><br>';p[2].forEach((o,i)=>h+=gbt('p:'+p[0]+':'+i,own('p:'+p[0]+':'+i)||!o[1]?o[0]:o[0]+' — '+o[1]+' altın',(G.parts[p[0]]||0)===i));});
-  {const ex=PX.filter(q=>q[3].includes(G.model));if(ex.length){h+='<br><br><b>⭐ '+GM[G.model][0]+' için özel</b>';
+  const moto=GM[G.model][1]===5,kn=!!(pcur&&pcur.userData.kenney);if(kn&&!moto)h+='<br><br><small>🚗 Bu arabaya ek parça takılmıyor. Kaplama, neon, jant ve korna için 🛒 Mağaza’ya bak.</small>';if(moto)h+='<br><br><small>🏍 Motosiklete araba parçaları (spoyler, egzoz, bagaj vb.) takılmaz. Kaplama, neon ve korna için 🛒 Mağaza\'ya bak.</small>';
+  PT.forEach(p=>{if(moto||kn)return;if(p[0]==='neo'&&!p[2].some((o,i)=>i&&own('p:neo:'+i)))return;h+='<br><br><b>'+p[1]+'</b><br>';p[2].forEach((o,i)=>h+=gbt('p:'+p[0]+':'+i,own('p:'+p[0]+':'+i)||!o[1]?o[0]:o[0]+' — '+o[1]+' altın',(G.parts[p[0]]||0)===i));});
+  {const ex=kn?[]:PX.filter(q=>q[3].includes(G.model));if(ex.length){h+='<br><br><b>⭐ '+GM[G.model][0]+' için özel</b>';
    ex.forEach(p=>{h+='<br><small>'+p[1]+'</small><br>';p[2].forEach((o,i)=>h+=gbt('p:'+p[0]+':'+i,own('p:'+p[0]+':'+i)||!o[1]?o[0]:o[0]+' — '+o[1]+' altın',(G.parts[p[0]]||0)===i));});}}
   h+='<br><br>'+gbt('x','Kapat ✕',false,'#8a2b2b');}
  $('gi').innerHTML=h;}
@@ -701,6 +702,8 @@ function showMap(){const c=$('mpc').getContext('2d'),q=312/648,X=x=>(x+324)*q,Z=
  if(REPAIR_SHOP){c.fillStyle='#2979ff';c.fillRect(X(SH[0])-4,Z(SH[1])-4,8,8);}c.fillStyle='#ff3b30';c.beginPath();c.arc(X(car.x),Z(car.z),5,0,7);c.fill();
  $('mpt').textContent='Yeşil: gezdiğin sokaklar';mp.style.display='flex';}
 $('gm').onclick=()=>openG();
+/* oyun içi ☰ menüsünde garaj (mağaza garajın içinde): sürüş durur, garaj kapanınca devam edilir; görevde açılmaz */
+{const b=document.createElement('button');b.className='tb';b.id='bGar';b.textContent='🔧 Garaj / Mağaza';b.onclick=()=>{if(!freeMode){msg('Görev sırasında garaj açılmaz');return;}document.body.classList.remove('mn');openG();};$('bEng').parentNode.insertBefore(b,$('bEng'));}
 function ignite(){try{startAudio();}catch(e){}if(!ac)return;const t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain(),f=ac.createBiquadFilter();o.type='sawtooth';f.type='lowpass';f.frequency.value=500;o.frequency.setValueAtTime(40,t);o.frequency.linearRampToValueAtTime(70,t+.5);o.frequency.linearRampToValueAtTime(55,t+.7);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.05,t+.05);g.gain.linearRampToValueAtTime(.0001,t+.75);o.connect(f);f.connect(g);g.connect(aOut());o.start(t);o.stop(t+.8);}
 $('bEng').onclick=()=>{engineOn=!engineOn;$('bEng').textContent=engineOn?'🔑 Motoru durdur':'🔑 Arabayı çalıştır';if(engineOn)ignite();msg(engineOn?'Motor çalıştı':'Motor kapatıldı');};
 $('bM').onclick=showMap;

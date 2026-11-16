@@ -206,7 +206,10 @@
     if (FX.Q === 0) return new R.MeshLambertMaterial(Object.assign({ color: c }, o || {}));
     return new R.MeshStandardMaterial(Object.assign({ color: c, roughness: .82, metalness: 0, envMapIntensity: .45 }, o || {}));
   };
+  FX.capCol = c => { const mx = Math.max(c.r, c.g, c.b); if (mx > .74) c.multiplyScalar(.74 / mx); return c; };
   FX.paint = function (c, metallic) {
+    // çok açık boyalar (beyaz/gümüş) güneşte ve parlama (bloom) efektinde ışık gibi parlıyordu → en açık tonu sınırla
+    c = FX.capCol(new R.Color(c));
     if (FX.Q === 0) return new R.MeshLambertMaterial({ color: c });
     return new R.MeshPhysicalMaterial({ color: c, roughness: metallic ? .32 : .42, metalness: metallic ? .55 : .05, clearcoat: 1, clearcoatRoughness: .06, envMapIntensity: 1.1 });
   };
@@ -342,8 +345,8 @@
   /* ---------- zaman / atmosfer ön ayarları ---------- */
   const v3 = (x, y, z) => new R.Vector3(x, y, z).normalize();
   FX.TIME = {
-    day: { top: 0x2f6fbe, mid: 0x76abdc, hor: 0xd4e4ee, gnd: 0x5d5a55, sun: [1.15, 1.05, .92], dir: v3(.55, .72, .42), sunS: 7, cloud: .55, cloudC: 0xf3f5f8, stars: 0, glow: [0, 0, 0],
-      grade: { expo: 1.1, sat: 1.06, con: 1.07, lift: [0, .004, .014], gain: [1.03, 1.0, .965], vig: .28, bloom: .28, th: 1.2 }, fog: 0xc9dbe6, fogN: 120, fogF: 700 },   // gündüz: beyazlar patlamasın (pozlama 1.18→1.1, parlama eşiği 1.05→1.2)
+    day: { top: 0x2f6fbe, mid: 0x76abdc, hor: 0xd4e4ee, gnd: 0x5d5a55, sun: [1.05, .96, .84], dir: v3(.55, .72, .42), sunS: 7, cloud: .55, cloudC: 0xf3f5f8, stars: 0, glow: [0, 0, 0],
+      grade: { expo: .93, sat: 1.06, con: 1.05, lift: [0, .004, .014], gain: [1.0, .98, .95], vig: .28, bloom: .2, th: 1.3 }, fog: 0xc9dbe6, fogN: 120, fogF: 700 },   // gündüz: beyazlar patlamasın (pozlama 1.18→1.1→1.0, güneş ~%9 kısık, parlama eşiği 1.05→1.2→1.3)
     dusk: { top: 0x16203e, mid: 0x5e4a72, hor: 0xf39456, gnd: 0x3c3036, sun: [1.9, .9, .42], dir: v3(-.82, .2, .52), sunS: 5, cloud: .62, cloudC: 0x9a5f73, stars: .15, glow: [.12, .05, .02],
       grade: { expo: 1.12, sat: 1.1, con: 1.1, lift: [0, .018, .04], gain: [1.08, .98, .87], vig: .38, bloom: .55, th: .95 }, fog: 0xc68570, fogN: 80, fogF: 560 },
     night: { top: 0x01030a, mid: 0x060b1a, hor: 0x1b2032, gnd: 0x100e10, sun: [.42, .5, .72], dir: v3(.32, .62, -.5), sunS: 3, cloud: .38, cloudC: 0x23222c, stars: 1, glow: [.3, .17, .08],
