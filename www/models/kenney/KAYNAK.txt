@@ -1,0 +1,4 @@
+Kaynak: Kenney "Car Kit" 3.1 — https://kenney.nl/assets/car-kit
+Lisans: Creative Commons Zero (CC0) — http://creativecommons.org/publicdomain/zero/1.0/
+Kişisel, eğitim ve ticari kullanım serbest; isim yazmak zorunlu değil (teşekkür: Kenney, www.kenney.nl).
+Dosyalar: sedan, hatchback-sports, suv, van, race, taxi, sedan-sports (.glb) + colormap.png (değiştirilmeden kopyalandı).

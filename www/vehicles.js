@@ -120,6 +120,7 @@
   window.carMesh = function (col, t, c, body, pl) {
     if (t === 5) return window.motoMesh(col, c, pl, body);
     if (!TY[t]) t = 0;
+    if (KM[t]) return kenneyCar(t, c, body, pl);   // hazır model (Kenney, CC0) yüklendiyse onu kullan
     const m = mats(), d = TY[t], h = d.L / 2, W = d.W, g = new R.Group(), ax = h - d.ov;
     let paint = body;
     if (!paint) { let pc = col, met = 1; if (d.taxi) { pc = 0xf2b90c; met = 0; } else if (c) { const p = V.PAINT[(Math.random() * V.PAINT.length) | 0]; pc = p[0]; met = p[1]; } paint = V.paint(pc, met); }
@@ -179,6 +180,105 @@
     } else g.userData = { mL, mR };
     return g;
   };
+
+  /* ---------- Kenney Car Kit (CC0) gövdeleri — models/kenney/KAYNAK.txt ----------
+     Motosiklet hariç tüm araçlar (oyuncu + trafik). Modeller açılışta yüklenir; gelene kadar eski çizim kullanılır.
+     Renk atlasında 2. satır (v 0.25–0.5) = gövde boyası → oyunun vernikli boyası (garaj rengi / trafik rengi),
+     (1,3) hücresi = far, (2,3) = stop lambası; geri kalanı modelin kendi dokusu. Oyuncu tekerlekleri oyunun dönen tekerlekleri. */
+  const KF = { 0: 'sedan', 1: 'hatchback-sports', 2: 'suv', 3: 'van', 4: 'race', 6: 'taxi', 7: 'sedan-sports' };
+  const KM = {}; let KMat = null;
+  function readGLB(buf) {
+    const dv = new DataView(buf), jl = dv.getUint32(12, true);
+    const J = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 20, jl))), bo = 20 + jl + 8;
+    const acc = i => { const a = J.accessors[i], bv = J.bufferViews[a.bufferView], n = { SCALAR: 1, VEC2: 2, VEC3: 3, VEC4: 4 }[a.type];
+      const T = a.componentType === 5126 ? Float32Array : a.componentType === 5125 ? Uint32Array : a.componentType === 5121 ? Uint8Array : Uint16Array, s = bo + (bv.byteOffset || 0) + (a.byteOffset || 0);
+      return [new T(buf.slice(s, s + a.count * n * T.BYTES_PER_ELEMENT)), n]; };
+    return { J, acc };
+  }
+  function prepK(t, buf) {
+    const { J, acc } = readGLB(buf), d = TY[t], P = [], N = [], U = [], wl = [];
+    J.nodes.forEach(nd => {
+      if (nd.mesh == null) return; const tr = nd.translation || [0, 0, 0];
+      if (/^wheel-(front|back)-(left|right)$/.test(nd.name)) { wl.push(tr); return; }   // yedek teker (SUV arkası) gövdede kalır
+      J.meshes[nd.mesh].primitives.forEach(p => {
+        let g = new R.BufferGeometry(); const at = p.attributes;
+        g.setAttribute('position', new R.BufferAttribute(acc(at.POSITION)[0], 3)); g.setAttribute('normal', new R.BufferAttribute(acc(at.NORMAL)[0], 3));
+        const n = g.attributes.position.count;   // dokusuz parça (rüzgârlık) = boya
+        g.setAttribute('uv', at.TEXCOORD_0 != null ? new R.BufferAttribute(acc(at.TEXCOORD_0)[0], 2) : new R.BufferAttribute(new Float32Array(n * 2).fill(-1), 2));
+        if (p.indices != null) { g.setIndex(new R.BufferAttribute(acc(p.indices)[0], 1)); g = g.toNonIndexed(); }
+        g.translate(tr[0], tr[1], tr[2]);
+        P.push(g.attributes.position.array); N.push(g.attributes.normal.array); U.push(g.attributes.uv.array);
+      });
+    });
+    const cat = l => { const o = new Float32Array(l.reduce((s, a) => s + a.length, 0)); let i = 0; l.forEach(a => { o.set(a, i); i += a.length; }); return o; };
+    const pos = cat(P), nor = cat(N), uv = cat(U);
+    let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9, y1 = 0;
+    for (let i = 0; i < pos.length; i += 3) { x0 = Math.min(x0, pos[i]); x1 = Math.max(x1, pos[i]); y1 = Math.max(y1, pos[i + 1]); z0 = Math.min(z0, pos[i + 2]); z1 = Math.max(z1, pos[i + 2]); }
+    const sx = d.W / (x1 - x0), sz = Math.min(d.L / (z1 - z0), sx * 1.42), sy = sx, zc = (z0 + z1) / 2;
+    const groups = { paint: [], head: [], tail: [], tex: [] };
+    for (let v0 = 0; v0 < pos.length / 3; v0 += 3) {
+      const u = (uv[v0 * 2] + uv[v0 * 2 + 2] + uv[v0 * 2 + 4]) / 3, v = (uv[v0 * 2 + 1] + uv[v0 * 2 + 3] + uv[v0 * 2 + 5]) / 3, cu = Math.floor(u * 8), cv = Math.floor(v * 4);
+      groups[u < 0 || cv === 1 ? 'paint' : cv === 3 && cu === 1 ? 'head' : cv === 3 && cu === 2 ? 'tail' : 'tex'].push(v0);
+    }
+    const out = { wl: null, hy: .45 * sy, ty: .45 * sy, fz: (z1 - zc) * sz, bz: (z0 - zc) * sz };
+    Object.keys(groups).forEach(k => {
+      const l = groups[k]; if (!l.length) { out[k] = null; return; }
+      const p = new Float32Array(l.length * 9), nn = new Float32Array(l.length * 9), q = new Float32Array(l.length * 6); let ys = 0;
+      l.forEach((v0, i) => { p.set(pos.subarray(v0 * 3, v0 * 3 + 9), i * 9); nn.set(nor.subarray(v0 * 3, v0 * 3 + 9), i * 9); q.set(uv.subarray(v0 * 2, v0 * 2 + 6), i * 6); });
+      for (let i = 0; i < p.length; i += 3) { p[i] *= sx; p[i + 1] *= sy; p[i + 2] = (p[i + 2] - zc) * sz; ys += p[i + 1]; }
+      for (let i = 0; i < nn.length; i += 3) { const a = nn[i] / sx, b = nn[i + 1] / sy, c = nn[i + 2] / sz, m = Math.hypot(a, b, c) || 1; nn[i] = a / m; nn[i + 1] = b / m; nn[i + 2] = c / m; }
+      if (k === 'paint') for (let i = 0, j = 0; i < p.length; i += 3, j += 2) { q[j] = p[i + 2] * .5; q[j + 1] = (Math.abs(nn[i]) > .5 ? p[i + 1] : p[i]) * .5; }   // kaplama (livery) dokusu için düz izdüşüm
+      if (k === 'head') out.hy = ys / (p.length / 3);
+      if (k === 'tail') out.ty = ys / (p.length / 3);
+      const g = new R.BufferGeometry(); g.setAttribute('position', new R.BufferAttribute(p, 3)); g.setAttribute('normal', new R.BufferAttribute(nn, 3)); g.setAttribute('uv', new R.BufferAttribute(q, 2));
+      g.computeBoundingSphere(); out[k] = g;
+    });
+    if (wl.length) {
+      const xs = Math.max(...wl.map(w => Math.abs(w[0]))), zf = Math.max(...wl.map(w => w[2])), zb = Math.min(...wl.map(w => w[2]));
+      out.wl = { x: (xs + .15) * sx, zf: (zf - zc) * sz, zb: (zb - zc) * sz, r: wl[0][1] * sy, top: y1 * sy };   // top: tavan yüksekliği
+    }
+    KM[t] = out;
+  }
+  function kMat() {
+    if (KMat) return KMat;
+    const tex = new R.TextureLoader().load('models/kenney/colormap.png'); tex.flipY = false; tex.encoding = R.sRGBEncoding;
+    KMat = FX.Q === 0 ? new R.MeshLambertMaterial({ map: tex }) : new R.MeshStandardMaterial({ map: tex, roughness: .55, metalness: 0 });
+    KMat.userData.cast = true; return KMat;
+  }
+  Promise.all(Object.keys(KF).map(t => fetch('models/kenney/' + KF[t] + '.glb').then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); }).then(b => prepK(+t, b))))
+    .then(() => {   // modeller geldi: oyuncuyu ve trafiği yeniden kur
+      V.kReady = true;
+      try { if (typeof window.buildPlayer === 'function') window.buildPlayer(); } catch (e) { console.warn(e); }
+      try { if (typeof ais !== 'undefined') ais.forEach(V.rebuildAI); } catch (e) { console.warn(e); }
+    }).catch(e => { console.warn('[VEH] Kenney modelleri yüklenemedi, eski araçlar kullanılıyor', e); Object.keys(KM).forEach(k => delete KM[k]); });
+  V.rebuildAI = function (c) {
+    if (!c || !c.m || c.type === 5 || !KM[c.type]) return;
+    const old = c.m.children[0], vm = c.vm;
+    c.m.add(window.carMesh(0, c.type, c)); c.vm = vm;
+    if (old) { c.m.remove(old); old.traverse(o => { if (o.geometry) o.geometry.dispose(); }); }
+  };
+  function kenneyCar(t, c, body, pl) {
+    const k = KM[t], m = mats(), d = TY[t], W = d.W, g = new R.Group();
+    let paint = body;
+    if (!paint) { let pc = 0xf2f2f0, met = 1; if (d.taxi) { pc = 0xf2b90c; met = 0; } else { const p = V.PAINT[(Math.random() * V.PAINT.length) | 0]; pc = p[0]; met = p[1]; } paint = V.paint(pc, met); }
+    paint.userData.cast = true;
+    const tl = pl ? tM : new R.MeshBasicMaterial({ color: 0x701010 });
+    const put = (geo, mt) => { if (!geo) return; const q = new R.Mesh(c ? geo.clone() : geo, mt); q.castShadow = true; g.add(q); };
+    put(k.paint, paint); put(k.tex, kMat()); put(k.head, pl ? hM : m.head); put(k.tail, tl);
+    if (!k.tail) for (const sx of [-1, 1]) add(g, new R.BoxGeometry(.4, .09, .05), tl, sx * (W / 2 - .3), k.ty, k.bz - .02);
+    const mL = new R.MeshBasicMaterial({ color: 0x4a2c00 }), mR = new R.MeshBasicMaterial({ color: 0x4a2c00 }), sb = new R.BoxGeometry(.12, .06, .05);
+    for (const sx of [-1, 1]) { const mm = sx > 0 ? mL : mR; add(g, sb, mm, sx * (W / 2 - .14), k.hy - .08, k.fz - .01); add(g, sb, mm, sx * (W / 2 - .14), k.ty - .1, k.bz + .01); }
+    if (!pl && k.wl) for (const sx of [-1, 1]) for (const z of [k.wl.zf, k.wl.zb]) {
+      add(g, new R.CylinderGeometry(k.wl.r, k.wl.r, .26, 14), m.tire, sx * k.wl.x, k.wl.r, z, 0, 0, Math.PI / 2);
+      add(g, new R.CircleGeometry(k.wl.r * .66, 12), m.rim, sx * (k.wl.x + .133), k.wl.r, z, 0, sx * Math.PI / 2, 0);
+    }
+    if (c) {
+      c.sL = mL; c.sR = mR; c.tl = tl; if (c.type !== t && c.vm) c.vm *= V.SPD[t] || 1; c.type = t;
+      V.bake(g);
+      if (FX.Q > 0) decals(g, d, m);
+    } else g.userData = { mL, mR, kw: k.wl, kenney: true };
+    return g;
+  }
 
   /* ---------- motosiklet + sürücü ---------- */
   const UP = new R.Vector3(0, 1, 0);

@@ -336,6 +336,9 @@ function buildPlayer(){if(pcur)shell.remove(pcur);if(boatM){pcur=boatMesh(bodyM)
  if(px('cbh'))ad(bx(W-.5,.03,Math.max(.6,h-zf-.25)),mat(0x111114,{roughness:.3,metalness:.4}),0,bt+.06,(h+zf)/2);
  if(px('dif')){ad(bx(W-.5,.1,.32),darkM,0,.28,-h-.08);for(const sx of[-.3,0,.3])ad(bx(.04,.16,.32),darkM,sx*W,.3,-h-.08);}
  if(px('num')){const nm2=bas([0,0xffffff,0xffd54a][P.num]);for(const sx of[-1,1])ad(bx(.02,.55,.55),nm2,sx*(W/2+.01),bt-.15,(zf+zr)/2);}
+ const kw=pcur.userData.kw;   /* hazır model (Kenney CC0): tekerlekleri modelin çamurluklarına oturt; taksinin kendi tepe lambası var */
+ if(kw){wh.forEach((w,i)=>{if(w.parent!==whP)return;const r=kw.r*ts;w.position.set((i%2?-1:1)*kw.x,r,i<2?kw.zf:kw.zb);w.scale.set(r/.36,.87,r/.36);});sheds.forEach(q=>{if(q.p.parent===q.par)q.pos.copy(q.p.position);});/* taksi lambası yalnızca garajdan "taksi lambası" parçası alındıysa (boya rengine göre otomatik değil), tavana oturur */
+  sign.visible=t!==6&&!!px('txl');sign.position.y=kw.top+.12;}
 }
 buildPlayer();
 const hl=new R.SpotLight(0xfff0d0,1.4,70,.5,.5,1); hl.position.set(0,1,2); hl.target.position.set(0,0,20); car3.add(hl,hl.target);
