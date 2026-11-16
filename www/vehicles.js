@@ -250,7 +250,8 @@
       V.kReady = true;
       try { if (typeof window.buildPlayer === 'function') window.buildPlayer(); } catch (e) { console.warn(e); }
       try { if (typeof ais !== 'undefined') ais.forEach(V.rebuildAI); } catch (e) { console.warn(e); }
-    }).catch(e => { console.warn('[VEH] Kenney modelleri yüklenemedi, eski araçlar kullanılıyor', e); Object.keys(KM).forEach(k => delete KM[k]); });
+      if (window.istCars) window.istCars();   // başlangıç menüsü artık açılabilir
+    }).catch(e => { console.warn('[VEH] Kenney modelleri yüklenemedi, eski araçlar kullanılıyor', e); Object.keys(KM).forEach(k => delete KM[k]); if (window.istCars) window.istCars(); });
   V.rebuildAI = function (c) {
     if (!c || !c.m || c.type === 5 || !KM[c.type]) return;
     const old = c.m.children[0], vm = c.vm;

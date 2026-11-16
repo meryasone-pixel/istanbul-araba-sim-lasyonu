@@ -90,9 +90,9 @@ body.mn #hud .r{max-height:calc(100vh - var(--safe-area-inset-top,env(safe-area-
 }
 /* başlangıç ekranı açıkken altın sayacı ve bildirimler menünün üstüne binmesin */
 #start{z-index:6}
-/* oyun yüklenirken menü gizli, "Yükleniyor…" yazar; hazır olunca menü tek seferde belirir */
+/* oyun yüklenirken menü gizli, oyundan bir resim görünür; hazır olunca menü tek seferde belirir */
 #start:not(.ready) .card{visibility:hidden}
-#start:not(.ready)::after{content:'Yükleniyor…';position:fixed;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-size:22px;font-weight:700;opacity:.9}
+#start:not(.ready){background:#1c1730 url(img/yukleniyor.jpg) center/cover no-repeat}   /* yüklenirken oyundan bir kare (yarış arabası) */
 #start.ready .card{animation:stIn .25s ease-out}
 @keyframes stIn{from{opacity:0}to{opacity:1}}
 </style>
@@ -103,7 +103,7 @@ body.mn #hud .r{max-height:calc(100vh - var(--safe-area-inset-top,env(safe-area-
 <canvas id="mini" width="128" height="128"></canvas>
 <div id="msg"></div>
 <div class="pad"><div><button data-k="left" aria-label="Sol">◀</button><button data-k="right" aria-label="Sağ">▶</button></div><div><button data-k="horn" aria-label="Korna">📯</button><button data-k="down" aria-label="Fren">■</button><button data-k="up" aria-label="Gaz">▲</button></div></div>
-<div id="start"><script>window.istReady=function(){document.getElementById('start').classList.add('ready');};setTimeout(window.istReady,20000);/* yedek: bir şey takılırsa 20 sn sonra yine görünür */</script><div class="card">
+<div id="start"><script>(function(){let m=0,c=0;const go=()=>document.getElementById('start').classList.add('ready');window.istReady=function(){m=1;if(c)go();};window.istCars=function(){c=1;if(m)go();};setTimeout(go,20000);})();/* menü, modüller VE yeni araba modelleri hazır olunca açılır (eski arabalar görünmesin) *//* yedek: bir şey takılırsa 20 sn sonra yine görünür */</script><div class="card">
 <h1 id="ttl">Boğaz Drive</h1>
 <p id="res" style="display:none;font-weight:800;font-size:20px"></p>
 <p>Trafik ışıklarına uy, yayalara dikkat et, diğer araçlara çarpma. Ağır çarpmalar arabanı parçalar.</p>
@@ -313,8 +313,8 @@ function buildPlayer(){if(pcur)shell.remove(pcur);if(boatM){pcur=boatMesh(bodyM)
   sheds.forEach(q=>{if(q.p.parent===q.par)q.pos.copy(q.p.position);});glP.color.setHex(0x1c2a35);return;}
  fb.visible=rb.visible=true;wh.forEach(w=>{w.visible=true;w.userData.off=false;});sign.visible=(G.col===0x19b3a6||G.col===0xffb300);
  pcur=carMesh(0,t,null,bodyM,true);shell.add(pcur);window.pSig=pcur.userData;
- /* hazır modellerde (Kenney) kutu parçalar ve garaj alt neonu kaldırıldı (neon mağazada) */
- const [L,W,H,zb,zr,zf,zw,bt,ov,wr]=CT[t],h=L/2,P=pcur.userData.kenney?{}:G.parts,ts=[1,1.18,1.35][P.tyr||0];
+ /* garaj parçaları (kutu parçalar, alt neon, lastik boyu) kaldırıldı: hazır modellere uymuyordu; modeller yüklenmeden önceki ilk saniyelerde de çizilmez */
+ const [L,W,H,zb,zr,zf,zw,bt,ov,wr]=CT[t],h=L/2,P={},ts=[1,1.18,1.35][P.tyr||0];
  hood.visible=false;
  wh.forEach((w,i)=>{if(w.parent!==whP)return;w.position.set((i%2?-1:1)*(W/2-.17),wr*ts,(i<2?1:-1)*(h-ov));w.scale.set(ts*wr/.36,.87,ts*wr/.36);});
  fb.position.set(0,.38,h+.05);rb.position.set(0,.38,-h-.05);fb.scale.set(W/2.2,.6,.6);rb.scale.copy(fb.scale);sign.position.set(0,H+.25,(zf+zr)/2);
@@ -562,8 +562,7 @@ function drawG(){let h;
   SW.forEach((c,i)=>h+=gbt('c:'+i,own('c'+i)?'&nbsp;&nbsp;&nbsp;':'🔒 '+PAINT+' altın',baseCol===c,hx(c)));
   /* neon artık mağazada satılıyor: garajdaki eski neon satırı yalnızca daha önce neon almış oyunculara görünür */
   /* motosiklette araba parçaları (spoyler, egzoz, bagaj, lip, lastik, çizgi, cam filmi, neon) görünmez: satışa da çıkmaz */
-  const moto=GM[G.model][1]===5,kn=!!(pcur&&pcur.userData.kenney);if(kn&&!moto)h+='<br><br><small>🚗 Bu arabaya ek parça takılmıyor. Kaplama, neon, jant ve korna için 🛒 Mağaza’ya bak.</small>';if(moto)h+='<br><br><small>🏍 Motosiklete araba parçaları (spoyler, egzoz, bagaj vb.) takılmaz. Kaplama, neon ve korna için 🛒 Mağaza\'ya bak.</small>';
-  PT.forEach(p=>{if(moto||kn)return;if(p[0]==='neo'&&!p[2].some((o,i)=>i&&own('p:neo:'+i)))return;h+='<br><br><b>'+p[1]+'</b><br>';p[2].forEach((o,i)=>h+=gbt('p:'+p[0]+':'+i,own('p:'+p[0]+':'+i)||!o[1]?o[0]:o[0]+' — '+o[1]+' altın',(G.parts[p[0]]||0)===i));});
+  const moto=GM[G.model][1]===5,kn=!moto;   /* parça listesi hiç gösterilmez (modeller yüklenmeden önce de) */PT.forEach(p=>{if(moto||kn)return;if(p[0]==='neo'&&!p[2].some((o,i)=>i&&own('p:neo:'+i)))return;h+='<br><br><b>'+p[1]+'</b><br>';p[2].forEach((o,i)=>h+=gbt('p:'+p[0]+':'+i,own('p:'+p[0]+':'+i)||!o[1]?o[0]:o[0]+' — '+o[1]+' altın',(G.parts[p[0]]||0)===i));});
   {const ex=kn?[]:PX.filter(q=>q[3].includes(G.model));if(ex.length){h+='<br><br><b>⭐ '+GM[G.model][0]+' için özel</b>';
    ex.forEach(p=>{h+='<br><small>'+p[1]+'</small><br>';p[2].forEach((o,i)=>h+=gbt('p:'+p[0]+':'+i,own('p:'+p[0]+':'+i)||!o[1]?o[0]:o[0]+' — '+o[1]+' altın',(G.parts[p[0]]||0)===i));});}}
   h+='<br><br>'+gbt('x','Kapat ✕',false,'#8a2b2b');}
