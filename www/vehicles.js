@@ -215,10 +215,10 @@
     let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9, y1 = 0;
     for (let i = 0; i < pos.length; i += 3) { x0 = Math.min(x0, pos[i]); x1 = Math.max(x1, pos[i]); y1 = Math.max(y1, pos[i + 1]); z0 = Math.min(z0, pos[i + 2]); z1 = Math.max(z1, pos[i + 2]); }
     const sx = d.W / (x1 - x0), sz = Math.min(d.L / (z1 - z0), sx * 1.42), sy = sx, zc = (z0 + z1) / 2;
-    const groups = { paint: [], head: [], tail: [], tex: [] };
+    const groups = { paint: [], head: [], tail: [], glass: [], tex: [] };
     for (let v0 = 0; v0 < pos.length / 3; v0 += 3) {
       const u = (uv[v0 * 2] + uv[v0 * 2 + 2] + uv[v0 * 2 + 4]) / 3, v = (uv[v0 * 2 + 1] + uv[v0 * 2 + 3] + uv[v0 * 2 + 5]) / 3, cu = Math.floor(u * 8), cv = Math.floor(v * 4);
-      groups[u < 0 || cv === 1 ? 'paint' : cv === 3 && cu === 1 ? 'head' : cv === 3 && cu === 2 ? 'tail' : 'tex'].push(v0);
+      groups[u < 0 || cv === 1 ? 'paint' : cv === 3 && cu === 1 ? 'head' : cv === 3 && cu === 2 ? 'tail' : cv === 3 && cu === 0 ? 'glass' : 'tex'].push(v0);   // (0,3) = cam
     }
     const out = { wl: null, hy: .45 * sy, ty: .45 * sy, fz: (z1 - zc) * sz, bz: (z0 - zc) * sz };
     Object.keys(groups).forEach(k => {
@@ -240,6 +240,13 @@
       out.wl = { x: (xs + .15) * sx, zf: (zf - zc) * sz, zb: (zb - zc) * sz, r: t === 4 ? .37 : wl[0][1] * sy, w: t === 4 ? .55 : .3 * sx * 1.5, top: y1 * sy };   // top: tavan yüksekliği
     }
     KM[t] = out;
+  }
+  let KGlass = null;
+  function kGlass() {   // parlak siyah cam: saydam değil (modellerin içi boş, saydam camdan arka teker görünüyordu); ışığı yansıtır
+    if (KGlass) return KGlass;
+    KGlass = FX.Q === 0 ? new R.MeshLambertMaterial({ color: 0x10161c })
+      : new R.MeshStandardMaterial({ color: 0x0a0f14, roughness: .05, metalness: .35, envMapIntensity: 1.4 });
+    KGlass.userData.cast = true; return KGlass;
   }
   function kMat() {
     if (KMat) return KMat;
@@ -267,7 +274,7 @@
     paint.userData.cast = true;
     const tl = pl ? tM : new R.MeshBasicMaterial({ color: 0x701010 });
     const put = (geo, mt) => { if (!geo) return; const q = new R.Mesh(c ? geo.clone() : geo, mt); q.castShadow = true; g.add(q); };
-    put(k.paint, paint); put(k.tex, kMat()); put(k.head, pl ? hM : m.head); put(k.tail, tl);
+    put(k.paint, paint); put(k.tex, kMat()); put(k.glass, kGlass()); put(k.head, pl ? hM : m.head); put(k.tail, tl);
     if (!k.tail) for (const sx of [-1, 1]) add(g, new R.BoxGeometry(.4, .09, .05), tl, sx * (W / 2 - .3), k.ty, k.bz - .02);
     const mL = new R.MeshBasicMaterial({ color: 0x4a2c00 }), mR = new R.MeshBasicMaterial({ color: 0x4a2c00 }), sb = new R.BoxGeometry(.12, .06, .05);
     for (const sx of [-1, 1]) { const mm = sx > 0 ? mL : mR; add(g, sb, mm, sx * (W / 2 - .14), k.hy - .08, k.fz - .01); add(g, sb, mm, sx * (W / 2 - .14), k.ty - .1, k.bz + .01); }
