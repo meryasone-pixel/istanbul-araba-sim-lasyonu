@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Boğaz Drive</title>
 <style>
-:root{--ink:#fff4e6;--glass:rgba(32,22,44,.55);--accent:#19b3a6;color-scheme:light}
+:root{--ink:#fff4e6;--glass:rgba(32,22,44,.55);--accent:#c9a14a;--onacc:#14213d;color-scheme:light}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--glass:rgba(16,12,26,.62);color-scheme:dark}}
 :root[data-theme="dark"]{--glass:rgba(16,12,26,.62);color-scheme:dark}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -27,17 +27,23 @@ canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
 #msg{position:fixed;left:0;right:0;top:24%;text-align:center;font-size:clamp(20px,4.5vw,30px);font-weight:800;text-shadow:0 2px 12px rgba(0,0,0,.5);opacity:0;transition:opacity .3s;pointer-events:none;padding:0 16px}
 #start{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(#2b2d5bcc,#c2688acc 60%,#f7b267cc);padding:24px}
 #start{overflow-y:auto;align-items:flex-start!important}
+/* Gece Altını teması: arkada oyundan deniz/gün batımı karesi, lacivert + Osmanlı altını */
+#start{background:linear-gradient(rgba(10,16,34,.25),rgba(10,16,34,.7)),url(img/menu-arka.jpg) center/cover no-repeat,#14213d}
+#start .card{background:rgba(14,22,42,.62);border:1px solid rgba(201,161,74,.45);border-radius:18px;padding:22px 24px;backdrop-filter:blur(3px)}
+#start h1{color:#e0b85a;font-family:Georgia,"Noto Serif","Times New Roman",serif;font-weight:700;letter-spacing:.5px}
+#start h1::after{content:"";display:block;width:110px;height:2px;background:#c9a14a;margin-top:12px}
+.seg button{border:1px solid rgba(201,161,74,.3)!important}.seg button.on{border-color:#c9a14a!important}
 #start .card{max-width:480px;margin:auto}
 #start h1{font-size:clamp(38px,9vw,64px);line-height:1;margin:0 0 14px;font-weight:800}
 #start p{margin:0 0 10px;font-size:17px;line-height:1.45;max-width:44ch}
 #start small{display:block;opacity:.9;margin:14px 0 22px;font-size:14px;line-height:1.55}
 button{font:inherit}
-#go{background:var(--accent);color:#06322f;border:0;border-radius:14px;padding:14px 26px;font-weight:800;font-size:18px;cursor:pointer}
+#go{background:var(--accent);color:var(--onacc);border:0;border-radius:14px;padding:14px 26px;font-weight:800;font-size:18px;cursor:pointer}
 #go:focus-visible,#reset:focus-visible,.pad button:focus-visible{outline:3px solid #fff;outline-offset:3px}
 .pad{position:fixed;left:var(--sl);right:var(--sr);bottom:var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px));display:none;justify-content:space-between;padding:18px 22px}
 .pad div{display:flex;gap:14px}
 .pad button{width:calc(78px*var(--bs,1.3));height:calc(78px*var(--bs,1.3));border-radius:24px;border:0;background:var(--glass);color:var(--ink);font-size:calc(30px*var(--bs,1.3));backdrop-filter:blur(6px);opacity:var(--bo,1)}
-.pad button.on{background:var(--accent);color:#06322f}
+.pad button.on{background:var(--accent);color:var(--onacc)}
 @media (pointer:coarse){.pad{display:flex}}
 .pad.show{display:flex}.pad.swap{flex-direction:row-reverse}
 #panel{position:fixed;left:calc(18px + var(--sl));top:calc(var(--safe-area-inset-top,env(safe-area-inset-top,0px)) + 250px);display:none;background:var(--glass);backdrop-filter:blur(8px);padding:14px 16px;border-radius:16px;font-size:15px;min-width:230px;z-index:5}
@@ -52,10 +58,10 @@ button{font:inherit}
 #cc{width:38px;height:34px;border:0;padding:0;background:none}
 .seg{display:flex;gap:6px}
 .seg button{padding:8px 14px;border-radius:10px;border:0;background:var(--glass);color:var(--ink);cursor:pointer;font-size:14px}
-.seg button.on{background:var(--accent);color:#06322f;font-weight:800}
-.tb.act{background:var(--accent);color:#06322f}
+.seg button.on{background:var(--accent);color:var(--onacc);font-weight:800}
+.tb.act{background:var(--accent);color:var(--onacc)}
 *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
-:root,:root[data-theme="dark"]{--glass:rgba(24,16,36,.74)!important}
+:root,:root[data-theme="dark"]{--glass:rgba(14,22,42,.78)!important}
 #panel select{margin-left:8px;padding:6px 8px;border-radius:8px;border:0}
 #mini,#gr{display:none}
 #mn{pointer-events:auto;width:40px;height:40px;border:0;border-radius:12px;background:var(--glass);color:var(--ink);font-size:20px;opacity:.65;cursor:pointer}
