@@ -228,7 +228,12 @@
       l.forEach((v0, i) => { p.set(pos.subarray(v0 * 3, v0 * 3 + 9), i * 9); nn.set(nor.subarray(v0 * 3, v0 * 3 + 9), i * 9); q.set(uv.subarray(v0 * 2, v0 * 2 + 6), i * 6); });
       for (let i = 0; i < p.length; i += 3) { p[i] *= sx; p[i + 1] *= sy; p[i + 2] = (p[i + 2] - zc) * sz; ys += p[i + 1]; }
       for (let i = 0; i < nn.length; i += 3) { const a = nn[i] / sx, b = nn[i + 1] / sy, c = nn[i + 2] / sz, m = Math.hypot(a, b, c) || 1; nn[i] = a / m; nn[i + 1] = b / m; nn[i + 2] = c / m; }
-      if (k === 'paint' || k === 'side') for (let i = 0, j = 0; i < p.length; i += 3, j += 2) { q[j] = p[i + 2] * .5; q[j + 1] = (Math.abs(nn[i]) > .5 ? p[i + 1] : p[i]) * .5; }   // kaplama (livery) dokusu için düz izdüşüm
+      /* kaplama (livery) dokusu: yanlar boy×yükseklik; üst/ön/arka yüzlerde dokunun ortası arabanın orta çizgisine gelir ve desen önden arkaya uzanır
+         (doku 0.3 tekrarla çizilir: genişlik 1/0.3 birime yayılır → yarış şeritleri kaput-tavan-bagaj ortasından geçer) */
+      if (k === 'paint' || k === 'side') for (let i = 0, j = 0; i < p.length; i += 3, j += 2) {
+        if (Math.abs(nn[i]) > .5) { q[j] = p[i + 2] * .5; q[j + 1] = p[i + 1] * .5; }
+        else { q[j] = (p[i] / d.W + .5) / .3; q[j + 1] = p[i + 2] * .5; }
+      }
       if (k === 'head') out.hy = ys / (p.length / 3);
       if (k === 'tail') out.ty = ys / (p.length / 3);
       const g = new R.BufferGeometry(); g.setAttribute('position', new R.BufferAttribute(p, 3)); g.setAttribute('normal', new R.BufferAttribute(nn, 3)); g.setAttribute('uv', new R.BufferAttribute(q, 2));
@@ -275,9 +280,8 @@
     paint.userData.cast = true;
     const tl = pl ? tM : new R.MeshBasicMaterial({ color: 0x701010 });
     const put = (geo, mt) => { if (!geo) return null; const q = new R.Mesh(c ? geo.clone() : geo, mt); q.castShadow = true; g.add(q); return q; };
-    /* oyuncu: kaplama (livery) yalnız yan kapılarda; tavan/kaput/tamponlar düz boya (aynı renk, desen yok) */
-    let plain = paint;
-    if (pl) { plain = V._plain || (V._plain = paint.clone()); plain.map = null; plain.userData.cast = true; }
+    /* kaplama (livery) bütün gövdede (yalnız-yan denendi, kullanıcı bütün araba istedi) */
+    const plain = paint;
     const pm = put(k.paint, plain); if (pm && plain !== paint) pm.onBeforeRender = () => plain.color.copy(paint.color);
     put(k.side, paint); put(k.tex, kMat()); put(k.glass, kGlass()); put(k.head, pl ? hM : m.head); put(k.tail, tl);
     if (!k.tail) for (const sx of [-1, 1]) add(g, new R.BoxGeometry(.4, .09, .05), tl, sx * (W / 2 - .3), k.ty, k.bz - .02);
