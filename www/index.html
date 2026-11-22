@@ -257,9 +257,11 @@ for(let i=-5;i<=5;i++)for(let j=-5;j<=5;j++){
   const cx=MOSQUE[0]*54, cz=MOSQUE[1]*54, stone=0xe0d6c3, lead=0x8791a0;
   slab(26,12,26,stone,cx,6.3,cz,true);
   const dome=new R.Mesh(new R.SphereGeometry(11,28,14,0,Math.PI*2,0,Math.PI/2),mat(lead));
-  dome.position.set(cx,12.3,cz); dome.castShadow=true; scene.add(dome);
+  dome.position.set(cx,14.3,cz); dome.castShadow=true; scene.add(dome);
+  const drum=new R.Mesh(new R.CylinderGeometry(11.2,11.6,2,28),mat(stone)); drum.position.set(cx,13.3,cz); scene.add(drum);   // ana kubbe kasnağın üstünde
+  const fin=new R.Mesh(new R.ConeGeometry(.5,3,8),mat(0xc9a227)); fin.position.set(cx,26.8,cz); scene.add(fin);   // kubbe alemi
   for(const [ox,oz] of [[-1,-1],[1,-1],[-1,1],[1,1]]){
-    const s=new R.Mesh(new R.SphereGeometry(5,16,8,0,Math.PI*2,0,Math.PI/2),mat(lead)); s.position.set(cx+ox*11,12.3,cz+oz*11); scene.add(s);
+    const s=new R.Mesh(new R.SphereGeometry(3.4,16,8,0,Math.PI*2,0,Math.PI/2),mat(lead)); s.position.set(cx+ox*9.4,12.3,cz+oz*9.4); scene.add(s);   // köşe kubbeleri çatının içinde (eskiden yarısı dışarı taşıyordu)
     const m=new R.Mesh(new R.CylinderGeometry(.9,1.1,34,12),mat(stone)); m.position.set(cx+ox*17,17.3,cz+oz*17); m.castShadow=true; scene.add(m);
     const t=new R.Mesh(new R.ConeGeometry(1.3,6,12),mat(lead)); t.position.set(cx+ox*17,37.3,cz+oz*17); scene.add(t);
     rects.push([cx+ox*17,cz+oz*17,1.3,1.3]);
