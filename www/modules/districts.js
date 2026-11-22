@@ -397,8 +397,8 @@
       return pts.length === 3 ? pts : null;
     }
     function dmRing(gr, p) {
-      if (!dm.ring) { dm.ring = new R.Mesh(new R.CylinderGeometry(4, 4, 30, 20, 1, true), new R.MeshBasicMaterial({ color: 0x2ee06b, transparent: true, opacity: .3, side: R.DoubleSide, depthWrite: false })); dm.ring.userData.__ist = true; }
-      gr.g.add(dm.ring); dm.ring.position.set(p.x, 15, p.z); dm.ring.visible = true;
+      if (!dm.ring) { dm.ring = new R.Mesh(new R.CylinderGeometry(4, 4, 6, 20, 1, true), new R.MeshBasicMaterial({ color: 0x2ee06b, transparent: true, opacity: .3, side: R.DoubleSide, depthWrite: false })); dm.ring.userData.__ist = true; }
+      gr.g.add(dm.ring); dm.ring.position.set(p.x, 3, p.z); dm.ring.visible = true;
     }
     function startDM() {
       if (!world.cur || dm.on || world.trial > 0) return;
