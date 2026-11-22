@@ -335,7 +335,7 @@ const sign=part(shell,.7,.22,.3,bas(0xffd54a),0,2.05,-.2);
 const fb=part(shell,2.2,.3,.3,darkM,0,.45,2.3), rb=part(shell,2.2,.3,.3,darkM,0,.45,-2.3);
 const wh=[[1.05,1.4],[-1.05,1.4],[1.05,-1.4],[-1.05,-1.4]].map(([x,z])=>{const w=new R.Mesh(wheelG,darkM);w.rotation.z=Math.PI/2;w.position.set(x,.45,z);w.castShadow=true;car3.add(w);return w;});
 let gOpen=false,gCool=0,freeMode=true,boatM=false,engineOn=true,engT=0,camYaw=0,camPit=0,camT=0,drag=null;
-const GM=[['Sedan',0,0],['Hatchback',1,1500],['Minibüs',3,2500],['SUV',2,4500],['Yarış arabası',4,15000],['Motosiklet',5,3500],['Taksi',6,2000],['Spor coupe',7,9000]],GR=[['Gümüş',0xa7adb3,0],['Altın',0xffb300,250],['Kırmızı',0xd32f2f,250],['Siyah',0x222222,250],['Mavi',0x1565c0,250]];
+const GM=[['Sedan',0,0],['Hatchback',1,1500],['Minibüs',3,2500],['SUV',2,4500],['Yarış arabası',4,20000],['Motosiklet',5,3500],['Taksi',6,2000],['Spor coupe',7,9000]],GR=[['Gümüş',0xa7adb3,0],['Altın',0xffb300,250],['Kırmızı',0xd32f2f,250],['Siyah',0x222222,250],['Mavi',0x1565c0,250]];
 const G={money:0,model:0,rim:0,col:0xf5f5f5,parts:{},own:['m0','r0','c1']};try{Object.assign(G,JSON.parse(localStorage.getItem('ist-gar')||'{}'));}catch(e){}if(!G.own.includes('c1'))G.own.push('c1');G.parts=Object.assign({spo:0,str:0,neo:0,tnt:0,exh:0,rck:0,lip:0,tyr:0},G.parts||{});
 const rimP=mat(GR[G.rim][1],{metalness:.85,roughness:.25});let pcur=null;
 /* hız: araba başına azami km/sa (GM sırasıyla) + motor yükseltmesi (3 kademe, her biri +15 km/sa) */
@@ -615,7 +615,7 @@ if(REPAIR_SHOP){const cv=document.createElement('canvas');cv.width=256;cv.height
  rects.push([SH[0],SH[1],1.1,1.1]);}
 /* görevler: [ad, açıklama, temel ödül, (özel ödül yazısı)] — ödül yıldıza göre: 1⭐ temel, 2⭐ ×1.5, 3⭐ ×2 */
 const MS=[['📦 Paket teslimi','Yeşil ışığa 90 sn içinde ulaş',70],['🧼 Temiz sürüş','2 km yeni hasar almadan sür (puan 90+)',90],['🪙 Para avı','90 sn içinde 8 altın topla',50],['🏁 Yarış görevi','Hangi arabadaysan onunla: 120 sn içinde 3 kontrol noktasından geç',100,'ilk seferde: yarış arabası kilidi açılır'],
- ['🚕 Taksi','Yolcuyu al, 120 sn içinde hedefe bırak (yavaşla, dur)',90],['🅿 Park et','60 sn içinde işaretli yerde dur',70],['🗺 Şehir turu','Sultanahmet → Galata Kulesi → Sahil, 150 sn',110]];
+ ['🚕 Taksi','Yolcuyu al, 120 sn içinde hedefe bırak (yavaşla, dur)',90],['🅿 Park et','60 sn içinde işaretli yerde dur',70],['🗺 Şehir turu','Her seferinde farklı 3 durağı 150 sn içinde gez',110]];
 const MT=[90,0,90,120,120,60,150], SK=[[45,20],null,[40,15],[45,20],[50,20],[35,15],[50,20]], SM=[1,1.5,2];
 /* yıldız: kalan süreye göre (Temiz sürüş: puana göre); taksi yolculuğunda 10'dan fazla hasar alınırsa en fazla 2⭐ */
 const stars=(i,m)=>{if(i===1)return score>=100?3:score>=95?2:1;let s=m.t>=SK[i][0]?3:m.t>=SK[i][1]?2:1;if(i===4&&m.dmR!==undefined&&dmg-m.dmR>10)s=Math.min(s,2);return s;};

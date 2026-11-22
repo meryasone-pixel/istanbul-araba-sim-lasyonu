@@ -1,4 +1,4 @@
-/* AdsManager: ödüllü reklam (bedava altın, görev ödülünü ikiye katla) + ara reklam (oyun bitince, sıklık sınırlı).
+/* AdsManager: ödüllü reklam (bedava altın, görev ödülüne +%50) + ara reklam (oyun bitince, sıklık sınırlı).
    Sağlayıcı: AdMob (@capacitor-community/admob, Capacitor köprüsünden) ya da test için mock.
    Sağlayıcı yoksa (tarayıcı, eklenti kurulu değil) tüm reklam özellikleri GİZLİ kalır; oyun aynen çalışır.
    Ödül yalnızca reklam gerçekten izlenince verilir. Oyunun kodunu DEĞİŞTİRMEZ (doneM'e sarmalayıcı + 'ended' durumunu izler). */
@@ -65,11 +65,11 @@
       try { return await provider.rewarded(); } catch (e) { return false; } finally { busy = false; }
     }
 
-    /* ---------------- 1) görev ödülünü ikiye katla ---------------- */
+    /* ---------------- 1) görev ödülüne reklamla +%50 ---------------- */
     let banner = null;
     function hideBanner() { if (banner) { clearTimeout(banner.t); banner.el.remove(); banner = null; } }
     function offerDouble(gain) {
-      if (!provider || gain <= 0) return; hideBanner();
+      if (!provider || gain <= 0) return; gain = Math.max(1, Math.round(gain / 2)); hideBanner();   // reklam ödülü: görev ödülünün yarısı kadar (+%50); eskiden iki katıydı
       const el = document.createElement('div');
       el.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:22%;z-index:33;display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:14px;background:#15153cee;color:#fff;font:700 15px system-ui';
       const bt = document.createElement('button'), no = document.createElement('button');
@@ -80,7 +80,7 @@
         bt.disabled = true; IST.freeze(true);
         const ok = await watch();
         IST.freeze(false); hideBanner();
-        if (ok) { IST.gold.add(gain); IST.toast('📺 Görev ödülü ikiye katlandı +' + gain); } else IST.toast('Reklam tamamlanmadı, ödül yok');
+        if (ok) { IST.gold.add(gain); IST.toast('📺 Reklam ödülü +' + gain); } else IST.toast('Reklam tamamlanmadı, ödül yok');
       };
       el.append(bt, no); document.body.appendChild(el);
       banner = { el, t: setTimeout(hideBanner, 12000) };
