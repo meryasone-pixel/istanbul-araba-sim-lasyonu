@@ -560,7 +560,11 @@ const gp=document.createElement('div');gp.style.cssText='position:fixed;top:0;ri
  cv.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;camYaw-=(e.clientX-drag.x)*.008;camPit=clamp(camPit+(e.clientY-drag.y)*.006,-1,.9);drag.x=e.clientX;drag.y=e.clientY;camT=performance.now();});
  ['pointerup','pointercancel'].forEach(t=>cv.addEventListener(t,e=>{if(drag&&e.pointerId===drag.id){
    /* garaj açıkken ekrana kısa dokunuş (sürükleme değil) garajı kapatır; sürükleme arabayı döndürmeye devam eder */
-   if(t==='pointerup'&&gp.style.display==='block'&&!phM&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)<10&&performance.now()-drag.t0<400){gOpen=false;gp.style.display='none';$('start').style.visibility='';gCool=performance.now()/1000+4;}
+   if(t==='pointerup'&&!phM&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)<10&&performance.now()-drag.t0<400){   /* kısa dokunuş: açık olan pencereler kapanır */
+    if(gp.style.display==='block'){gOpen=false;gp.style.display='none';$('start').style.visibility='';gCool=performance.now()/1000+4;}
+    document.querySelectorAll('.ist-panel').forEach(p=>{if(getComputedStyle(p).display!=='none'){const x=p.querySelector('.ist-x');if(x)x.click();}});   /* Mağaza, Bölgeler, Günlük vb. */
+    const wp=$('wtPop');if(wp&&wp.style.display==='flex')wp.style.display='none';   /* Hava ve saat */
+    document.body.classList.remove('mn');}   /* ☰ menüsü */
    drag=null;camT=performance.now();}}));}
 /* tamir: %30'a kadar hasar ücretsiz; fazlası hasarla ve arabanın değeriyle orantılı; parası yetmeyen reklam izleyip ücretsiz tamir edebilir */
 const RP_FREE=30, TOW=50, REPAIR_SHOP=false, rpBase=()=>Math.max(150,Math.round(GM[G.model][2]*.07)), rpCost=()=>totaled?rpBase():Math.max(10,Math.round(rpBase()*dmg/100)),
@@ -879,7 +883,7 @@ function frame(t){
 }
 /* ---- fotoğraf modu: arayüz gizlenir, araba durur, kamera parmakla döndürülür, +/− ile yakınlaşır ---- */
 let phM=false,phZ=1,phSnap=false;
-{const st=document.createElement('style');st.textContent='body.photo>*:not(canvas):not(#phui){visibility:hidden!important}#phui{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:60;display:none;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 32px)}body.photo #phui{display:flex}#phui button{font:700 16px system-ui;padding:10px 14px;border-radius:12px;border:0;background:rgba(20,20,50,.75);color:#fff}#phui span{width:100%;text-align:center;color:#fff;font:600 13px system-ui;text-shadow:0 1px 3px #000}';document.head.appendChild(st);}
+{const st=document.createElement('style');st.textContent='body.photo>*:not(canvas):not(#phui){visibility:hidden!important}#phui{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:60;display:none;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 32px)}body.photo #phui{display:flex}body.photo #mini{visibility:hidden!important}#phui button{font:800 16px system-ui;padding:10px 16px;border-radius:12px;border:1px solid rgba(201,161,74,.4);background:linear-gradient(#2c3d68,#1a2747);color:#fff4e6;box-shadow:0 4px 0 #0a1020}#phui button:active{transform:translateY(3px);box-shadow:0 1px 0 #0a1020}#phui button[data-a=snap]{background:linear-gradient(#fff0b0,#f2bc3c 55%,#d4901f);color:#3a2508;box-shadow:0 4px 0 #8a5a12}#phui span{width:100%;text-align:center;color:#fff;font:600 13px system-ui;text-shadow:0 1px 3px #000}';document.head.appendChild(st);}
 const phui=document.createElement('div');phui.id='phui';phui.innerHTML='<span id="phmsg">Parmağınla sürükleyerek kamerayı çevir</span><button data-a="in">＋</button><button data-a="out">－</button><button data-a="snap">📸 Kaydet</button><button data-a="x">✕ Çık</button>';document.body.appendChild(phui);
 function phOn(){if(phM||gOpen)return;phM=true;gOpen=true;car.v=0;phZ=1;document.body.classList.remove('mn');document.body.classList.add('photo');$('phmsg').textContent='Parmağınla sürükleyerek kamerayı çevir';}
 function phOff(){if(!phM)return;phM=false;gOpen=false;document.body.classList.remove('photo');camT=performance.now();}
