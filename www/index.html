@@ -63,13 +63,14 @@ button{font:inherit}
 *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 :root,:root[data-theme="dark"]{--glass:rgba(14,22,42,.78)!important}
 #panel select{margin-left:8px;padding:6px 8px;border-radius:8px;border:0}
-#mini,#gr{display:none}
+#gr{display:none}
 #mn{pointer-events:auto;width:40px;height:40px;border:0;border-radius:12px;background:var(--glass);color:var(--ink);font-size:20px;opacity:.65;cursor:pointer}
 .r .tb,#reset{display:none}
 body.mn .r .tb,body.mn #reset{display:block}
 #smenu{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 4px}#smenu button{padding:10px 14px;border-radius:12px;border:0;background:var(--glass);color:var(--ink);font-size:14px;font-weight:600;cursor:pointer}
 #start #panel{position:static;display:none;margin:8px 0;min-width:0}#start #panel label{display:block;margin:6px 0}
-#mini{position:fixed;inset:auto;left:calc(18px + var(--sl));top:calc(var(--safe-area-inset-top,env(safe-area-inset-top,0px)) + 112px);width:128px;height:128px;border-radius:14px;background:var(--glass);pointer-events:none}
+#mini{border:2px solid rgba(201,161,74,.7);position:fixed;inset:auto;left:calc(18px + var(--sl));top:calc(var(--safe-area-inset-top,env(safe-area-inset-top,0px)) + 112px);width:128px;height:128px;border-radius:14px;background:var(--glass);pointer-events:auto;cursor:pointer}
+#miniBtn{position:fixed;left:calc(18px + var(--sl));top:calc(var(--safe-area-inset-top,env(safe-area-inset-top,0px)) + 112px);width:44px;height:44px;border-radius:12px;border:2px solid rgba(201,161,74,.7);background:var(--glass);color:var(--ink);font-size:20px;display:none;pointer-events:auto;cursor:pointer}
 /* oyun içi ☰ menü ekrana sığmazsa kaydırılabilir (telefon yatayda 11 düğme ekrandan taşıyordu) */
 body.mn #hud .r{max-height:calc(100vh - var(--safe-area-inset-top,env(safe-area-inset-top,0px)) - 16px);overflow-y:auto;pointer-events:auto;padding-bottom:8px;touch-action:pan-y}
 /* kısa ekranlar (telefon yatay ~360-420 px): başlangıç ekranı sıkışık, "Sürmeye başla" hep görünür */
@@ -206,7 +207,7 @@ const pal=[0xd9a066,0xe6c9a0,0xb86b4b,0xcdb08a,0xa8845f,0xe9d8bd,0xc77d5a,0x9aa3
 const nm=c=>City.nm(c);
 function bld(x,z,w,d,h,tw){City.bld(x,z,w,d,h,tw);}
 const MOSQUE=[-2,-2], GALATA=[2,1];
-for(let u=-316;u<=316;u+=17){bld(-324,u,16,rnd(15,17),rnd(14,34));bld(u,-324,rnd(15,17),16,rnd(14,34));bld(u,324,rnd(15,17),16,rnd(14,34));}
+for(let u=-316;u<=316;u+=17){bld(-324,u,16,rnd(15,17),rnd(14,34));if(u<=300){bld(u,-324,rnd(15,17),16,rnd(14,34));bld(u,324,rnd(15,17),16,rnd(14,34));}}   /* kuzey/güney kenar sırası: u=313 binası (x 305–322) denizin üstüne taşıyordu; u=296 (x en çok 304.5) karada kalır */
 const far=[];for(let i=0;i<0;i++){const x=rnd(-1100,300),z=rnd(-900,900);if(Math.abs(x+8)<350&&Math.abs(z)<350)continue;far.push([x,z]);}
 if(far.length)inst(new R.BoxGeometry(1,1,1),nm(0xffffff),far.length,p=>{for(const [x,z] of far){const h=rnd(10,42);p(x,ter(x,z)+h/2-1.2,z,0,rnd(14,26),h,rnd(14,26),pal[(Math.random()*8)|0]);}});
 const tl=[];
@@ -651,10 +652,10 @@ let RT=0;for(let ax=0;ax<2;ax++)for(let u=0;u<72;u++)if(rlOK(ax,u))RT+=12;
 function rlSet(id){const ax=id>=864?1:0,q=id-ax*864,r=Math.floor(q/72),u=q%72;if(!ax){rd.position.set(-324+u*9+4.5,.07,C[r]);rd.rotation.set(0,0,0);}else{rd.position.set(C[r],.07,-324+u*9+4.5);rd.rotation.set(0,Math.PI/2,0);}rd.updateMatrix();rl.setMatrixAt(id,rd.matrix);rl.instanceMatrix.needsUpdate=true;}
 if(!G.s2){G.s2=[];for(const id of G.st||[]){if(id<288){const j=Math.floor(id/24),u=id%24;for(let k=0;k<3;k++)G.s2.push(j*72+u*3+k);}else{const i=Math.floor((id-288)/24),u=(id-288)%24;for(let k=0;k<3;k++)G.s2.push(864+i*72+u*3+k);}}}
 visS.clear();for(const id of G.s2){const ax=id>=864?1:0,u=(id-ax*864)%72;if(rlOK(ax,u)){visS.add(id);rlSet(id);}}
-scene.add(rl);
+rl.visible=false;scene.add(rl)/* gezilen sokaklar yalnız sol üstteki küçük haritada kırmızı görünür, yolun üstüne çizilmez */;
 const FREE_SEG=1, UNL_K=.35; /* serbest sürüş: her yeni gezilen sokak parçası +1 altın; görevler haritanın %35'i gezilince açılır */
 if(!G.unl&&visS.size>=RT*UNL_K)G.unl=true;
-const rlOn=()=>{rl.visible=freeMode&&!G.unl&&!devAll();};
+const rlOn=()=>{rl.visible=false;};   /* gezilen sokaklar yalnız küçük haritada */
 function xp(){$('md').children[1].textContent=G.unl||devAll()?'Görevler':'🔒 Görevler';}
 addEventListener('load',()=>{xp();rlOn();});   /* deneme ayarı (devUnlockAll) sayfanın sonunda okunur: görev kilidi yüklenince yeniden çizilir */
 function applyMode(){mon.style.display='block';mx.style.display='none';$('score').parentElement.style.display=freeMode?'none':'';coins.forEach(g=>g.visible=!freeMode);if(freeMode)endM();buildPlayer();look();xp();rlOn();}
@@ -697,7 +698,7 @@ $('rs').onclick=()=>{cf.style.display='flex';};$('cfn').onclick=()=>{cf.style.di
 $('cfy').onclick=()=>{window.noSv=true;try{localStorage.removeItem('ist-gar');}catch(e){}location.reload();};
 $('md').addEventListener('click',()=>setTimeout(refreshGo,0));$('ms').addEventListener('click',()=>setTimeout(refreshGo,0));
 setCol(baseCol);applyMode();
-setTimeout(()=>msg(freeMode?'Gezdiğin her yeni sokak kırmızı çizilir ve +'+FREE_SEG+' altın kazandırır':'Altın topla, görevleri yap'),2500);
+setTimeout(()=>msg(freeMode?'Gezdiğin her yeni sokak küçük haritada kırmızı olur ve +'+FREE_SEG+' altın kazandırır':'Altın topla, görevleri yap'),2500);
 function step(dt){if(gOpen)return 0;gStep();mStep(dt);
   const up=keys.up&&!totaled&&engineOn, dn=keys.down, vmax=totaled?0:(boatM?28:carKmh()/3.6)*(1-dmg/150); dist+=Math.abs(car.v)*dt;if(keys.up&&!engineOn&&!totaled&&performance.now()>engT){msg('Motor kapalı — ☰ menüden 🔑 ile çalıştır');engT=performance.now()+3000;}
   if(up)car.v+=(car.v<0?30:(boatM?9:(GM[G.model][1]===4?28:19)))*dt;
@@ -753,16 +754,20 @@ function step(dt){if(gOpen)return 0;gStep();mStep(dt);
 }
 
 const mc=$('mini').getContext('2d');
+/* küçük harita: dokununca kapanır, yerinde kalan 🗺 düğmesine dokununca açılır; seçim kaydedilir */
+{const mb=document.createElement('button');mb.id='miniBtn';mb.textContent='🗺';mb.setAttribute('aria-label','Haritayı göster');document.body.appendChild(mb);
+ const setMM=v=>{S.mm=v;try{localStorage.setItem('ist-set',JSON.stringify(S));}catch(e){}};
+ $('mini').addEventListener('pointerdown',e=>{e.stopPropagation();setMM(false);});mb.addEventListener('pointerdown',e=>{e.stopPropagation();setMM(true);});}
 function drawMini(){
   const W=128,k=W/260,X=x=>(x-car.x)*k+W/2,Z=z=>(z-car.z)*k+W/2;
   mc.clearRect(0,0,W,W); mc.fillStyle='#1d6b86'; if(X(320)<W)mc.fillRect(X(320),0,W,W);
   mc.strokeStyle='#8a8794'; mc.lineWidth=14*k; mc.beginPath();
   for(const c of C){mc.moveTo(X(c),Z(-320));mc.lineTo(X(c),Z(320));mc.moveTo(X(-320),Z(c));mc.lineTo(X(320),Z(c));}
   mc.stroke();
-  mc.strokeStyle='#2ee06b';mc.lineWidth=11*k;mc.beginPath();for(const id of G.s2){const ax=id>=864?1:0,q2=id-ax*864,r=Math.floor(q2/72),t=q2%72,p0=-324+t*9;if(!ax){mc.moveTo(X(p0),Z(C[r]));mc.lineTo(X(p0+9),Z(C[r]));}else{mc.moveTo(X(C[r]),Z(p0));mc.lineTo(X(C[r]),Z(p0+9));}}mc.stroke();
+  mc.strokeStyle='#ff3b30';mc.lineWidth=11*k;mc.beginPath();for(const id of G.s2){const ax=id>=864?1:0,q2=id-ax*864,r=Math.floor(q2/72),t=q2%72,p0=-324+t*9;if(!ax){mc.moveTo(X(p0),Z(C[r]));mc.lineTo(X(p0+9),Z(C[r]));}else{mc.moveTo(X(C[r]),Z(p0));mc.lineTo(X(C[r]),Z(p0+9));}}mc.stroke();
   mc.fillStyle='#ffd54a'; for(const c of ais)if(c.on){const x=X(c.x),z=Z(c.z);if(x>0&&x<W&&z>0&&z<W)mc.fillRect(x-1.5,z-1.5,3,3);}
   if(cm&&cm.i===0){const tx=clamp(X(cm.x),6,W-6),tz=clamp(Z(cm.z),6,W-6);mc.fillStyle='#2ee06b';mc.beginPath();mc.arc(tx,tz,4.5,0,7);mc.fill();mc.strokeStyle='#fff';mc.lineWidth=1.5;mc.stroke();}
-  mc.save();mc.translate(W/2,W/2);mc.rotate(Math.PI-car.a);mc.fillStyle='#19e0cf';mc.beginPath();mc.moveTo(0,-6);mc.lineTo(4.5,5);mc.lineTo(-4.5,5);mc.closePath();mc.fill();mc.restore();
+  mc.save();mc.translate(W/2,W/2);mc.rotate(Math.PI-car.a);mc.fillStyle='#ffd75a';mc.beginPath();mc.moveTo(0,-6);mc.lineTo(4.5,5);mc.lineTo(-4.5,5);mc.closePath();mc.fill();mc.restore();
 }
 let tPrev=0,fc=0,fAcc=0,fN=0,lastKmh=-1,lastGr='',upBlock=0,camFree=null,camF=1,slowN=0;
 /* telefon zorlanıyorsa (çözünürlük en alta indiği halde sürüşte ~8 sn boyunca 30 FPS altı): gölgeler hemen kapanır,
@@ -784,6 +789,7 @@ function snapSun(){ /* gölge haritası texel'e oturtulur: gölge titremesi/yüz
   sun.position.set(px+o.x,py+o.y,pz+o.z); sun.target.position.set(px,py,pz);}
 function frame(t){
   const dt=Math.min((t-(tPrev||t))/1000,.05); tPrev=t; let steer=0; fc++; fAcc+=dt;
+  if(fc%3===0){const mi=$('mini'),inD=!!(window.IST&&IST.districts&&IST.districts.current),on=playing&&!inD,show=on&&S.mm!==false;mi.style.display=show?'':'none';$('miniBtn').style.display=on&&!show?'block':'none';if(show)try{drawMini();}catch(e){}}   /* sol üstteki küçük harita: her 3 karede bir (telefonu yormasın); bölgelerde gizli (harita Fatih'e göre) */
   if(++fN>=60){const av=fAcc/fN;
     if(av>.030&&pr>.6){pr=Math.max(.6,pr-.15);renderer.setPixelRatio(pr);resize();upBlock=900;}
     else if(upBlock<=0&&av<.014&&pr<Math.min(devicePixelRatio,prMax)){pr=Math.min(devicePixelRatio,prMax,pr+.1);renderer.setPixelRatio(pr);resize();upBlock=900;}
