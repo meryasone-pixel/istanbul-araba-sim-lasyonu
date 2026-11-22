@@ -83,7 +83,7 @@
     ['Not: Google Play ödemesi bu cihazda hazır değil (eklenti/ürünler eksik).', 'Note: Google Play billing isn\'t ready on this device.'],
     ['Sahipsin ✓', 'Owned ✓'], ['Satın alımları geri yükle', 'Restore purchases'], ['Satın al', 'Buy'], ['Geri yükleme istendi', 'Restore requested'],
     ['Takılı', 'Equipped'], ['Çıkar', 'Remove'], ['Premium gerekli', 'Premium required'], ['Başlangıç Paketi gerekli', 'Starter Pack required'],
-    ['🔥 Günün fırsatı:', '🔥 Deal of the day:'], ['indirimde', 'on sale'], ['bugün geçerli', 'today only'], ['normal', 'normally'],
+    ['🔥 Günün fırsatı:', '🔥 Deal of the day:'], ['indirimde', 'on sale'], ['🔥 İndirimde', '🔥 On sale'], ['Normal fiyat', 'Normal price'], ['normal fiyat', 'normal price'], ['bugün geçerli', 'today only'], ['normal', 'normally'],
     ['satın alınsın mı? (gerçek ödeme yok)', 'buy? (no real payment)'], ['İptal edildi', 'Cancelled'], ['Ürün bulunamadı', 'Product not found'],
     ['Satın alma tamamlanmadı', 'Purchase not completed'], ['Satın alma başarısız', 'Purchase failed'], ['Altın eklenemedi, tekrar dene', 'Could not add gold, try again'],
     ['etkinleştirildi', 'activated'], ['geri yüklendi', 'restored'], ['Mağaza bu cihazda bağlı değil', 'Shop is not connected on this device'],

@@ -220,8 +220,8 @@
       { const dl = dealItem();
         if (dl && !S.owned[dl.id]) {
           const dr = document.createElement('div'); dr.className = 'ist-row'; const dd = document.createElement('div'), dn = document.createElement('b'), ds = document.createElement('small');
-          dn.textContent = '🔥 Günün fırsatı: ' + dl.name; ds.textContent = priceOf(dl) + ' altın (normal ' + dl.price + ') • bugün geçerli'; dd.append(dn, ds);
-          const db = document.createElement('button'); db.className = 'ist-btn'; db.textContent = 'Al'; db.onclick = () => buyItem(dl.id); dr.append(dd, db); b.appendChild(dr);
+          dn.textContent = '🔥 Günün fırsatı: ' + dl.name; ds.textContent = 'Normal fiyat ' + dl.price + ' • bugün geçerli'; dd.append(dn, ds);
+          const db = document.createElement('button'); db.className = 'ist-btn'; db.textContent = '💰 ' + priceOf(dl); db.onclick = () => buyItem(dl.id); dr.append(dd, db); b.appendChild(dr);
         } }
       if (tab === 'iap') {
         if (!provider) { const n = document.createElement('small'); n.textContent = 'Not: Google Play ödemesi bu cihazda hazır değil (eklenti/ürünler eksik).'; b.appendChild(n); }
@@ -237,12 +237,12 @@
         rs.onclick = () => provider.restore().then(() => IST.toast('Geri yükleme istendi')).catch(() => IST.toast('Geri yüklenemedi')); b.appendChild(rs);
         return;
       }
-      ITEMS.filter(i => i.cat === tab).forEach(it => {
+      const dlx = dealItem(); ITEMS.filter(i => i.cat === tab && !(dlx && dlx.id === i.id && !S.owned[i.id])).forEach(it => {   // günün fırsatı en üstte zaten var: listede ikinci kez gösterme
         const row = document.createElement('div'), own = !!S.owned[it.id], eqp = S.eq[it.cat] === it.id; row.className = 'ist-row';
         const d = document.createElement('div'); const nm = document.createElement('b'); nm.textContent = it.name + (it.vip ? ' ⭐' : ''); d.appendChild(nm);
-        const s = document.createElement('small'); s.textContent = own ? (eqp ? 'Takılı' : 'Sahipsin') : (it.vip && !isVip() ? 'Premium gerekli' : it.pack && !S.iap[it.pack] ? 'Başlangıç Paketi gerekli' : (priceOf(it) < it.price ? '🔥 ' + priceOf(it) + ' altın (indirimde, normal ' + it.price + ')' : it.price + ' altın')); d.appendChild(s);
+        const s = document.createElement('small'); s.textContent = own ? (eqp ? 'Takılı' : 'Sahipsin') : (it.vip && !isVip() ? 'Premium gerekli' : it.pack && !S.iap[it.pack] ? 'Başlangıç Paketi gerekli' : (priceOf(it) < it.price ? '🔥 İndirimde · normal fiyat ' + it.price : '')); d.appendChild(s);
         const bt = document.createElement('button'); bt.className = 'ist-btn' + (eqp ? ' ok' : '');
-        bt.textContent = own ? (eqp ? 'Çıkar' : 'Tak') : 'Satın al'; bt.onclick = () => (own ? equip(it.id) : buyItem(it.id));
+        bt.textContent = own ? (eqp ? 'Çıkar' : 'Tak') : it.vip && !isVip() ? '⭐ Premium' : '💰 ' + priceOf(it); bt.onclick = () => (own ? equip(it.id) : buyItem(it.id));   // fiyat düğmenin üstünde (alttaki küçük yazı gözden kaçıyordu)
         row.append(d, bt); b.appendChild(row);
       });
     }
