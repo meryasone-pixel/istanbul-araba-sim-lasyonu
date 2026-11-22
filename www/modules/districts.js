@@ -362,20 +362,18 @@
 
     /* ================= bölge tanımları ================= */
     const DEFS = [
-      { id: 'ortakoy', name: 'Ortaköy & Boğaziçi Köprüsü', icon: '🕌', unlock: { missions: 5, earned: 3000, gold: 3000 }, spawn: { x: -250, z: 169, a: Math.PI / 2 }, build: buildOrtakoy,
+      { id: 'ortakoy', name: 'Ortaköy & Boğaziçi Köprüsü', icon: '🕌', unlock: { gold: 5000 }, spawn: { x: -250, z: 169, a: Math.PI / 2 }, build: buildOrtakoy,
         area: (x, z) => (Math.abs(x + 130) < 15 && z > -115 && z < 100 ? 'Boğaziçi Köprüsü' : z < -115 ? 'Anadolu Yakası' : 'Ortaköy') },
-      { id: 'caddebostan', name: 'Caddebostan Sahil Yolu', icon: '🏖', unlock: { missions: 12, earned: 8000, gold: 6000, after: 'ortakoy' }, spawn: { x: -270, z: 5, a: Math.PI / 2 }, build: buildCaddebostan }
+      { id: 'caddebostan', name: 'Caddebostan Sahil Yolu', icon: '🏖', unlock: { gold: 9000, after: 'ortakoy' }, spawn: { x: -270, z: 5, a: Math.PI / 2 }, build: buildCaddebostan }
     ];
     const def = id => DEFS.find(d => d.id === id);
-    /* bölge zinciri: unlock.after verilmişse önce o bölge açık olmalı (ilerlemeyle de altınla da) */
+    /* bölgeler yalnızca altınla açılır; unlock.after verilmişse önce o bölge açık olmalı. Eskiden görevle açılmış bölgeler kayıtlı kalır. */
     const prevOk = d => !d.unlock.after || isUnlocked(d.unlock.after);
-    const progressOk = d => prevOk(d) && (P.missions >= d.unlock.missions || P.earned >= d.unlock.earned);
     /* görev/kazançla açılan bölge de kalıcı kaydedilir: kurallar sonradan değişse bile oyuncu açtığı bölgeyi kaybetmez.
        devUnlockAll (yalnızca deneme) açıkken hiçbir şey kaydedilmez. */
     const isUnlocked = id => {
       if (IST.cfg.districts.devUnlockAll === true) return true;
       if (P.unlocked[id]) return true;
-      if (progressOk(def(id))) { P.unlocked[id] = true; save(); return true; }
       return false;
     };
     P.tried = P.tried || {};   // deneme sürüşü yapılmış bölgeler (her bölge bir kez)
@@ -578,7 +576,7 @@
     function unlockWithGold(id) { const d = def(id); if (!prevOk(d)) return IST.toast('Önce ' + def(d.unlock.after).name + ' bölgesini aç'); if (IST.gold.add(-d.unlock.gold)) { P.unlocked[id] = true; save(); IST.toast(d.name + ' açıldı'); refresh(); } else { IST.toast('Yetersiz altın'); try { panel.close(); if (IST.shop && IST.shop.openGold) IST.shop.openGold(); } catch (e) {} } }
     function refresh() {
       const b = panel.body; if (!b || !panel.isOpen) return; b.textContent = '';
-      const info = document.createElement('small'); info.textContent = 'Görev: ' + P.missions + ' tamamlandı • Toplam kazanç: ' + P.earned + ' altın'; b.appendChild(info);
+      const info = document.createElement('small'); info.textContent = 'Yeni bölgeler altınla açılır • Altının: ' + IST.gold.get(); b.appendChild(info);
       if (world.cur) { const row = document.createElement('div'); row.className = 'ist-row'; const t = document.createElement('div'); t.textContent = '📍 Şu an: ' + world.cur.name;
         const bt = document.createElement('button'); bt.className = 'ist-btn'; bt.textContent = "Fatih'e dön"; bt.onclick = () => { panel.close(); exit(); }; row.append(t, bt); b.appendChild(row);
         const spec = DM[world.cur.id];
@@ -589,7 +587,7 @@
       DEFS.forEach(d => {
         const row = document.createElement('div'), un = isUnlocked(d.id); row.className = 'ist-row';
         const t = document.createElement('div'), nm = document.createElement('b'), sm = document.createElement('small'); nm.textContent = d.icon + ' ' + d.name; t.appendChild(nm);
-        sm.textContent = un ? 'Açık' : !prevOk(d) ? '🔒 Önce ' + def(d.unlock.after).name + ' bölgesini aç' : '🔒 ' + Math.min(P.missions, d.unlock.missions) + '/' + d.unlock.missions + ' görev  veya  ' + Math.min(P.earned, d.unlock.earned) + '/' + d.unlock.earned + ' altın kazanç'; t.appendChild(sm);
+        sm.textContent = un ? 'Açık' : !prevOk(d) ? '🔒 Önce ' + def(d.unlock.after).name + ' bölgesini aç' : '🔒 ' + d.unlock.gold + ' altınla açılır'; t.appendChild(sm);
         row.appendChild(t);
         const bt = document.createElement('button'); bt.className = 'ist-btn';
         if (un) { bt.textContent = world.cur && world.cur.id === d.id ? 'Buradasın' : 'Git'; bt.disabled = !!(world.cur && world.cur.id === d.id); bt.onclick = () => { const why = world.cur ? '' : canEnter(); if (why) return IST.toast(why); panel.close(); if (world.cur) exit(true); enter(d.id); }; }
