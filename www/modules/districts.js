@@ -338,7 +338,8 @@
       const xs = [-278, -212, -146, -80, -14, 52, 118, 184, 244], vx = xs.map(c => ({ c, h: 6 }));
       const hz = [{ c: -288, h: 6 }, { c: -224, h: 6 }, { c: -150, h: 6 }, { c: -76, h: 6 }, { c: 0, h: 9.2, dash: [-4.4, 4.4], lo: 6.8 }];
       roads(B, vx, hz);
-      B.box(522, .3, 2.4, 0x5a8f4e, -17, 0, 0);                                    // orta refüj
+      /* orta refüj: kavşaklar arasında parça parça ve çarpışmalı (eskiden araba içinden geçiyordu); kavşaklarda açık, dönüş yapılabilir */
+      for (let i = 0; i < xs.length - 1; i++) { const a = xs[i] + 8, b = xs[i + 1] - 8; if (b - a > 2) { B.box(b - a, .3, 2.4, 0x5a8f4e, (a + b) / 2, 0, 0); B.rect((a + b) / 2, 0, (b - a) / 2, 1.2); } }
       fill(B, r, vx, hz, { cap: (i, j) => (j === 3 ? 20 : 46), lo: 14, park: (i, j) => (j === 3 && (i % 2 === 0)) });
       B.solid(554, 1.2, 1.6, 0xe4ddd0, -14, 0, 30.5);   /* deniz seti yan duvarlara (x -290 / 262) kadar: uçlardaki boşluktan araba denize iniyordu */ B.solid(522, .6, .8, 0xc4bdb0, -17, 0, 10.2);   // deniz seti + kaldırım bordürü
       [10, 13, 20, 24].forEach(z => B.walk.push({ x0: -270, z0: z, x1: 236, z1: z }));
@@ -351,7 +352,7 @@
         if (x % 36 === 0 && kd > 8 && kd < 92) B.bench(x + 4.5, 22.5, 0);
       }
       B.trees(tr, { pit: true });
-      if (!B.lowQ()) for (let x = -268; x < 238; x += 4) if (xs.every(c => Math.abs(x - c) > 10)) B.bush(x, 0, B.drr(.45, .65), B.dr() < .3 ? B.dpk(B.FLW) : 0x4f7a3a);   // refüj çalı/çiçekleri
+      for (let x = -268; x < 238; x += 3) if (xs.every(c => Math.abs(x - c) > 10)) B.bush(x, 0, B.drr(.45, .65), B.dr() < .65 ? B.dpk(B.FLW) : 0x4f7a3a);   // refüj çiçekleri: her grafikte, çoğu renkli çiçek (İstanbul refüjleri gibi)
       for (let i = 0; i < 18; i++) { const x = -270 + i * 28, c = [0xe53935, 0x1e88e5, 0xfdd835, 0x43a047][i % 4]; B.box(.12, 2.6, .12, 0xffffff, x, 0, 37); B.mesh(new R.ConeGeometry(1.8, .8, 8), c, x, 2.9, 37); B.box(1, .3, 2.2, 0xffffff, x + 2.2, 0, 38); }
       for (let i = 0; i < 5; i++) { const x = -230 + i * 100; B.solid(8, 3.4, 5, [0xf2f2f2, 0xffe0b2][i % 2], x, 0, 21); B.box(9, .3, 6, [0xe53935, 0x1e88e5, 0xfdd835][i % 3], x, 3.4, 21); }
       B.box(5, .5, 42, 0x8d6e63, 60, -.3, 52); [8, 20, 32].forEach(z => { B.box(.4, 2, .4, 0x5d4037, 58, -1.3, 36 + z); B.box(.4, 2, .4, 0x5d4037, 62, -1.3, 36 + z); });
