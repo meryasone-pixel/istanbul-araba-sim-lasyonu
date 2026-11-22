@@ -102,6 +102,41 @@ body.mn #hud .r{max-height:calc(100vh - var(--safe-area-inset-top,env(safe-area-
 #start:not(.ready){background:#1c1730 url(img/yukleniyor.jpg) center/cover no-repeat}   /* yüklenirken oyundan bir kare (yarış arabası) */
 #start.ready .card{animation:stIn .25s ease-out}
 @keyframes stIn{from{opacity:0}to{opacity:1}}
+/* ===== Gece Altını: sürüş ekranı (HUD) cilası ===== */
+.g{border:1px solid rgba(201,161,74,.45);box-shadow:0 2px 10px rgba(0,0,0,.3);font-weight:600}
+#where::before{content:'📍 '}
+.g b{color:#ffd75a;margin-left:6px}
+#speed{border:1px solid rgba(201,161,74,.5);box-shadow:0 2px 12px rgba(0,0,0,.35)}
+#speed b{color:#ffd75a}
+#speed i{background:rgba(201,161,74,.22)}
+#mn{border:1px solid rgba(201,161,74,.55);opacity:1}
+.tb{border:1px solid rgba(201,161,74,.35)!important;font-weight:600;box-shadow:0 2px 8px rgba(0,0,0,.25);transition:transform .08s,background .15s}
+.tb:active,#mn:active{transform:scale(.96)}
+.pad button{border:2px solid rgba(201,161,74,.4);box-shadow:0 3px 10px rgba(0,0,0,.3)}
+.pad button:active{transform:scale(.95)}
+#msg{color:#fff4e6;text-shadow:0 2px 14px rgba(0,0,0,.6),0 0 2px #000}
+/* ===== Oyun menüsü teması (dış dosya/yazı tipi yok: telifsiz, tamamen kod) ===== */
+#start .card{background:linear-gradient(160deg,rgba(24,38,70,.94),rgba(10,16,34,.92));border:3px solid #c9a14a;border-radius:24px;box-shadow:0 0 0 4px rgba(10,16,34,.85),0 14px 40px rgba(0,0,0,.55),inset 0 0 34px rgba(201,161,74,.14);padding:22px 26px 24px}
+#start h1{font-family:system-ui,"Arial Black",sans-serif;font-weight:900;text-transform:uppercase;letter-spacing:1px;font-size:clamp(40px,8vw,64px);background:linear-gradient(#fff6c8,#ffd75a 45%,#c9871f);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;-webkit-text-stroke:2px #3a2508;filter:drop-shadow(0 4px 0 #3a2508) drop-shadow(0 8px 14px rgba(0,0,0,.5));transform:rotate(-2deg);margin-bottom:6px}
+#start h1::after{display:none}
+#start .tag{display:inline-block;margin:0 0 14px;padding:4px 12px;border-radius:8px;background:linear-gradient(#e0473c,#a8241b);color:#fff;font-weight:900;font-size:12px;letter-spacing:2px;transform:rotate(-2deg);box-shadow:0 3px 0 #5e120d}
+#start p{font-size:15px;opacity:.88}
+#start .row>span{font-weight:900;text-transform:uppercase;letter-spacing:1px;font-size:12px;color:#e0b85a;opacity:1}
+.seg button,#smenu button,#rs,#more,#gear{font-weight:800!important;border-radius:12px!important;background:linear-gradient(#2c3d68,#1a2747)!important;border:1px solid rgba(201,161,74,.35)!important;box-shadow:0 4px 0 #0a1020!important;transition:transform .06s,box-shadow .06s}
+.seg button.on{background:linear-gradient(#ffe48f,#e0a82e)!important;color:#3a2508!important;box-shadow:0 4px 0 #8a5a12!important;border-color:#ffe48f!important}
+.seg button:active,#smenu button:active,#rs:active,#more:active,#gear:active{transform:translateY(3px);box-shadow:0 1px 0 #0a1020!important}
+#go{font-family:system-ui,sans-serif;font-weight:900;text-transform:uppercase;letter-spacing:1px;font-size:19px;padding:15px 32px;border-radius:16px;margin-top:6px;background:linear-gradient(#fff0b0,#f2bc3c 55%,#d4901f);color:#3a2508;box-shadow:0 6px 0 #8a5a12;animation:goPulse 1.6s ease-in-out infinite}
+#go::after{content:'  ▶'}
+#go:active{transform:translateY(4px);box-shadow:0 2px 0 #8a5a12;animation:none}
+@keyframes goPulse{0%,100%{box-shadow:0 6px 0 #8a5a12,0 8px 16px rgba(240,185,58,.3)}50%{box-shadow:0 6px 0 #8a5a12,0 10px 30px rgba(255,214,96,.8)}}
+.tb{background:linear-gradient(#2c3d68,#1a2747)!important;box-shadow:0 3px 0 #0a1020!important;font-weight:800}
+.tb:active{transform:translateY(2px)!important;box-shadow:0 1px 0 #0a1020!important}
+#speed b{font-weight:900;-webkit-text-stroke:1px #3a2508;text-shadow:0 2px 0 #3a2508}
+.pad button{background:linear-gradient(rgba(44,61,104,.9),rgba(20,33,61,.9));box-shadow:0 5px 0 rgba(8,12,24,.9);color:#fff4e6}
+.pad button[data-k=up]{background:linear-gradient(#8ff09b,#2e9e44);box-shadow:0 5px 0 #1b5e2a;color:#0f3318}
+.pad button[data-k=down]{background:linear-gradient(#ff8a80,#c62828);box-shadow:0 5px 0 #6d1414;color:#fff}
+.pad button[data-k=horn]{background:linear-gradient(#ffe48f,#e0a82e);box-shadow:0 5px 0 #8a5a12;color:#3a2508}
+.pad button.on,.pad button:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(8,12,24,.9);filter:brightness(1.15)}
 </style>
 </head>
 <body>
@@ -112,9 +147,10 @@ body.mn #hud .r{max-height:calc(100vh - var(--safe-area-inset-top,env(safe-area-
 <div class="pad"><div><button data-k="left" aria-label="Sol">◀</button><button data-k="right" aria-label="Sağ">▶</button></div><div><button data-k="horn" aria-label="Korna">📯</button><button data-k="down" aria-label="Fren">■</button><button data-k="up" aria-label="Gaz">▲</button></div></div>
 <div id="start"><script>(function(){let m=0,c=0;const go=()=>document.getElementById('start').classList.add('ready');window.istReady=function(){m=1;if(c)go();};window.istCars=function(){c=1;if(m)go();};setTimeout(go,20000);})();/* menü, modüller VE yeni araba modelleri hazır olunca açılır (eski arabalar görünmesin) *//* yedek: bir şey takılırsa 20 sn sonra yine görünür */</script><div class="card">
 <h1 id="ttl">Boğaz Drive</h1>
+<div class="tag">İSTANBUL SÜRÜŞ</div>
 <p id="res" style="display:none;font-weight:800;font-size:20px"></p>
 <p>Trafik ışıklarına uy, yayalara dikkat et, diğer araçlara çarpma. Ağır çarpmalar arabanı parçalar.</p>
-<div class="menu"><div class="row"><span>Mod</span><div class="seg" id="md"><button data-v="0" class="on">Serbest sürüş</button><button data-v="1">Görevler</button></div></div><div id="ms" style="display:none"></div><div class="row" id="rc"><span>Araba rengi</span><div id="sw"></div><input type="color" id="cc" value="#19b3a6" aria-label="Özel renk"></div><div class="row" style="display:none"><span>Zaman</span><div class="seg" id="tm"><button data-v="day">Gündüz</button><button data-v="dusk" class="on">Akşam</button><button data-v="night">Gece</button></div></div><div class="row" style="display:none"><span>Hava</span><div class="seg" id="wx"><button data-v="dry">Kuru</button><button data-v="wet">Islak</button><button data-v="rain">Yağmur</button></div></div><div class="row"><span>Trafik</span><div class="seg" id="tf"><button data-v="14">Az</button><button data-v="30" class="on">Orta</button><button data-v="46">Çok</button></div></div></div>
+<div class="menu"><div class="row"><span>Mod</span><div class="seg" id="md"><button data-v="0" class="on">🚗 Serbest sürüş</button><button data-v="1">🎯 Görevler</button></div></div><div id="ms" style="display:none"></div><div class="row" id="rc"><span>Araba rengi</span><div id="sw"></div><input type="color" id="cc" value="#19b3a6" aria-label="Özel renk"></div><div class="row" style="display:none"><span>Zaman</span><div class="seg" id="tm"><button data-v="day">Gündüz</button><button data-v="dusk" class="on">Akşam</button><button data-v="night">Gece</button></div></div><div class="row" style="display:none"><span>Hava</span><div class="seg" id="wx"><button data-v="dry">Kuru</button><button data-v="wet">Islak</button><button data-v="rain">Yağmur</button></div></div><div class="row"><span>Trafik</span><div class="seg" id="tf"><button data-v="14">🟢 Az</button><button data-v="30" class="on">🟡 Orta</button><button data-v="46">🔴 Çok</button></div></div></div>
 <button id="more" style="margin:10px 0 6px;padding:10px 14px;border-radius:12px;border:0;background:var(--glass);color:var(--ink);font-size:14px;font-weight:700;cursor:pointer">☰ Menü</button><button id="gear" aria-label="Ayarlar" style="margin:10px 0 6px 8px;padding:10px 14px;border-radius:12px;border:0;background:var(--glass);color:var(--ink);font-size:14px;font-weight:700;cursor:pointer">⚙ Ayarlar</button>
 <div id="panel"><label>Düğme boyutu<input type="range" id="sBs" min="0.8" max="2.2" step="0.1"></label><label>Düğme şeffaflığı<input type="range" id="sBo" min="0.3" max="1" step="0.05"></label><label><input type="checkbox" id="sSw"> Sol/sağ düğmeleri yer değiştir</label><label><input type="checkbox" id="sSh"> Bilgisayarda da göster</label><label>Grafik kalitesi<select id="sQ"><option value="0">Düşük</option><option value="1">Orta</option><option value="2">Yüksek</option></select></label></div>
 <div id="moreBox" style="display:none"><!-- Günlük ve Oyunu sıfırla Menü düğmesinin altında; Ayarlar yanında -->
@@ -517,12 +553,15 @@ const coins=[],cg2=new R.CylinderGeometry(.9,.9,.15,16),cm2=bas(0xffc400),GP=[[-
 const rcoin=(g,near)=>{for(let n=0;n<20;n++){const k=C[(Math.random()*C.length)|0],o=[-5.25,-1.75,1.75,5.25][(Math.random()*4)|0],h=Math.random()<.5,q=near?clamp((h?car.x:car.z)+rnd(-200,200),-290,290):rnd(-290,290),x=h?q:k+o,z=h?k+o:q;if(!near||Math.hypot(x-car.x,z-car.z)>50){g.position.set(x,1.1,z);return;}}g.position.set(rnd(-290,290),1.1,C[0]+1.75);};
 let pcx=0,pcz=0,bT=0;
 for(let i=0;i<70;i++){const g=new R.Group(),m=new R.Mesh(cg2,cm2);m.rotation.x=Math.PI/2;g.add(m);scene.add(g);rcoin(g);coins.push(g);}
-const mon=document.createElement('div');mon.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:44px;z-index:5;color:#ffd54a;font:700 18px system-ui;text-shadow:0 1px 3px #000;pointer-events:none';mon.textContent='💰 '+G.money;document.body.appendChild(mon);
-const gp=document.createElement('div');gp.style.cssText='position:fixed;top:0;right:var(--sr,0px);bottom:0;width:min(50vw,470px);display:none;z-index:30;font:15px system-ui;color:#fff;background:#15153c;overflow-y:auto;overscroll-behavior:contain';gp.innerHTML='<div id="gi" style="padding:14px 14px 30px"></div>';document.body.appendChild(gp);
+const mon=document.createElement('div');mon.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:40px;z-index:5;color:#ffd75a;font:700 17px system-ui;padding:5px 14px;border-radius:999px;background:var(--glass);border:1px solid rgba(201,161,74,.5);box-shadow:0 2px 10px rgba(0,0,0,.3);pointer-events:none';mon.textContent='💰 '+G.money;document.body.appendChild(mon);
+const gp=document.createElement('div');gp.style.cssText='position:fixed;top:0;right:var(--sr,0px);bottom:0;width:min(50vw,470px);display:none;z-index:30;font:15px system-ui;color:#fff;background:#14213d;border-left:2px solid rgba(201,161,74,.6);box-shadow:-6px 0 24px rgba(0,0,0,.35);overflow-y:auto;overscroll-behavior:contain';gp.innerHTML='<div id="gi" style="padding:14px 14px 30px"></div>';document.body.appendChild(gp);
 {const cv=renderer.domElement;cv.style.touchAction='none';
- cv.addEventListener('pointerdown',e=>{drag={id:e.pointerId,x:e.clientX,y:e.clientY};try{cv.setPointerCapture(e.pointerId);}catch(_){}});
+ cv.addEventListener('pointerdown',e=>{drag={id:e.pointerId,x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY,t0:performance.now()};try{cv.setPointerCapture(e.pointerId);}catch(_){}});
  cv.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;camYaw-=(e.clientX-drag.x)*.008;camPit=clamp(camPit+(e.clientY-drag.y)*.006,-1,.9);drag.x=e.clientX;drag.y=e.clientY;camT=performance.now();});
- ['pointerup','pointercancel'].forEach(t=>cv.addEventListener(t,e=>{if(drag&&e.pointerId===drag.id){drag=null;camT=performance.now();}}));}
+ ['pointerup','pointercancel'].forEach(t=>cv.addEventListener(t,e=>{if(drag&&e.pointerId===drag.id){
+   /* garaj açıkken ekrana kısa dokunuş (sürükleme değil) garajı kapatır; sürükleme arabayı döndürmeye devam eder */
+   if(t==='pointerup'&&gp.style.display==='block'&&!phM&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)<10&&performance.now()-drag.t0<400){gOpen=false;gp.style.display='none';$('start').style.visibility='';gCool=performance.now()/1000+4;}
+   drag=null;camT=performance.now();}}));}
 /* tamir: %30'a kadar hasar ücretsiz; fazlası hasarla ve arabanın değeriyle orantılı; parası yetmeyen reklam izleyip ücretsiz tamir edebilir */
 const RP_FREE=30, TOW=50, REPAIR_SHOP=false, rpBase=()=>Math.max(150,Math.round(GM[G.model][2]*.07)), rpCost=()=>totaled?rpBase():Math.max(10,Math.round(rpBase()*dmg/100)),
  repFree=()=>!totaled&&dmg<=RP_FREE, adOk=()=>{try{return !!(window.IST&&IST.ads&&IST.ads.available());}catch(e){return false;}},
@@ -551,7 +590,7 @@ function drawG(){let h;
   h+='<br><br><b>Jant</b><br>';
   GR.forEach((m,i)=>h+=gbt('r:'+i,own('r'+i)?m[0]:m[0]+' — '+m[2]+' altın',G.rim===i,hx(m[1])));h+='<br><br><b>Boya</b><br>';
   SW.forEach((c,i)=>h+=gbt('c:'+i,own('c'+i)?'&nbsp;&nbsp;&nbsp;':'🔒 '+PAINT+' altın',baseCol===c,hx(c)));
-  h+='<br><br>'+gbt('x','Kapat ✕',false,'#8a2b2b');}
+  h+='<br><br><small style="opacity:.8">Garajı kapatmak için ekranda boş bir yere dokun</small>';}
  $('gi').innerHTML=h;}
 function goldShop(){if(gp.style.display==='block'){gOpen=false;gp.style.display='none';$('start').style.visibility='';gCool=performance.now()/1000+4;}try{if(window.IST&&IST.shop&&IST.shop.openGold)IST.shop.openGold();}catch(e){}}
 function openG(){gMode='g';gOpen=true;car.v=0;$('start').style.visibility='hidden';drawG();gp.style.display='block';}
@@ -608,8 +647,8 @@ const dockB=boatMesh(mat(0x1565c0));dockB.position.set(324,0,DK[1]+7);dockB.rota
 {const pr=new R.Mesh(new R.BoxGeometry(24,.4,6),mat(0x8d6e63));pr.position.set(318,-.3,DK[1]);scene.add(pr);
  for(const dx of[8,14,20,26])for(const dz of[-3,3]){const pl=new R.Mesh(new R.CylinderGeometry(.25,.25,2,6),mat(0x5d4037));pl.position.set(306+dx,-.9,DK[1]+dz);scene.add(pl);}
  const cv=document.createElement('canvas');cv.width=256;cv.height=80;const x=cv.getContext('2d');x.fillStyle='#00695c';x.fillRect(0,0,256,80);x.fillStyle='#fff';x.font='bold 36px system-ui';x.textAlign='center';x.fillText('⛴ İSKELE',128,54);
- const sg=new R.Mesh(new R.PlaneGeometry(5,1.6),new R.MeshBasicMaterial({map:new R.CanvasTexture(cv),side:R.DoubleSide}));sg.position.set(303,4.6,DK[1]-9);sg.rotation.y=-Math.PI/2;scene.add(sg);
- const po=new R.Mesh(new R.CylinderGeometry(.15,.15,4.6,6),mat(0x37474f));po.position.set(303,2.3,DK[1]-9);scene.add(po);}
+ const sg=new R.Mesh(new R.PlaneGeometry(2.4,.75),new R.MeshBasicMaterial({map:new R.CanvasTexture(cv),side:R.DoubleSide}));sg.position.set(305.85,1.75,DK[1]-9);sg.rotation.y=-Math.PI/2;scene.add(sg);   /* küçük tabela, sahil duvarına bitişik (eskiden yolun kenarında 4.6 m direk vardı) */
+ const po=new R.Mesh(new R.CylinderGeometry(.07,.07,1.4,6),mat(0x37474f));po.position.set(305.9,.7,DK[1]-9);scene.add(po);}
 function boatCheck(){let sh=null;if(!freeMode&&!totaled){if(!boatM&&Math.hypot(car.x-DK[0],car.z-DK[1])<14&&Math.abs(car.v)<3)sh='⛴ Tekneye bin';else if(boatM&&Math.hypot(car.x-324,car.z-DK[1])<14&&Math.abs(car.v)<4)sh='🚗 Karaya çık';}bk.style.display=sh?'block':'none';if(sh)bk.textContent=sh;}
 bk.onclick=()=>{if(!boatM){boatM=true;car.x=342;car.z=DK[1];car.a=Math.PI/2;car.v=0;dockB.visible=false;}else{boatM=false;car.x=298;car.z=DK[1];car.a=-Math.PI/2;car.v=0;dockB.visible=true;}buildPlayer();look();applyLights();bk.style.display='none';};
 function boatOff(){if(boatM){boatM=false;dockB.visible=true;applyLights();}}
@@ -656,7 +695,7 @@ rl.visible=false;scene.add(rl)/* gezilen sokaklar yalnız sol üstteki küçük 
 const FREE_SEG=1, UNL_K=.35; /* serbest sürüş: her yeni gezilen sokak parçası +1 altın; görevler haritanın %35'i gezilince açılır */
 if(!G.unl&&visS.size>=RT*UNL_K)G.unl=true;
 const rlOn=()=>{rl.visible=false;};   /* gezilen sokaklar yalnız küçük haritada */
-function xp(){$('md').children[1].textContent=G.unl||devAll()?'Görevler':'🔒 Görevler';}
+function xp(){$('md').children[1].textContent=G.unl||devAll()?'🎯 Görevler':'🔒 Görevler';}
 addEventListener('load',()=>{xp();rlOn();});   /* deneme ayarı (devUnlockAll) sayfanın sonunda okunur: görev kilidi yüklenince yeniden çizilir */
 function applyMode(){mon.style.display='block';mx.style.display='none';$('score').parentElement.style.display=freeMode?'none':'';coins.forEach(g=>g.visible=!freeMode);if(freeMode)endM();buildPlayer();look();xp();rlOn();}
 const gd=document.createElement('div');gd.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:72px;z-index:6;display:none;align-items:center;gap:10px;padding:8px 16px;border-radius:999px;background:rgba(138,43,43,.92);color:#fff;font:700 16px system-ui;pointer-events:none';gd.innerHTML='<span id="gda" style="display:inline-block;font-size:26px;line-height:1">➤</span><span id="gdt"></span>';document.body.appendChild(gd);

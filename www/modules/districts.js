@@ -334,14 +334,16 @@
       const r = rng(23), R = B.R;
       B.plane(2400, 1500, 0x9a958a, -20, 0, -700); B.plane(1200, 100, 0x9a958a, -20, 0, 100); B.sea(1600, 1400, -20, 750, -.8);
       B.plane(1200, 14, 0xe8d3a1, -17, .02, 37);                                  // kumsal
-      B.plane(520, 20.4, 0xcfc7b8, -17, .04, 19.8); B.plane(520, 3, 0xb5524a, -17, .05, 16.5);   // yaya yolu (bordürden deniz setine: z 9.6–30; eskiden ana yolun yarısını örtüyordu) + bisiklet yolu
+      B.plane(552, 20.4, 0xcfc7b8, -14, .04, 19.8); B.plane(552, 3, 0xb5524a, -14, .05, 16.5);   /* uçlarda yan duvarlara (x -290 / 262) kadar: eskiden doğu ucunda 18 m çıplak zemin kalıyordu */   // yaya yolu (bordürden deniz setine: z 9.6–30; eskiden ana yolun yarısını örtüyordu) + bisiklet yolu
       const xs = [-278, -212, -146, -80, -14, 52, 118, 184, 244], vx = xs.map(c => ({ c, h: 6 }));
       const hz = [{ c: -288, h: 6 }, { c: -224, h: 6 }, { c: -150, h: 6 }, { c: -76, h: 6 }, { c: 0, h: 9.2, dash: [-4.4, 4.4], lo: 6.8 }];
       roads(B, vx, hz);
       /* orta refüj: kavşaklar arasında parça parça ve çarpışmalı (eskiden araba içinden geçiyordu); kavşaklarda açık, dönüş yapılabilir */
       for (let i = 0; i < xs.length - 1; i++) { const a = xs[i] + 8, b = xs[i + 1] - 8; if (b - a > 2) { B.box(b - a, .3, 2.4, 0x5a8f4e, (a + b) / 2, 0, 0); B.rect((a + b) / 2, 0, (b - a) / 2, 1.2); } }
       fill(B, r, vx, hz, { cap: (i, j) => (j === 3 ? 20 : 46), lo: 14, park: (i, j) => (j === 3 && (i % 2 === 0)) });
-      B.solid(554, 1.2, 1.6, 0xe4ddd0, -14, 0, 30.5);   /* deniz seti yan duvarlara (x -290 / 262) kadar: uçlardaki boşluktan araba denize iniyordu */ B.solid(522, .6, .8, 0xc4bdb0, -17, 0, 10.2);   // deniz seti + kaldırım bordürü
+      B.solid(554, 1.2, 1.6, 0xe4ddd0, -14, 0, 30.5);   /* deniz seti yan duvarlara (x -290 / 262) kadar: uçlardaki boşluktan araba denize iniyordu */ B.solid(552, .6, .8, 0xc4bdb0, -14, 0, 10.2);
+      B.plane(12, 310, 0xcfc8bb, 256, .035, -145.5); B.plane(6, 310, 0xcfc8bb, -287, .035, -145.5);   // son caddelerle yan duvarlar arası: çıplak zemin yerine kaldırım
+      B.road(244, 0, 250, 0, 18.4); B.road(-284, 0, -278, 0, 18.4);   // ana caddenin uçlarında asfaltsız kalan köşe   // deniz seti + kaldırım bordürü
       [10, 13, 20, 24].forEach(z => B.walk.push({ x0: -270, z0: z, x1: 236, z1: z }));
       const lp = []; for (let x = -270; x < 240; x += 24) lp.push([x, 12, Math.PI]); B.lamps(lp);
       const tr = []; for (let x = -270; x < 240; x += 18) {             // sahil ağaçları + aralarında çiçek tarhları ve banklar

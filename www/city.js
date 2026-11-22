@@ -94,8 +94,9 @@
     const its = []; for (const x of C) for (const z of C) its.push([x, z]);
     // sahildeki son kavşaklarda doğuya (denize) giden bir yol yok: o tarafa yaya geçidi/durma çizgisi çizilmez (deniz duvarının içinde kalıyordu)
     const SEA = 305, A = [], B = [];   // sahil yolu x≈297±7; deniz duvarı x≈306–310
-    for (const [x, z] of its) for (const s of [-1, 1]) for (let i = 0; i < 9; i++) { const o = -5.6 + i * 1.4; A.push([x + o, z + s * 9.6, 0]); A.push([x + s * 9.6, z + o, Math.PI / 2]); }
-    for (const [x, z] of its) { B.push([x + 3.5, z - 12.3, 0]); B.push([x - 3.5, z + 12.3, 0]); B.push([x - 12.3, z - 3.5, Math.PI / 2]); B.push([x + 12.3, z + 3.5, Math.PI / 2]); }
+    const IN = v => Math.abs(v) <= 300;   // harita kenarındaki kavşakta dışarıda yol yok: o tarafa yaya geçidi / durma çizgisi çizilmez
+    for (const [x, z] of its) for (const s of [-1, 1]) for (let i = 0; i < 9; i++) { const o = -5.6 + i * 1.4; if (IN(z + s * 9.6)) A.push([x + o, z + s * 9.6, 0]); if (IN(x + s * 9.6)) A.push([x + s * 9.6, z + o, Math.PI / 2]); }
+    for (const [x, z] of its) { if (IN(z - 12.3)) B.push([x + 3.5, z - 12.3, 0]); if (IN(z + 12.3)) B.push([x - 3.5, z + 12.3, 0]); if (IN(x - 12.3)) B.push([x - 12.3, z - 3.5, Math.PI / 2]); if (IN(x + 12.3)) B.push([x + 12.3, z + 3.5, Math.PI / 2]); }
     const A2 = A.filter(q => q[0] < SEA), B2 = B.filter(q => q[0] < SEA);
     const st = inst(new R.BoxGeometry(.7, .004, 3), ms, A2.length, p => { for (const q of A2) p(q[0], .024, q[1], q[2]); }, true);   // asfaltın (y .02) hemen üstünde: eskiden 6 cm havadaydı, teker içine gömülüyordu
     const sl = inst(new R.BoxGeometry(6.4, .004, .4), ms, B2.length, p => { for (const q of B2) p(q[0], .024, q[1], q[2]); }, true);
