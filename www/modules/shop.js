@@ -140,14 +140,6 @@
       else if (kind === 'sunset') { const g = x.createLinearGradient(0, 0, 0, 128); g.addColorStop(0, '#ffb347'); g.addColorStop(.45, '#f0607a'); g.addColorStop(1, '#3b2a7a'); x.fillStyle = g; x.fillRect(0, 0, 128, 128); x.fillStyle = 'rgba(255,236,150,.9)'; x.beginPath(); x.arc(64, 70, 18, 0, 7); x.fill(); }   // gün batımı: üstte turuncu gökyüzü, altta mor deniz, ortada güneş
       const t = new R.CanvasTexture(c); t.wrapS = t.wrapT = R.RepeatWrapping; t.repeat.set(.3, .3); return (texCache[kind] = t);
     }
-    let neon = null;
-    /* neon: arabanın altını komple kaplayan dikdörtgen yerine yalnız iki yanda ince ışık şeritleri (2.8×6.2 ölçeğinde; aşağıda araca göre ölçeklenir) */
-    function neonStrips(R) {
-      const a = new R.PlaneGeometry(.55, 5.4), b = new R.PlaneGeometry(.55, 5.4); a.translate(-1.12, 0, 0); b.translate(1.12, 0, 0);
-      const g = new R.BufferGeometry(), P = new Float32Array(24), U = new Float32Array(16), I = [];
-      [a, b].forEach((q, k) => { P.set(q.attributes.position.array, k * 12); U.set(q.attributes.uv.array, k * 8); q.index.array.forEach(i => I.push(i + k * 4)); });
-      g.setAttribute('position', new R.BufferAttribute(P, 3)); g.setAttribute('uv', new R.BufferAttribute(U, 2)); g.setIndex(I); return g;
-    }
     function applyAll() {
       try {
         if (typeof bodyM === 'undefined') return;
@@ -160,16 +152,8 @@
         const ri = eq.rim ? item(eq.rim) : null;
         if (ri && typeof rimP !== 'undefined') { rimP.color.setHex(ri.color); if (rimP.emissive) rimP.emissive.setHex(ri.emissive || 0); }
         else if (typeof rimP !== 'undefined' && rimP.emissive) rimP.emissive.setHex(0);
-        const ne = eq.neon ? item(eq.neon) : null, R = R_();
-        if (R && typeof shell !== 'undefined') {
-          if (!neon) { neon = new R.Mesh(neonStrips(R), new R.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .55, blending: R.AdditiveBlending, depthWrite: false })); neon.rotation.x = -Math.PI / 2; neon.position.y = .09; shell.add(neon); }
-          neon.visible = !!ne && !(typeof boatM !== 'undefined' && boatM); if (ne && !ne.rainbow) neon.material.color.setHex(ne.color);
-          // neon her aracın kendi boyutunda (eskiden her araca 2.8×6.2 m çiziliyordu; motosiklette kocaman dikdörtgen oluyordu)
-          try { const t = GM[G.model][1]; let w = 1.1, l = 2.7; if (t !== 5 && typeof CT !== 'undefined' && CT[t]) { l = CT[t][0] + .9; w = CT[t][1] + .9; } neon.scale.set(w / 2.8, l / 6.2, 1); } catch (e) {}
-        }
       } catch (e) { console.error('[IST shop] uygulama hatası', e); }
     }
-    (function rainbow() { const it = S.eq.neon && item(S.eq.neon); if (neon && neon.visible && it && it.rainbow) { try { neon.material.color.setHSL((performance.now() / 2500) % 1, 1, .55); } catch (e) {} } requestAnimationFrame(rainbow); })();
 
     if (typeof window.buildPlayer === 'function') {          // araç yeniden kurulunca süsleri tekrar uygula
       const bp = window.buildPlayer;
