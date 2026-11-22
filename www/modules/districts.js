@@ -141,7 +141,7 @@
         },
         /* ağaç: gövde + dolgun tepe; her ağacın gövdesine çarpışma kutusu eklenir (araç artık içinden geçmez) */
         trees(pts, op) {
-          op = op || {}; const lq = lowQ();
+          op = op || {}; const lq = lowQ(); pts = pts.filter(p => !B.onRoad(p[0], p[1], .2));   // yol üstüne ağaç konmaz
           pts.forEach(p => {
             const s = (p[2] || 1) * drr(.88, 1.12), c = dpk(TC);
             B.deco('trunk', p[0], s, p[1], .2 * s, 2 * s, .2 * s, 0, 0x5b4636);
@@ -152,7 +152,9 @@
           });
         },
         /* sokak lambası: kaide + direk + yola uzanan kol + fener; q = [x, z, yön açısı] */
+        onRoad(x, z, m) { return B.net.some(r => { const h = (r.h || (r.lo ? r.lo + 6 : 6)) + (m || 0); return r.ax === 'v' ? Math.abs(x - r.c) < h && z > Math.min(r.a, r.b) - h && z < Math.max(r.a, r.b) + h : Math.abs(z - r.c) < h && x > Math.min(r.a, r.b) - h && x < Math.max(r.a, r.b) + h; }); },
         lamps(pts) {
+          pts = pts.filter(q => !B.onRoad(q[0], q[1], .2));   // yolun üstüne düşen lamba konmaz
           if (!pts.length) return;
           const l = new R.InstancedMesh(new R.SphereGeometry(.32, 10, 6), new R.MeshBasicMaterial({ color: 0xffe9a8 }), pts.length), o = new R.Object3D();
           pts.forEach((q, i) => {
@@ -208,12 +210,14 @@
       hz.forEach(h => { h.a = h.a === undefined ? xa : h.a; h.b = h.b === undefined ? xb : h.b; B.road(h.a, h.c, h.b, h.c, h.h * 2); B.net.push({ ax: 'h', c: h.c, a: h.a, b: h.b, lo: h.lo || (h.h > 8 ? 6 : 2.6), h: h.h }); });
       vx.forEach(v => {
         const cuts = hz.filter(h => h.c > v.a && h.c < v.b);
-        segs(v.a, v.b, cuts, 1).forEach(sg => { (v.dash || [0]).forEach(d => B.dash(v.c + d, sg[0], v.c + d, sg[1]));
+        const eA = hz.find(h => h.c === v.a), eB = hz.find(h => h.c === v.b);   // yolun iki ucundaki cadde: kaldırım/şerit onun içine uzanmasın
+        segs(v.a + (eA ? eA.h + 1 : 0), v.b - (eB ? eB.h + 1 : 0), cuts, 1).forEach(sg => { (v.dash || [0]).forEach(d => B.dash(v.c + d, sg[0], v.c + d, sg[1]));
           [-1, 1].forEach(sd => { const off = sd * (v.h + 1.5); B.plane(3, sg[1] - sg[0], 0xcfc8bb, v.c + off, .04, (sg[0] + sg[1]) / 2); if (!B.lowQ()) B.deco('box', v.c + sd * (v.h + .12), .09, (sg[0] + sg[1]) / 2, .25, .18, sg[1] - sg[0], 0, 0xa9a39a); B.walk.push({ x0: v.c + sd * (v.h + 2.2), z0: sg[0], x1: v.c + sd * (v.h + 2.2), z1: sg[1] }); }); });
       });
       hz.forEach(h => {
         const cuts = vx.filter(v => v.c > h.a && v.c < h.b);
-        segs(h.a, h.b, cuts, 1).forEach(sg => { (h.dash || [0]).forEach(d => B.dash(sg[0], h.c + d, sg[1], h.c + d));
+        const eA = vx.find(v => v.c === h.a), eB = vx.find(v => v.c === h.b);
+        segs(h.a + (eA ? eA.h + 1 : 0), h.b - (eB ? eB.h + 1 : 0), cuts, 1).forEach(sg => { (h.dash || [0]).forEach(d => B.dash(sg[0], h.c + d, sg[1], h.c + d));
           [-1, 1].forEach(sd => { const off = sd * (h.h + 1.5); B.plane(sg[1] - sg[0], 3, 0xcfc8bb, (sg[0] + sg[1]) / 2, .04, h.c + off); if (!B.lowQ()) B.deco('box', (sg[0] + sg[1]) / 2, .09, h.c + sd * (h.h + .12), sg[1] - sg[0], .18, .25, 0, 0xa9a39a); B.walk.push({ x0: sg[0], z0: h.c + sd * (h.h + 2.2), x1: sg[1], z1: h.c + sd * (h.h + 2.2) }); }); });
       });
       /* sokak ağaçları + lambalar */
@@ -336,7 +340,7 @@
       roads(B, vx, hz);
       B.box(522, .3, 2.4, 0x5a8f4e, -17, 0, 0);                                    // orta refüj
       fill(B, r, vx, hz, { cap: (i, j) => (j === 3 ? 20 : 46), lo: 14, park: (i, j) => (j === 3 && (i % 2 === 0)) });
-      B.solid(522, 1.2, 1.6, 0xe4ddd0, -17, 0, 30.5); B.solid(522, .6, .8, 0xc4bdb0, -17, 0, 10.2);   // deniz seti + kaldırım bordürü
+      B.solid(554, 1.2, 1.6, 0xe4ddd0, -14, 0, 30.5);   /* deniz seti yan duvarlara (x -290 / 262) kadar: uçlardaki boşluktan araba denize iniyordu */ B.solid(522, .6, .8, 0xc4bdb0, -17, 0, 10.2);   // deniz seti + kaldırım bordürü
       [10, 13, 20, 24].forEach(z => B.walk.push({ x0: -270, z0: z, x1: 236, z1: z }));
       const lp = []; for (let x = -270; x < 240; x += 24) lp.push([x, 12, Math.PI]); B.lamps(lp);
       const tr = []; for (let x = -270; x < 240; x += 18) {             // sahil ağaçları + aralarında çiçek tarhları ve banklar
