@@ -267,7 +267,8 @@
     if (typeof repairCar === 'function') {
       const short = () => !repFree() && G.money < rpCost() && adOk();   // parası yetmiyor ama reklam var → reklamla ücretsiz tamir
       const rb = IST.ui.menuButton('bRepair', '🔧 Arabayı yenile', () => { if (short()) adRepair().then(upRep); else { repairCar(); upRep(); } }, { inGame: true, before: 'bEng' });
-      function upRep() { try { rb.textContent = needRp() ? '🔧 Arabayı yenile — ' + (repFree() ? 'ÜCRETSİZ' : short() ? '📺 reklamla ücretsiz' : rpCost() + ' altın') + ' (hasar %' + Math.round(dmg) + ')' : '🔧 Araba sağlam ✓'; } catch (e) {} }
+      function upRep() { try { rb.style.display = needRp() ? '' : 'none';   /* araba sağlamken menüde görünmesin */
+        rb.textContent = needRp() ? '🔧 Arabayı yenile — ' + (repFree() ? 'ÜCRETSİZ' : short() ? '📺 reklamla ücretsiz' : rpCost() + ' altın') + ' (hasar %' + Math.round(dmg) + ')' : '🔧 Araba sağlam ✓'; } catch (e) {} }
       upRep(); setInterval(upRep, 1000);
     }
     initProvider().then(refresh);
