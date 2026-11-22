@@ -137,6 +137,26 @@ body.mn #hud .r{max-height:calc(100vh - var(--safe-area-inset-top,env(safe-area-
 .pad button[data-k=down]{background:linear-gradient(#ff8a80,#c62828);box-shadow:0 5px 0 #6d1414;color:#fff}
 .pad button[data-k=horn]{background:linear-gradient(#ffe48f,#e0a82e);box-shadow:0 5px 0 #8a5a12;color:#3a2508}
 .pad button.on,.pad button:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(8,12,24,.9);filter:brightness(1.15)}
+/* ===== ekran boyutları: telefon (yatay, kısa ekran) ve tablet ===== */
+/* yan pencerelerde (Bölgeler, Mağaza…) yazı en az 140 px yer alır, düğmeler sığmazsa alt satıra iner */
+body .ist-row{flex-wrap:wrap}body .ist-row>div{flex:1 1 140px;min-width:140px}
+@media (max-height:520px){
+ #start .card{padding:10px 18px 12px;border-radius:18px;max-width:560px}
+ #start h1{font-size:34px!important;margin:0 0 2px;-webkit-text-stroke:1.5px #3a2508}
+ #start .tag{margin:0 0 6px;padding:3px 10px;font-size:11px}
+ #start p{font-size:12.5px;margin:0 0 4px}
+ #start .row{margin:3px 0}
+ #go{padding:10px 24px;font-size:16px;margin-top:4px}
+ #gear,#smenu button,#rs,#lang{padding:7px 12px!important;font-size:13px!important;margin-top:4px!important;margin-bottom:4px!important}
+}
+@media (max-height:400px){ #start p{display:none} }
+/* tablet: daha büyük ekranda menü ve yazılar biraz büyür */
+@media (min-width:900px) and (min-height:700px){
+ #start .card{zoom:1.35}
+ #start h1{font-size:50px!important;white-space:nowrap}
+ /* sürüş ekranı ve yan pencereler tablette %25 büyük */
+ #hud,#gp,.ist-panel,#mon,#mh,#navb,#mini,#miniBtn,.pad,#msg{zoom:1.25}
+}
 </style>
 </head>
 <body>
@@ -550,8 +570,8 @@ const coins=[],cg2=new R.CylinderGeometry(.9,.9,.15,16),cm2=bas(0xffc400),GP=[[-
 const rcoin=(g,near)=>{for(let n=0;n<20;n++){const k=C[(Math.random()*C.length)|0],o=[-5.25,-1.75,1.75,5.25][(Math.random()*4)|0],h=Math.random()<.5,q=near?clamp((h?car.x:car.z)+rnd(-200,200),-290,290):rnd(-290,290),x=h?q:k+o,z=h?k+o:q;if(!near||Math.hypot(x-car.x,z-car.z)>50){g.position.set(x,1.1,z);return;}}g.position.set(rnd(-290,290),1.1,C[0]+1.75);};
 let pcx=0,pcz=0,bT=0;
 for(let i=0;i<70;i++){const g=new R.Group(),m=new R.Mesh(cg2,cm2);m.rotation.x=Math.PI/2;g.add(m);scene.add(g);rcoin(g);coins.push(g);}
-const mon=document.createElement('div');mon.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:40px;z-index:5;color:#ffd75a;font:700 17px system-ui;padding:5px 14px;border-radius:999px;background:var(--glass);border:1px solid rgba(201,161,74,.5);box-shadow:0 2px 10px rgba(0,0,0,.3);pointer-events:none';mon.textContent='💰 '+G.money;document.body.appendChild(mon);
-const gp=document.createElement('div');gp.style.cssText='position:fixed;top:0;right:var(--sr,0px);bottom:0;width:min(50vw,470px);display:none;z-index:30;font:15px system-ui;color:#fff;background:#14213d;border-left:2px solid rgba(201,161,74,.6);box-shadow:-6px 0 24px rgba(0,0,0,.35);overflow-y:auto;overscroll-behavior:contain';gp.innerHTML='<div id="gi" style="padding:14px 14px 30px"></div>';document.body.appendChild(gp);
+const mon=document.createElement('div');mon.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:40px;z-index:5;color:#ffd75a;font:700 17px system-ui;padding:5px 14px;border-radius:999px;background:var(--glass);border:1px solid rgba(201,161,74,.5);box-shadow:0 2px 10px rgba(0,0,0,.3);pointer-events:none';mon.textContent='💰 '+G.money;document.body.appendChild(mon);mon.id='mon';
+const gp=document.createElement('div');gp.style.cssText='position:fixed;top:0;right:var(--sr,0px);bottom:0;width:min(50vw,470px);display:none;z-index:30;font:15px system-ui;color:#fff;background:#14213d;border-left:2px solid rgba(201,161,74,.6);box-shadow:-6px 0 24px rgba(0,0,0,.35);overflow-y:auto;overscroll-behavior:contain';gp.innerHTML='<div id="gi" style="padding:14px 14px 30px"></div>';gp.id='gp';document.body.appendChild(gp);
 {const cv=renderer.domElement;cv.style.touchAction='none';
  cv.addEventListener('pointerdown',e=>{drag={id:e.pointerId,x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY,t0:performance.now()};try{cv.setPointerCapture(e.pointerId);}catch(_){}});
  cv.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;camYaw-=(e.clientX-drag.x)*.008;camPit=clamp(camPit+(e.clientY-drag.y)*.006,-1,.9);drag.x=e.clientX;drag.y=e.clientY;camT=performance.now();});
@@ -630,12 +650,12 @@ function dAdd(t,n){const D=dly();D.p[t]=(D.p[t]||0)+n;let ch=false;
 function dHtml(){const D=dly();return '<div style="margin:4px 0 8px;padding:8px 12px;border-radius:10px;background:var(--glass);color:var(--ink);font-size:13px"><b>🎯 Günlük hedefler</b> · her biri +'+DG_R+', hepsi +'+DG_B+' bonus<br>'+DG.map(g=>(D.c[g[0]]?'✅ ':'▫ ')+g[1]+' '+(g[0]==='k'?Math.min(g[2],D.p.k||0).toFixed(1):Math.min(g[2],D.p[g[0]]||0))+'/'+g[2]).join(' · ')+'</div>';}
 let selM=-1,cm=null;
 const beam=new R.Mesh(new R.CylinderGeometry(3,3,40,16,1,true),new R.MeshBasicMaterial({color:0x2ee06b,transparent:true,opacity:.25,side:R.DoubleSide,depthWrite:false}));beam.visible=false;scene.add(beam);
-const mh=document.createElement('div');mh.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:72px;z-index:5;color:#fff;font:700 15px system-ui;text-shadow:0 1px 3px #000;pointer-events:none';document.body.appendChild(mh);
+const mh=document.createElement('div');mh.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:72px;z-index:5;color:#fff;font:700 15px system-ui;text-shadow:0 1px 3px #000;pointer-events:none';document.body.appendChild(mh);mh.id='mh';
 function drawMs(){const mb=G.mb||{};$('ms').innerHTML=dHtml()+MS.map((m,i)=>'<button data-v="'+i+'" style="display:block;width:100%;text-align:left;margin:4px 0;padding:10px 12px;border-radius:10px;border:2px solid '+(selM===i?'#ffd54a':'transparent')+';background:var(--glass);color:var(--ink);font-size:14px">'+m[0]+(mb[i]?' '+starTxt(mb[i]):'')+' — '+m[1]+' · '+(m[3]&&!G.rc&&!own('m4')?m[3]:m[2]+'–'+m[2]*2+' altın')+(i===3?' · 3 farklı pist':'')+'</button>').join('');$('ms').querySelectorAll('button').forEach(b=>b.onclick=()=>{selM=+b.dataset.v;drawMs();});}
 seg('md',v=>{const bs=$('md').children;if(v==='1'&&!G.unl&&!devAll()){bs[0].classList.add('on');bs[1].classList.remove('on');freeMode=true;selM=-1;$('ms').style.display='block';$('ms').innerHTML='🔒 Görevleri açmak için serbest sürüşte şehrin üçte birini gez (%'+Math.min(100,Math.floor(visS.size/(RT*UNL_K)*100))+'). Gezdiğin her yeni sokak +'+FREE_SEG+' altın kazandırır ve haritada yeşil işaretlenir.';return;}
  freeMode=v!=='1';$('ms').style.display=freeMode?'none':'block';if(!freeMode){if(selM<0)selM=0;drawMs();}else selM=-1;});
 const DK=[300,27];
-const nav=document.createElement('div');/* yön göstergesi: lacivert yuvarlak rozet + altın çerçeve, içinde hedefi gösteren büyük ok; altında 'Hedef' ve mesafe */nav.style.cssText='position:fixed;left:50%;top:92px;width:120px;margin-left:-60px;z-index:5;display:none;text-align:center;pointer-events:none;font-family:system-ui,sans-serif';nav.innerHTML='<div style="width:74px;height:74px;margin:0 auto;border-radius:50%;background:rgba(14,22,42,.82);border:3px solid #c9a14a;box-shadow:0 3px 10px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center"><svg id="na" width="54" height="54" viewBox="0 0 54 54" style="transition:transform .12s linear"><path d="M27 3 L48 25 L35 25 L35 51 L19 51 L19 25 L6 25 Z" fill="#ffd75a" stroke="#14213d" stroke-width="3" stroke-linejoin="round"/></svg></div><div style="display:inline-block;margin-top:6px;padding:3px 10px;border-radius:999px;background:rgba(14,22,42,.82);border:1px solid rgba(201,161,74,.6);color:#fff4e6;font-weight:700;font-size:14px;white-space:nowrap">🎯 Hedef · <span id="nd"></span></div>';document.body.appendChild(nav);
+const nav=document.createElement('div');/* yön göstergesi: lacivert yuvarlak rozet + altın çerçeve, içinde hedefi gösteren büyük ok; altında 'Hedef' ve mesafe */nav.style.cssText='position:fixed;left:50%;top:92px;width:120px;margin-left:-60px;z-index:5;display:none;text-align:center;pointer-events:none;font-family:system-ui,sans-serif';nav.innerHTML='<div style="width:74px;height:74px;margin:0 auto;border-radius:50%;background:rgba(14,22,42,.82);border:3px solid #c9a14a;box-shadow:0 3px 10px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center"><svg id="na" width="54" height="54" viewBox="0 0 54 54" style="transition:transform .12s linear"><path d="M27 3 L48 25 L35 25 L35 51 L19 51 L19 25 L6 25 Z" fill="#ffd75a" stroke="#14213d" stroke-width="3" stroke-linejoin="round"/></svg></div><div style="display:inline-block;margin-top:6px;padding:3px 10px;border-radius:999px;background:rgba(14,22,42,.82);border:1px solid rgba(201,161,74,.6);color:#fff4e6;font-weight:700;font-size:14px;white-space:nowrap">🎯 Hedef · <span id="nd"></span></div>';document.body.appendChild(nav);nav.id='navb';
 const bk=document.createElement('button');bk.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:130px;z-index:6;display:none;padding:14px 22px;border-radius:14px;border:0;background:#2979ff;color:#fff;font:700 17px system-ui';document.body.appendChild(bk);
 function boatMesh(bm){const g=new R.Group(),P=[[-.95,-2.4],[.95,-2.4],[1.05,.6],[.65,2.1],[0,3.2],[-.65,2.1],[-1.05,.6]],mk=sc=>{const sh=new R.Shape();P.forEach((p,i)=>i?sh.lineTo(p[0]*sc,-p[1]*sc):sh.moveTo(p[0]*sc,-p[1]*sc));return sh;};
  const hg=new R.ExtrudeGeometry(mk(1),{depth:.9,bevelEnabled:true,bevelSize:.08,bevelThickness:.08,bevelSegments:2});hg.rotateX(-Math.PI/2);hg.translate(0,-1.1,0);
@@ -918,7 +938,7 @@ scene.updateMatrixWorld(true);
 requestAnimationFrame(frame);
 </script>
 <!-- IST-MODULLER -->
-<script>window.IST_CONFIG={cloud:{apiKey:"",projectId:""},shop:{mock:false},ads:{mock:false,testing:true},districts:{devUnlockAll:true},garage:{devUnlockAll:true}};   /* DENEME: tüm bölgeler + tüm arabalar/jantlar/boyalar/parçalar açık; garaj.devUnlockAll açıkken garaj kaydı yapılmaz. YAYINDAN ÖNCE ikisini de false yap. */   /* ads: YAYINDAN ÖNCE testing:false yap ve ids:{rewarded:'...',interstitial:'...'} yaz */   /* devUnlockAll: DENEME için tüm bölgeler açık. Yayından önce true yerine false yazın. */</script>
+<script>window.IST_CONFIG={cloud:{apiKey:"",projectId:""},shop:{mock:false},ads:{mock:false,testing:true},districts:{devUnlockAll:false},garage:{devUnlockAll:false}};   /* DENEME: tüm bölgeler + tüm arabalar/jantlar/boyalar/parçalar açık; garaj.devUnlockAll açıkken garaj kaydı yapılmaz. YAYINDAN ÖNCE ikisini de false yap. */   /* ads: YAYINDAN ÖNCE testing:false yap ve ids:{rewarded:'...',interstitial:'...'} yaz */   /* devUnlockAll: DENEME için tüm bölgeler açık. Yayından önce true yerine false yazın. */</script>
 <script src="modules/loader.js"></script>
 <!-- IST-MODULLER -->
 </body>
