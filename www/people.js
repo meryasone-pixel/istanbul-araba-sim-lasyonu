@@ -146,9 +146,9 @@
     const phone = kind === 'walk' ? Math.random() < .2 : Math.random() < .35;
     const A = build({ phone });
     if (!pedM) {
-      pedM = FX.Q === 0 ? new R.MeshLambertMaterial({ vertexColors: true, skinning: true }) : new R.MeshStandardMaterial({ vertexColors: true, roughness: .74, metalness: 0, skinning: true, envMapIntensity: .55 });
+      pedM = new R.MeshLambertMaterial({ vertexColors: true, skinning: true });
       umbG = new R.Group();
-      [0x111114, 0x1d2c4f, 0x7a1f2a, 0x2f4f3a, 0x5a5a60].forEach(c => umbM.push(FX.Q === 0 ? new R.MeshLambertMaterial({ color: c, side: R.DoubleSide }) : new R.MeshStandardMaterial({ color: c, roughness: .45, side: R.DoubleSide })));
+      [0x111114, 0x1d2c4f, 0x7a1f2a, 0x2f4f3a, 0x5a5a60].forEach(c => umbM.push(new R.MeshLambertMaterial({ color: c, side: R.DoubleSide })));
     }
     const mesh = new R.SkinnedMesh(skinGeo(A.parts), pedM), bones = {}, list = [];
     for (const [n, par, x, y, z] of BONES) { const b = new R.Bone(); b.name = n; const pa = par ? ABS[par] : [0, 0, 0]; b.position.set(x - pa[0], y - pa[1], z - pa[2]); bones[n] = b; list.push(b); if (par) bones[par].add(b); }
@@ -204,7 +204,7 @@
     for (let i = 0; i < 4; i++) seg.push({ g: new R.BoxGeometry(1.8, .035, .1), c: wood, mx: MX(0, .45, -.18 + i * .12) });
     for (let i = 0; i < 3; i++) seg.push({ g: new R.BoxGeometry(1.8, .09, .03), c: wood, mx: MX(0, .62 + i * .13, -.27, -.15) });
     for (const x of [-.75, .75]) { seg.push({ g: new R.BoxGeometry(.05, .45, .05), c: iron, mx: MX(x, .225, .14) }); seg.push({ g: new R.BoxGeometry(.05, .85, .05), c: iron, mx: MX(x, .43, -.25) }); seg.push({ g: new R.BoxGeometry(.05, .04, .5), c: iron, mx: MX(x, .43, -.05) }); }
-    const bG = VE.mergeCol(seg), mm = FX.Q === 0 ? new R.MeshLambertMaterial({ vertexColors: true }) : new R.MeshStandardMaterial({ vertexColors: true, roughness: .7 });
+    const bG = VE.mergeCol(seg), mm = new R.MeshLambertMaterial({ vertexColors: true });
     const inst = (geo, mat, arr, y) => { const im = new R.InstancedMesh(geo, mat, Math.max(1, arr.length)), o = new R.Object3D(); arr.forEach((a, i) => { o.position.set(a[0], y || .3, a[1]); o.rotation.set(0, a[2], 0); o.updateMatrix(); im.setMatrixAt(i, o.matrix); }); im.count = arr.length; im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false; scene.add(im); return im; };
     inst(bG, mm, bm);
     // durak: çelik çerçeve, cam arka/yan, çatı, ışıklı reklam panosu
@@ -215,7 +215,7 @@
     st.push({ g: new R.BoxGeometry(.06, .45, .06), c: steel, mx: MX(-1.2, .23, -.38) }); st.push({ g: new R.BoxGeometry(.06, .45, .06), c: steel, mx: MX(1.2, .23, -.38) });
     st.push({ g: new R.BoxGeometry(.6, .18, .02), c: 0x1d4ea8, mx: MX(-1.2, 2.3, .55) });
     const sG = VE.mergeCol(st); inst(sG, mm, sm);
-    const gl = FX.Q === 0 ? new R.MeshLambertMaterial({ color: 0x9fb5c0, transparent: true, opacity: .25 }) : new R.MeshStandardMaterial({ color: 0xa8c0cc, roughness: .05, metalness: 0, transparent: true, opacity: .22, envMapIntensity: 1.5, depthWrite: false });
+    const gl = new R.MeshLambertMaterial({ color: 0x9fb5c0, transparent: true, opacity: .25 });
     const gG = VE.mergeCol([{ g: new R.BoxGeometry(3.1, 2.2, .02), c: 0xffffff, mx: MX(0, 1.3, -.55) }]); inst(gG, gl, sm);
     PE.adM = new R.MeshBasicMaterial({ color: 0xffffff });
     {

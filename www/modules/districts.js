@@ -16,7 +16,7 @@
       const M = c => cache[c] || (cache[c] = mat(c));
       /* süs nesneleri: hepsi türüne göre tek bir InstancedMesh'te toplanır (finish'te), çizim çağrısı artmaz */
       const dr = rng(7), drr = (a, b) => a + dr() * (b - a), dpk = a => a[(dr() * a.length) | 0], DQ = {};
-      const lowQ = () => !!(window.FX && FX.Q === 0);
+      const lowQ = () => true;   // tek grafik ayarı (eski Düşük)
       const GEO = {
         box: () => new R.BoxGeometry(1, 1, 1),
         roof: () => { const q = new R.ConeGeometry(Math.SQRT1_2, 1, 4); q.rotateY(Math.PI / 4); return q; },
@@ -72,10 +72,6 @@
             B.deco('roof', x, top + .3 + Math.min(w, d) * .14, z, w + .4, Math.min(w, d) * .28, d + .4, 0, dpk(TILE));
           } else {                                                                       // düz çatı: korniş + çatı üstü
             B.deco('box', x, top - .05, z, w + .5, .5, d + .5, 0, dk);
-            if (!lowQ()) {
-              if (dr() < .6) B.deco('box', x + drr(-w / 4, w / 4), top + .55, z + drr(-d / 4, d / 4), 2, 1, 1.4, 0, 0xb8bcc0);
-              if (dr() < .35) B.deco('cyl', x + drr(-w / 4, w / 4), top + .9, z + drr(-d / 4, d / 4), 1, 1.8, 1, 0, 0xdedede);
-            }
           }
           return o;
         },
@@ -212,13 +208,13 @@
         const cuts = hz.filter(h => h.c > v.a && h.c < v.b);
         const eA = hz.find(h => h.c === v.a), eB = hz.find(h => h.c === v.b);   // yolun iki ucundaki cadde: kaldırım/şerit onun içine uzanmasın
         segs(v.a + (eA ? eA.h + 1 : 0), v.b - (eB ? eB.h + 1 : 0), cuts, 1).forEach(sg => { (v.dash || [0]).forEach(d => B.dash(v.c + d, sg[0], v.c + d, sg[1]));
-          [-1, 1].forEach(sd => { const off = sd * (v.h + 1.5); B.plane(3, sg[1] - sg[0], 0xcfc8bb, v.c + off, .04, (sg[0] + sg[1]) / 2); if (!B.lowQ()) B.deco('box', v.c + sd * (v.h + .12), .09, (sg[0] + sg[1]) / 2, .25, .18, sg[1] - sg[0], 0, 0xa9a39a); B.walk.push({ x0: v.c + sd * (v.h + 2.2), z0: sg[0], x1: v.c + sd * (v.h + 2.2), z1: sg[1] }); }); });
+          [-1, 1].forEach(sd => { const off = sd * (v.h + 1.5); B.plane(3, sg[1] - sg[0], 0xcfc8bb, v.c + off, .04, (sg[0] + sg[1]) / 2); B.walk.push({ x0: v.c + sd * (v.h + 2.2), z0: sg[0], x1: v.c + sd * (v.h + 2.2), z1: sg[1] }); }); });
       });
       hz.forEach(h => {
         const cuts = vx.filter(v => v.c > h.a && v.c < h.b);
         const eA = vx.find(v => v.c === h.a), eB = vx.find(v => v.c === h.b);
         segs(h.a + (eA ? eA.h + 1 : 0), h.b - (eB ? eB.h + 1 : 0), cuts, 1).forEach(sg => { (h.dash || [0]).forEach(d => B.dash(sg[0], h.c + d, sg[1], h.c + d));
-          [-1, 1].forEach(sd => { const off = sd * (h.h + 1.5); B.plane(sg[1] - sg[0], 3, 0xcfc8bb, (sg[0] + sg[1]) / 2, .04, h.c + off); if (!B.lowQ()) B.deco('box', (sg[0] + sg[1]) / 2, .09, h.c + sd * (h.h + .12), sg[1] - sg[0], .18, .25, 0, 0xa9a39a); B.walk.push({ x0: sg[0], z0: h.c + sd * (h.h + 2.2), x1: sg[1], z1: h.c + sd * (h.h + 2.2) }); }); });
+          [-1, 1].forEach(sd => { const off = sd * (h.h + 1.5); B.plane(sg[1] - sg[0], 3, 0xcfc8bb, (sg[0] + sg[1]) / 2, .04, h.c + off); B.walk.push({ x0: sg[0], z0: h.c + sd * (h.h + 2.2), x1: sg[1], z1: h.c + sd * (h.h + 2.2) }); }); });
       });
       /* sokak ağaçları + lambalar */
       const tr = [], lp = [];

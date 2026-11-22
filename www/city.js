@@ -30,7 +30,7 @@
 
   CI.bld = function (x, z, w, d, h, tower) {
     let type = tower ? 2 : [0, 0, 0, 1, 1, 3, 3][(Math.random() * 7) | 0];
-    if (FX.Q === 0) type = 0;
+    type = 0;   // tek grafik ayarı: bütün binalar aynı cephe türü
     const tint = type === 2 ? [0xcfd8e0, 0xb8c6d2, 0xd6dce0, 0xa9b9c4][(Math.random() * 4) | 0] : lighten(pal[(Math.random() * pal.length) | 0], type === 3 ? .55 : .35);
     lists[type].push(boxG(w, h, d, x, h / 2 + .3, z, tint));
     rects.push([x, z, w / 2, d / 2]);
@@ -59,21 +59,7 @@
     if (roof.length) inst(new R.BoxGeometry(1, 1, 1), mat(0xffffff), roof.length, p => { for (const r of roof) p(r[0], r[1], r[2], 0, r[3], r[4], r[5], r[6]); }, true).castShadow = true;
   };
 
-  // şehir dışı silüet (yalnız görüntü)
-  CI.skyline = function () {
-    if (FX.Q === 0) return;
-    const L = { 2: [], 3: [], 0: [] }, rr = FX.srand(99);
-    for (let i = 0; i < 340; i++) {
-      const a = rr() * Math.PI * 2, r = 380 + rr() * 300, x = Math.cos(a) * r - 40, z = Math.sin(a) * r * 1.2;
-      if (x > 260) continue;
-      const tall = rr() < .35, h = tall ? 45 + rr() * 80 : 14 + rr() * 30, w = 14 + rr() * 22, d = 14 + rr() * 22, t = tall ? 2 : rr() < .5 ? 3 : 0;
-      L[t].push(boxG(w, h, d, x, h / 2 - .5, z, t === 2 ? 0xc0ccd6 : lighten(pal[(rr() * pal.length) | 0], .3)));
-    }
-    for (const t in L) { if (!L[t].length) continue; const m = FX.facadeMat(+t, 0xffffff, true); bm.push(m); const me = new R.Mesh(merge(L[t]), m); scene.add(me); }
-    // uzak tepeler (Boğaz'ın karşı yakası hissi)
-    const hm = new R.Mesh(new R.CylinderGeometry(1150, 1250, 60, 48, 1, true), new R.MeshBasicMaterial({ color: 0x3a3d44, side: R.BackSide, fog: true }));
-    hm.position.set(0, 10, 0); scene.add(hm); CI.hills = hm;
-  };
+  CI.skyline = function () {};   // uzak silüet yalnız yüksek grafikteydi: kaldırıldı
 
   // kaldırımlar + bordür
   CI.sidewalks = function () {
@@ -81,14 +67,13 @@
     const sw = new R.InstancedMesh(new R.BoxGeometry(40, .3, 40), pm, n), o = new R.Object3D(); let k = 0;
     for (let i = -5; i <= 5; i++) for (let j = -5; j <= 5; j++) { o.position.set(i * 54, .15, j * 54); o.updateMatrix(); sw.setMatrixAt(k++, o.matrix); }
     sw.receiveShadow = true; sw.frustumCulled = false; scene.add(sw);
-    const cm = FX.Q === 0 ? mat(0x8f8a82) : new R.MeshStandardMaterial({ color: 0x8c8a86, roughness: .7 });
+    const cm = mat(0x8f8a82);
     inst(new R.BoxGeometry(1, 1, 1), cm, n * 4, p => { for (let i = -5; i <= 5; i++) for (let j = -5; j <= 5; j++) { const x = i * 54, z = j * 54; p(x, .16, z - 19.88, 0, 40, .32, .26); p(x, .16, z + 19.88, 0, 40, .32, .26); p(x - 19.88, .16, z, 0, .26, .32, 40); p(x + 19.88, .16, z, 0, .26, .32, 40); } }, true).receiveShadow = true;
   };
 
   // yaya geçitleri + durma çizgileri (tüm kavşaklar)
   CI.crossings = function () {
-    const m = FX.Q === 0 ? new R.MeshLambertMaterial({ color: 0xbcb6a8 }) :   // düşükte de ışık alsın (ışıksız beyaz gündüz parlıyordu)
-      new R.MeshStandardMaterial({ color: 0xbcb6a8, roughness: .6 });
+    const m = new R.MeshLambertMaterial({ color: 0xbcb6a8 });
     const ms = FX.wetify ? FX.wetify(m, { pud: 0, refl: .6 }) : m;
     ms.polygonOffset = true; ms.polygonOffsetFactor = -1; ms.polygonOffsetUnits = -1;   // yere yapışık çizgi titremesin (hafif: güçlüsü teker altını örtüyordu)
     const its = []; for (const x of C) for (const z of C) its.push([x, z]);
@@ -112,18 +97,12 @@
       for (const t of [-9, 9]) { L.push([cx + t, cz - 19.6, 0, -1]); L.push([cx + 19.6, cz + t, 1, 0]); L.push([cx - t, cz + 19.6, 0, 1]); L.push([cx - 19.6, cz - t, -1, 0]); }
     }
     for (const l of L) rects.push([l[0], l[1], .16, .16]);
-    const pole = FX.Q === 0 ? mat(0x2a2c30) : new R.MeshStandardMaterial({ color: 0x2b2e33, roughness: .45, metalness: .7 });
+    const pole = mat(0x2a2c30);
     inst(new R.CylinderGeometry(.08, .12, 7.4, 8), pole, L.length, p => { for (const l of L) p(l[0], 3.7 + .3, l[1]); }, true).castShadow = true;
     inst(new R.BoxGeometry(.08, .08, 1.7), pole, L.length, p => { for (const l of L) p(l[0] + l[2] * .8, 7.55, l[1] + l[3] * .8, Math.atan2(l[2], l[3])); }, true);
     inst(new R.BoxGeometry(.32, .14, .7), pole, L.length, p => { for (const l of L) p(l[0] + l[2] * 1.55, 7.5, l[1] + l[3] * 1.55, Math.atan2(l[2], l[3])); }, true);
     CI.headM = new R.MeshBasicMaterial({ color: 0x777777 });
     inst(new R.BoxGeometry(.26, .04, .6), CI.headM, L.length, p => { for (const l of L) p(l[0] + l[2] * 1.55, 7.42, l[1] + l[3] * 1.55, Math.atan2(l[2], l[3])); }, true);
-    if (FX.Q > 0) {
-      CI.poolM = new R.MeshBasicMaterial({ map: FX.T.glow, transparent: true, depthWrite: false, blending: R.AdditiveBlending, color: 0x000000 });
-      const pg = new R.PlaneGeometry(1, 1); pg.rotateX(-Math.PI / 2);
-      CI.pools = inst(pg, CI.poolM, L.length, p => { for (const l of L) p(l[0] + l[2] * 2.1, .06, l[1] + l[3] * 2.1, 0, 10, 1, 10); }, true);
-      CI.pools.renderOrder = 3;
-    }
     CI.L = L;
   };
   CI.setTime = function (m) {
@@ -136,13 +115,6 @@
 
   // daha dolgun ağaç tepeleri (iki küme) — birleştirilmiş geometri
   CI.treeGeo = function () {
-    if (FX.Q === 0) return new R.IcosahedronGeometry(1, 0);
-    const a = new R.IcosahedronGeometry(1, 0), b = new R.IcosahedronGeometry(.72, 0);
-    b.translate(.38, .48, -.22); const c = new R.IcosahedronGeometry(.6, 0); c.translate(-.42, .3, .3);
-    const parts = [a, b, c], P = [], N = []; parts.forEach(g => { P.push(...g.attributes.position.array); N.push(...g.attributes.normal.array); });
-    const g = new R.BufferGeometry(); g.setAttribute('position', new R.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new R.Float32BufferAttribute(N, 3));
-    // tepe yönünde normalleri biraz yukarı eğ: yumuşak gökyüzü ışığı
-    const n = g.attributes.normal; for (let i = 0; i < n.count; i++) { const y = n.getY(i); n.setY(i, y * .7 + .3); } n.needsUpdate = true;
-    return g;
+    return new R.IcosahedronGeometry(1, 0);
   };
 })();

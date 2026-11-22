@@ -31,17 +31,17 @@
   let M = null;
   function mats() {
     if (M) return M;
-    const T = FX.T, std = (o) => FX.Q === 0 ? new R.MeshLambertMaterial({ color: o.color }) : new R.MeshStandardMaterial(Object.assign({ roughness: .8, metalness: 0 }, o));
+    const T = FX.T, std = (o) => new R.MeshLambertMaterial({ color: o.color });
     M = {
       glass: FX.glass(), chrome: FX.chrome(),
       trim: std({ color: 0x141416, roughness: .55 }), tire: std({ color: 0x18181a, roughness: .92 }), grille: std({ color: 0x0b0b0c, roughness: .4, metalness: .4 }),
-      rim: FX.Q === 0 ? new R.MeshLambertMaterial({ map: T.rim }) : new R.MeshStandardMaterial({ map: T.rim, roughness: .28, metalness: .85, envMapIntensity: 1.2 }),
+      rim: new R.MeshLambertMaterial({ map: T.rim }),
       plate: new R.MeshBasicMaterial({ map: T.plate }),
       head: new R.MeshBasicMaterial({ color: 0xdadada }), drl: new R.MeshBasicMaterial({ color: new R.Color(2.2, 2.3, 2.5) }),
       sign: new R.MeshBasicMaterial({ color: 0xffd23a }),
       glow: new R.MeshBasicMaterial({ map: T.carGlow, transparent: true, blending: R.AdditiveBlending, depthWrite: false, color: new R.Color(.9, .9, .9) }),
       blob: new R.MeshBasicMaterial({ map: T.blob, transparent: true, depthWrite: false, opacity: .8 }),
-      rider: FX.Q === 0 ? new R.MeshLambertMaterial({ vertexColors: true }) : new R.MeshStandardMaterial({ vertexColors: true, roughness: .7 }),
+      rider: new R.MeshLambertMaterial({ vertexColors: true }),
       paints: {}
     };
     // taksi tepe lambası dokusu
@@ -109,12 +109,6 @@
     return g;
   };
 
-  function decals(g, d, m) {
-    const h = d.L / 2;
-    const bl = add(g, new R.PlaneGeometry(d.W + .55, d.L + .5), m.blob, 0, .045, 0, -Math.PI / 2); bl.renderOrder = 1;
-    const gl = add(g, new R.PlaneGeometry(d.W + 1.6, d.L + 12), m.glow, 0, .05, 4.2, -Math.PI / 2, 0, Math.PI); gl.renderOrder = 2;
-    return [bl, gl];
-  }
 
   /* ---------- otomobil ---------- */
   window.carMesh = function (col, t, c, body, pl) {
@@ -176,7 +170,6 @@
     if (c) {
       c.sL = mL; c.sR = mR; c.tl = tl; c.type = t; if (c.vm) c.vm *= V.SPD[t] || 1;
       V.bake(g);
-      if (FX.Q > 0) decals(g, d, m);
     } else g.userData = { mL, mR };
     return g;
   };
@@ -250,14 +243,13 @@
   let KGlass = null;
   function kGlass() {   // parlak siyah cam: saydam değil (modellerin içi boş, saydam camdan arka teker görünüyordu); ışığı yansıtır
     if (KGlass) return KGlass;
-    KGlass = FX.Q === 0 ? new R.MeshLambertMaterial({ color: 0x10161c })
-      : new R.MeshStandardMaterial({ color: 0x0a0f14, roughness: .05, metalness: .35, envMapIntensity: 1.4 });
+    KGlass = new R.MeshLambertMaterial({ color: 0x10161c });
     KGlass.userData.cast = true; return KGlass;
   }
   function kMat() {
     if (KMat) return KMat;
     const tex = new R.TextureLoader().load('models/kenney/colormap.png'); tex.flipY = false; tex.encoding = R.sRGBEncoding;
-    KMat = FX.Q === 0 ? new R.MeshLambertMaterial({ map: tex }) : new R.MeshStandardMaterial({ map: tex, roughness: .55, metalness: 0 });
+    KMat = new R.MeshLambertMaterial({ map: tex });
     KMat.userData.cast = true; return KMat;
   }
   Promise.all(Object.keys(KF).map(t => fetch('models/kenney/' + KF[t] + '.glb').then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); }).then(b => prepK(+t, b))))
@@ -294,8 +286,7 @@
     let y0 = 1e9, y1 = -1e9; for (let i = 1; i < p.length; i += 3) { y0 = Math.min(y0, p[i]); y1 = Math.max(y1, p[i]); }   // yan panelin alt/üst kenarı: alev bütün kapı yüksekliğine yayılır
     for (let i = 0, j = 0; i < p.length; i += 3, j += 2) { uv[j] = (p[i + 2] - k.bz) / (k.fz - k.bz); uv[j + 1] = 1 - (p[i + 1] - y0) / (y1 - y0 || 1); }
     g.attributes.uv.needsUpdate = true;
-    const m = FX.Q === 0 ? new R.MeshLambertMaterial({ map: flameTex(), transparent: true, alphaTest: .05 })
-      : new R.MeshStandardMaterial({ map: flameTex(), transparent: true, alphaTest: .05, roughness: .35 });
+    const m = new R.MeshLambertMaterial({ map: flameTex(), transparent: true, alphaTest: .05 });
     m.polygonOffset = true; m.polygonOffsetFactor = -2; m.polygonOffsetUnits = -2; m.depthWrite = false;
     const me = new R.Mesh(g, m); me.visible = false; me.renderOrder = 3; return me;
   }
@@ -320,7 +311,6 @@
     if (c) {
       c.sL = mL; c.sR = mR; c.tl = tl; if (c.type !== t && c.vm) c.vm *= V.SPD[t] || 1; c.type = t;
       V.bake(g);
-      if (FX.Q > 0) decals(g, d, m);
     } else { const fl = k.side ? flameLayer(k) : null; if (fl) g.add(fl); g.userData = { mL, mR, kw: k.wl, kenney: true, flame: fl }; }
     return g;
   }
@@ -387,7 +377,6 @@
     if (c) {
       c.sL = mL; c.sR = mR; c.tl = tl; c.type = 5; if (c.vm) c.vm *= V.SPD[5];
       V.bake(g, new Set([rd]));
-      if (FX.Q > 0) decals(g, { L: 2.4, W: .9 }, m);
     } else g.userData = { mL, mR, moto: true };
     return g;
   };
