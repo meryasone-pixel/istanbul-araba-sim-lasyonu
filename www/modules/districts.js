@@ -137,7 +137,7 @@
         },
         /* ağaç: gövde + dolgun tepe; her ağacın gövdesine çarpışma kutusu eklenir (araç artık içinden geçmez) */
         trees(pts, op) {
-          op = op || {}; const lq = lowQ(); pts = pts.filter(p => !B.onRoad(p[0], p[1], .2));   // yol üstüne ağaç konmaz
+          op = op || {}; const lq = lowQ(); pts = pts.filter(p => !B.onRoad(p[0], p[1], .2) && B.net.filter(r => B.onRoad(p[0], p[1], 1.5, [r])).length < 2);   // yol üstüne ya da kavşak köşesine ağaç konmaz
           pts.forEach(p => {
             const s = (p[2] || 1) * drr(.88, 1.12), c = dpk(TC);
             B.deco('trunk', p[0], s, p[1], .2 * s, 2 * s, .2 * s, 0, 0x5b4636);
@@ -148,7 +148,7 @@
           });
         },
         /* sokak lambası: kaide + direk + yola uzanan kol + fener; q = [x, z, yön açısı] */
-        onRoad(x, z, m) { return B.net.some(r => { const h = (r.h || (r.lo ? r.lo + 6 : 6)) + (m || 0); return r.ax === 'v' ? Math.abs(x - r.c) < h && z > Math.min(r.a, r.b) - h && z < Math.max(r.a, r.b) + h : Math.abs(z - r.c) < h && x > Math.min(r.a, r.b) - h && x < Math.max(r.a, r.b) + h; }); },
+        onRoad(x, z, m, L) { return (L || B.net).some(r => { const h = (r.h || (r.lo ? r.lo + 6 : 6)) + (m || 0); return r.ax === 'v' ? Math.abs(x - r.c) < h && z > Math.min(r.a, r.b) - h && z < Math.max(r.a, r.b) + h : Math.abs(z - r.c) < h && x > Math.min(r.a, r.b) - h && x < Math.max(r.a, r.b) + h; }); },
         lamps(pts) {
           pts = pts.filter(q => !B.onRoad(q[0], q[1], .2));   // yolun üstüne düşen lamba konmaz
           if (!pts.length) return;
@@ -202,8 +202,10 @@
     /* vx: dikey yollar {c,h,a?,b?,dash?}  hz: yatay yollar. Her yolun iki ucu başka bir yolda biter (çıkmaz sokak yok). */
     function roads(B, vx, hz, o) {
       o = o || {}; const za = Math.min.apply(0, hz.map(h => h.c)), zb = Math.max.apply(0, hz.map(h => h.c)), xa = Math.min.apply(0, vx.map(v => v.c)), xb = Math.max.apply(0, vx.map(v => v.c));
-      vx.forEach(v => { v.a = v.a === undefined ? za : v.a; v.b = v.b === undefined ? zb : v.b; B.road(v.c, v.a, v.c, v.b, v.h * 2); B.net.push({ ax: 'v', c: v.c, a: v.a, b: v.b, lo: v.lo || (v.h > 8 ? 6 : 2.6), h: v.h }); });
-      hz.forEach(h => { h.a = h.a === undefined ? xa : h.a; h.b = h.b === undefined ? xb : h.b; B.road(h.a, h.c, h.b, h.c, h.h * 2); B.net.push({ ax: 'h', c: h.c, a: h.a, b: h.b, lo: h.lo || (h.h > 8 ? 6 : 2.6), h: h.h }); });
+      vx.forEach(v => { v.a = v.a === undefined ? za : v.a; v.b = v.b === undefined ? zb : v.b; }); hz.forEach(h => { h.a = h.a === undefined ? xa : h.a; h.b = h.b === undefined ? xb : h.b; });
+      const lc = (e, c) => e && (e.a === c || e.b === c) ? e.h : 0;   // L köşesi: iki yol da köşede bitiyorsa asfaltı dış kenara kadar uzat (köşede çentik kalmasın)
+      vx.forEach(v => { B.road(v.c, v.a - lc(hz.find(h => h.c === v.a), v.c), v.c, v.b + lc(hz.find(h => h.c === v.b), v.c), v.h * 2); B.net.push({ ax: 'v', c: v.c, a: v.a, b: v.b, lo: v.lo || (v.h > 8 ? 6 : 2.6), h: v.h }); });
+      hz.forEach(h => { B.road(h.a, h.c, h.b, h.c, h.h * 2); B.net.push({ ax: 'h', c: h.c, a: h.a, b: h.b, lo: h.lo || (h.h > 8 ? 6 : 2.6), h: h.h }); });
       vx.forEach(v => {
         const cuts = hz.filter(h => h.c > v.a && h.c < v.b);
         const eA = hz.find(h => h.c === v.a), eB = hz.find(h => h.c === v.b);   // yolun iki ucundaki cadde: kaldırım/şerit onun içine uzanmasın

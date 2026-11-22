@@ -629,7 +629,7 @@ function dHtml(){const D=dly();return '<div style="margin:4px 0 8px;padding:8px 
 let selM=-1,cm=null;
 const beam=new R.Mesh(new R.CylinderGeometry(3,3,40,16,1,true),new R.MeshBasicMaterial({color:0x2ee06b,transparent:true,opacity:.25,side:R.DoubleSide,depthWrite:false}));beam.visible=false;scene.add(beam);
 const mh=document.createElement('div');mh.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:72px;z-index:5;color:#fff;font:700 15px system-ui;text-shadow:0 1px 3px #000;pointer-events:none';document.body.appendChild(mh);
-function drawMs(){const mb=G.mb||{};$('ms').innerHTML=dHtml()+MS.map((m,i)=>'<button data-v="'+i+'" style="display:block;width:100%;text-align:left;margin:4px 0;padding:10px 12px;border-radius:10px;border:2px solid '+(selM===i?'#ffd54a':'transparent')+';background:var(--glass);color:var(--ink);font-size:14px">'+m[0]+(mb[i]?' '+starTxt(mb[i]):'')+' — '+m[1]+' · '+(m[3]&&!G.rc&&!own('m4')?m[3]:m[2]+'–'+m[2]*2+' altın')+(i===3&&G.rb?' · rekor '+G.rb.toFixed(1)+' sn':'')+'</button>').join('');$('ms').querySelectorAll('button').forEach(b=>b.onclick=()=>{selM=+b.dataset.v;drawMs();});}
+function drawMs(){const mb=G.mb||{};$('ms').innerHTML=dHtml()+MS.map((m,i)=>'<button data-v="'+i+'" style="display:block;width:100%;text-align:left;margin:4px 0;padding:10px 12px;border-radius:10px;border:2px solid '+(selM===i?'#ffd54a':'transparent')+';background:var(--glass);color:var(--ink);font-size:14px">'+m[0]+(mb[i]?' '+starTxt(mb[i]):'')+' — '+m[1]+' · '+(m[3]&&!G.rc&&!own('m4')?m[3]:m[2]+'–'+m[2]*2+' altın')+(i===3?' · 3 farklı pist':'')+'</button>').join('');$('ms').querySelectorAll('button').forEach(b=>b.onclick=()=>{selM=+b.dataset.v;drawMs();});}
 seg('md',v=>{const bs=$('md').children;if(v==='1'&&!G.unl&&!devAll()){bs[0].classList.add('on');bs[1].classList.remove('on');freeMode=true;selM=-1;$('ms').style.display='block';$('ms').innerHTML='🔒 Görevleri açmak için serbest sürüşte şehrin üçte birini gez (%'+Math.min(100,Math.floor(visS.size/(RT*UNL_K)*100))+'). Gezdiğin her yeni sokak +'+FREE_SEG+' altın kazandırır ve haritada yeşil işaretlenir.';return;}
  freeMode=v!=='1';$('ms').style.display=freeMode?'none':'block';if(!freeMode){if(selM<0)selM=0;drawMs();}else selM=-1;});
 const DK=[300,27];
@@ -657,15 +657,25 @@ function endM(){cm=null;beam.visible=false;nav.style.display='none';bk.style.dis
 function startM(){endM();if(selM<0)return;cm={i:selM,t:MT[selM],p:0,d0:dist,dm0:dmg};
  const rp=(ox,oz,mn,mx)=>{let x,z,tr=0;do{const k=C[(Math.random()*C.length)|0],q=rnd(-250,250);if(Math.random()<.5){x=q;z=k+1.75;}else{x=k+1.75;z=q;}tr++;}while((Math.hypot(x-ox,z-oz)<mn||Math.hypot(x-ox,z-oz)>mx)&&tr<80);return{x,z};};
  const show=(p,s)=>{beam.scale.set(s||1,.15,s||1);beam.position.set(p.x,3,p.z);beam.visible=true;nav.style.display='block';};
- if(selM===3){cm.k=0;cm.cps=[];let px=car.x,pz=car.z;for(let n=0;n<3;n++){const p=rp(px,pz,120,330);cm.cps.push(p);px=p.x;pz=p.z;}show(cm.cps[0]);}
+ if(selM===3){let ti=(Math.random()*TRACKS.length)|0;if(TRACKS.length>1&&ti===G.lastTr)ti=(ti+1)%TRACKS.length;G.lastTr=ti;const T=TRACKS[ti];cm.tr=ti;cm.k=0;cm.cps=T.cps.map(p=>({x:p[0],z:p[1]}));
+  car.x=T.s[0];car.z=T.s[1];car.a=T.s[2];car.v=0;msg('🏁 '+T.n);show(cm.cps[0]);}   /* pistin başlangıcına geçilir: rekor her pistte adil */
  if(selM===0){const p=rp(car.x,car.z,150,1e9);cm.x=p.x;cm.z=p.z;show(p);}
  if(selM===4){cm.pick=rp(car.x,car.z,60,180);cm.drop=rp(cm.pick.x,cm.pick.z,150,330);cm.ph=0;show(cm.pick);}
  if(selM===5){const p=rp(car.x,car.z,80,220);cm.x=p.x;cm.z=p.z;show(p,.8);}
- if(selM===6){cm.k=0;cm.cps=[{n:'Sultanahmet',x:-79.25,z:-108},{n:'Galata Kulesi',x:82.75,z:54},{n:'Sahil',x:298.75,z:-100}];show(cm.cps[0]);}}
+ if(selM===6){cm.k=0;cm.cps=tourPick();show(cm.cps[0]);}}
+/* yarış pistleri: s = başlangıç [x, z, yön], cps = 3 kontrol noktası (hepsi cadde üstünde) */
+const TRACKS=[{n:'Sahil Pisti',s:[298.75,-240,0],cps:[[298.75,-60],[298.75,180],[136,244.75]]},
+ {n:'Merkez Pisti',s:[28.75,-240,0],cps:[[28.75,-30],[28.75,190],[-134,190.75]]},
+ {n:'Tarihi Yarımada Pisti',s:[-240,-187.25,Math.PI/2],cps:[[-80,-187.25],[-79.25,-30],[80,-25.25]]}];
+/* şehir turu durakları: her turda rastgele 3 durak, rastgele sırayla (toplam yol süreye sığacak kadar) */
+const TOUR=[{n:'Sultanahmet',x:-79.25,z:-108},{n:'Galata Kulesi',x:82.75,z:54},{n:'Sahil',x:298.75,z:-100},{n:'İskele',x:298.75,z:27},
+ {n:'Kuzey Sahil',x:298.75,z:200},{n:'Fatih',x:-187.25,z:60},{n:'Beyoğlu Caddesi',x:28.75,z:170}];
+function tourPick(){let best=null;for(let t=0;t<60;t++){const a=TOUR.slice().sort(()=>Math.random()-.5).slice(0,3);let L=0,px=car.x,pz=car.z;for(const p of a){L+=Math.abs(p.x-px)+Math.abs(p.z-pz);px=p.x;pz=p.z;}
+ if(L<=900)return a.map(p=>({n:p.n,x:p.x,z:p.z}));if(!best||L<best.L)best={a,L};}return best.a.map(p=>({n:p.n,x:p.x,z:p.z}));}
 function doneM(i){const m=cm,st=m?stars(i,m):1;let r=Math.round(MS[i][2]*SM[st-1]),t;G.mb=G.mb||{};
  if(i===3&&!own('m4')&&!G.rc){G.rc=1;r=0;t='🏁 Yarış arabası kilidi açıldı! Garajdan '+GM[4][2]+' altına alabilirsin';}
  else t='Görev tamam! '+starTxt(st)+' +'+r+' altın';
- if(i===3&&m){const tm=MT[3]-m.t;if(!G.rb||tm<G.rb){if(G.rb)t+=' · 🏆 Yeni rekor '+tm.toFixed(1)+' sn';G.rb=tm;}}
+ if(i===3&&m){const tm=MT[3]-m.t;G.rbT=G.rbT||{};const old=G.rbT[m.tr];if(!old||tm<old){t+=old?' · 🏆 Yeni rekor '+tm.toFixed(1)+' sn':' · ⏱ '+TRACKS[m.tr].n+' rekoru: '+tm.toFixed(1)+' sn';G.rbT[m.tr]=tm;}else t+=' · rekor '+old.toFixed(1)+' sn';}
  G.mb[i]=Math.max(G.mb[i]||0,st);G.money+=r;saveG();mon.textContent='💰 '+G.money;msg(t);endM();mh.textContent='✅ '+t;setTimeout(()=>{if(!cm)mh.textContent='';},4000);
  setTimeout(()=>{dAdd('m',1);dAdd('s',st);},0);}   // günlük hedef ödülü, reklamla ikiye katlanan görev ödülüne karışmasın
 function failM(){msg('Görev başarısız');endM();mh.textContent='❌ Görev başarısız';setTimeout(()=>{if(!cm)mh.textContent='';},4000);}
@@ -676,7 +686,7 @@ function mStep(dt){if(!cm)return;const m=cm,i=m.i;
  if(i===0){if(Math.hypot(m.x-car.x,m.z-car.z)<6)return doneM(0);if(m.t<=0)return failM();mh.textContent='📦 Teslimat · '+sec;arrow(m.x,m.z);}
  else if(i===2){if(m.p>=8)return doneM(2);if(m.t<=0)return failM();mh.textContent='🪙 '+m.p+' / 8 · '+sec;}
  else if(i===3||i===6){const c=m.cps[m.k];if(Math.hypot(c.x-car.x,c.z-car.z)<8){m.k++;if(m.k>=m.cps.length)return doneM(i);beam.position.set(m.cps[m.k].x,3,m.cps[m.k].z);msg(i===6?'📍 '+c.n+' ✓':'Kontrol noktası '+m.k+'/'+m.cps.length);}
-  if(m.t<=0)return failM();const c2=m.cps[m.k];mh.textContent=(i===6?'🗺 '+c2.n+' · ':'🏁 Kontrol '+(m.k+1)+'/'+m.cps.length+' · ')+sec;arrow(c2.x,c2.z);}
+  if(m.t<=0)return failM();const c2=m.cps[m.k];mh.textContent=(i===6?'🗺 '+c2.n+' · ':'🏁 '+TRACKS[m.tr].n+' · '+(m.k+1)+'/'+m.cps.length+' · ')+sec;arrow(c2.x,c2.z);}
  else if(i===4){const c=m.ph?m.drop:m.pick;if(Math.hypot(c.x-car.x,c.z-car.z)<6&&Math.abs(car.v)<3){if(!m.ph){m.ph=1;m.dmR=dmg;beam.position.set(m.drop.x,3,m.drop.z);msg('🧍 Yolcu bindi! Hedefe götür');}else return doneM(4);}
   if(m.t<=0)return failM();mh.textContent=(m.ph?'🚕 Yolcuyu bırak':'🚕 Yolcuyu al')+' · yavaşla ve dur · '+sec;arrow(c.x,c.z);}
  else if(i===5){const d=Math.hypot(m.x-car.x,m.z-car.z);if(d<2.5&&Math.abs(car.v)<.4){m.h=(m.h||0)+dt;if(m.h>=1)return doneM(5);}else m.h=0;
