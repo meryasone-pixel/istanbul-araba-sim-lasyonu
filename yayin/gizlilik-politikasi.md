@@ -1,6 +1,6 @@
 # Gizlilik Politikası – Boğaz Drive
 
-*Son güncelleme: 23 Kasım 2026*
+*Son güncelleme: 24 Kasım 2026*
 
 **Boğaz Drive** bir sürüş oyunudur. Bu politika, oyunun hangi verileri nasıl işlediğini açıklar.
 
@@ -11,8 +11,8 @@
 - Oyunda oyuncular arası sohbet veya mesajlaşma yoktur.
 - Oyun ilerlemesi (altın, araçlar, açılan bölgeler, görevler, ayarlar) **yalnızca telefonunuzda** saklanır. Oyunu sildiğinizde bu veriler de silinir.
 
-## Reklam kütüphanesi (Google AdMob)
-Uygulama, Google'ın reklam kütüphanesini (Google Mobile Ads SDK) içerir. Bu kütüphane, Google'ın kendi politikasına göre **reklam kimliği** gibi cihaz tanımlayıcılarını işleyebilir: https://policies.google.com/technologies/ads
+## Reklamlar (Google AdMob)
+Uygulama, Google AdMob ile reklam gösterir: isteğe bağlı ödüllü reklamlar (izleyen oyuncu altın kazanır) ve oyun bitince çıkan, sıklığı sınırlı geçiş reklamları. Premium Paket alan oyunculara geçiş reklamı gösterilmez. Google'ın reklam kütüphanesi (Google Mobile Ads SDK) kullanılır. Bu kütüphane, Google'ın kendi politikasına göre **reklam kimliği** gibi cihaz tanımlayıcılarını işleyebilir: https://policies.google.com/technologies/ads
 
 Reklam kimliğinizi telefonunuzun **Ayarlar → Google → Reklamlar** bölümünden sıfırlayabilir veya silebilirsiniz.
 
@@ -35,7 +35,7 @@ Sorularınız için: **meryas.one@gmail.com**
 
 # Privacy Policy – Boğaz Drive
 
-*Last updated: November 23, 2026*
+*Last updated: November 24, 2026*
 
 **Boğaz Drive** is a driving game. This policy explains how the game handles data.
 
@@ -46,8 +46,8 @@ Sorularınız için: **meryas.one@gmail.com**
 - There is no chat or messaging between players.
 - Game progress (gold, vehicles, unlocked districts, missions, settings) is stored **only on your phone** and is deleted when you uninstall the game.
 
-## Advertising library (Google AdMob)
-The app includes Google's advertising library (Google Mobile Ads SDK). Under Google's own policy, this library may process device identifiers such as the **advertising ID**: https://policies.google.com/technologies/ads
+## Ads (Google AdMob)
+The app shows ads through Google AdMob: optional rewarded ads (players who watch earn gold) and frequency-capped interstitial ads when a game ends. Players who buy the Premium Pack do not see interstitial ads. Google's advertising library (Google Mobile Ads SDK) is used. Under Google's own policy, this library may process device identifiers such as the **advertising ID**: https://policies.google.com/technologies/ads
 
 You can reset or delete your advertising ID in your phone's **Settings → Google → Ads**.
 
