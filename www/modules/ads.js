@@ -132,7 +132,7 @@
     (async () => {
       try {
         const nativeOk = !!(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob);
-        provider = cfg.mock === true ? providers.mock : nativeOk ? providers.admob : null;
+        provider = cfg.enabled === false ? null : cfg.mock === true ? providers.mock : nativeOk ? providers.admob : null;   // enabled:false → reklam yok (AdMob kimlikleri gelene kadar)
         if (provider) await provider.init();
       } catch (e) { console.warn('[IST ads] reklam başlatılamadı:', e && e.message); provider = null; }
       btn.style.display = provider ? '' : 'none';
