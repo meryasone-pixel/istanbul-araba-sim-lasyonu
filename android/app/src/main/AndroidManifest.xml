@@ -38,4 +38,6 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Oyun yatay açılır (sensorLandscape) ama yatay ekran "zorunlu donanım" sayılmasın: Play bazı cihazları yoksa dışlıyor -->
+    <uses-feature android:name="android.hardware.screen.landscape" android:required="false" />
 </manifest>
