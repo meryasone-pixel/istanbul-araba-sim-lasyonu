@@ -12,7 +12,7 @@
 - Oyun ilerlemesi (altın, araçlar, açılan bölgeler, görevler, ayarlar) **yalnızca telefonunuzda** saklanır. Oyunu sildiğinizde bu veriler de silinir.
 
 ## Reklamlar (Google AdMob)
-Uygulama, Google AdMob ile reklam gösterir: isteğe bağlı ödüllü reklamlar (izleyen oyuncu altın kazanır) ve oyun bitince çıkan, sıklığı sınırlı geçiş reklamları. Premium Paket alan oyunculara geçiş reklamı gösterilmez. Google'ın reklam kütüphanesi (Google Mobile Ads SDK) kullanılır. Bu kütüphane, Google'ın kendi politikasına göre **reklam kimliği** gibi cihaz tanımlayıcılarını işleyebilir: https://policies.google.com/technologies/ads
+Uygulama, Google AdMob ile reklam gösterir: isteğe bağlı ödüllü reklamlar (izleyen oyuncu altın kazanır) ve oyun bitince çıkan, sıklığı sınırlı geçiş reklamları. Premium Paket alan oyunculara geçiş reklamı gösterilmez. Google'ın reklam kütüphanesi (Google Mobile Ads SDK) kullanılır. Bu kütüphane, reklam göstermek, ölçmek ve sahtekârlığı önlemek için Google'ın kendi politikasına göre şu verileri toplayıp işleyebilir: **reklam kimliği** gibi cihaz tanımlayıcıları, IP adresinden çıkarılan **yaklaşık konum**, reklamlarla **etkileşimler** ve **hata/performans bilgileri**: https://policies.google.com/technologies/ads
 
 Reklam kimliğinizi telefonunuzun **Ayarlar → Google → Reklamlar** bölümünden sıfırlayabilir veya silebilirsiniz.
 
@@ -47,7 +47,7 @@ Sorularınız için: **meryas.one@gmail.com**
 - Game progress (gold, vehicles, unlocked districts, missions, settings) is stored **only on your phone** and is deleted when you uninstall the game.
 
 ## Ads (Google AdMob)
-The app shows ads through Google AdMob: optional rewarded ads (players who watch earn gold) and frequency-capped interstitial ads when a game ends. Players who buy the Premium Pack do not see interstitial ads. Google's advertising library (Google Mobile Ads SDK) is used. Under Google's own policy, this library may process device identifiers such as the **advertising ID**: https://policies.google.com/technologies/ads
+The app shows ads through Google AdMob: optional rewarded ads (players who watch earn gold) and frequency-capped interstitial ads when a game ends. Players who buy the Premium Pack do not see interstitial ads. Google's advertising library (Google Mobile Ads SDK) is used. To show and measure ads and prevent fraud, this library may collect and process, under Google's own policy: device identifiers such as the **advertising ID**, **approximate location** derived from the IP address, **interactions** with ads, and **crash/performance information**: https://policies.google.com/technologies/ads
 
 You can reset or delete your advertising ID in your phone's **Settings → Google → Ads**.
 
