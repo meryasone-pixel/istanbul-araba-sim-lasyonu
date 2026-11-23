@@ -5,15 +5,13 @@
   'use strict';
   const R = THREE, FX = window.FX = {};
 
-  FX.Q = 0; FX.q = 0;          // eski kalite değişkenleri: diğer dosyalar okuyor, hep 0 (tek ayar)
-  FX.weather = 'dry';          // hava hep kuru
-  FX.night = 0; FX.dusk = 0;
+  FX.q = 0;          // eski kalite değişkeni: yayalar okuyor, hep 0 (tek ayar)
 
   /* ---------- yardımcılar ---------- */
   const cv = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h || w; return c; };
   const srand = seed => { let s = seed >>> 0; return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296); };
   const tex = (c, rep) => { const t = new R.CanvasTexture(c); t.wrapS = t.wrapT = R.RepeatWrapping; if (rep) t.repeat.set(rep, rep); t.anisotropy = 4; return t; };
-  FX.cv = cv; FX.srand = srand; FX.tex = tex;
+  FX.cv = cv;
 
   // yumuşak değer gürültüsü (küçük rastgele tuvali büyüterek) — döşenebilir
   function noiseLayer(x, size, cells, alpha, rnd, lo, hi) {
@@ -127,21 +125,15 @@
   };
   FX.sunOff = new R.Vector3(60, 80, 30);
   FX.reflHide = []; FX.dyn = [];
-  FX.post = () => false; FX.refl = () => false;
 
   /* ---------- çizim ---------- */
   let ren, scn, cam;
   FX.init = function (renderer, scene, camera) { ren = renderer; scn = scene; cam = camera; makeTextures(); };
   FX.resize = () => {};
-  FX.setQuality = () => {};
   FX.setTime = function (m) {
     const P = FX.TIME[m]; if (!P) return;
-    FX.night = m === 'night' ? 1 : 0; FX.dusk = m === 'dusk' ? 1 : 0;
     FX.sunOff.copy(P.dir).multiplyScalar(110);
-    FX.fog = P;
   };
-  FX.setWeather = () => { FX.weather = 'dry'; };
-  FX.flash = () => {};
   FX.update = () => {};
   FX.render = function () { ren.setRenderTarget(null); ren.render(scn, cam); };
 })();

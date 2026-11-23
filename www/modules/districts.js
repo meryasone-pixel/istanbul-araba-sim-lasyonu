@@ -28,14 +28,6 @@
       const TC = [0x4f7a3a, 0x5d8c43, 0x3f6b34, 0x6b9a4d, 0x7fa356, 0x8a9a3e, 0x557f3c];
       const TILE = [0xb5523b, 0xa4462f, 0xc0644a, 0x8f3d2c];
       const FLW = [0xe53935, 0xfdd835, 0xf06292, 0xffffff, 0xab47bc, 0xff9800];
-      let winTex = null;
-      function windows() {
-        if (winTex) return winTex;
-        const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d');
-        x.fillStyle = '#fff'; x.fillRect(0, 0, 64, 64); x.fillStyle = '#44546a';
-        x.fillRect(8, 10, 18, 24); x.fillRect(38, 10, 18, 24); x.fillStyle = '#fbe29a'; x.fillRect(11, 13, 12, 8); x.fillRect(41, 13, 12, 8);
-        winTex = new R.CanvasTexture(c); winTex.wrapS = winTex.wrapT = R.RepeatWrapping; return winTex;
-      }
       const B = {
         g, rects: rc, R, net: [], walk: [],
         mesh(geo, m, x, y, z) { const o = new R.Mesh(geo, typeof m === 'number' ? M(m) : m); o.position.set(x, y, z); o.castShadow = true; g.add(o); return o; },
@@ -362,9 +354,9 @@
 
     /* ================= bölge tanımları ================= */
     const DEFS = [
-      { id: 'ortakoy', name: 'Ortaköy & Boğaziçi Köprüsü', icon: '🕌', unlock: { gold: 5000 }, spawn: { x: -250, z: 169, a: Math.PI / 2 }, build: buildOrtakoy,
+      { id: 'ortakoy', name: 'Ortaköy & Boğaziçi Köprüsü', icon: '🕌', unlock: { gold: 8000 }, spawn: { x: -250, z: 169, a: Math.PI / 2 }, build: buildOrtakoy,
         area: (x, z) => (Math.abs(x + 130) < 15 && z > -115 && z < 100 ? 'Boğaziçi Köprüsü' : z < -115 ? 'Anadolu Yakası' : 'Ortaköy') },
-      { id: 'caddebostan', name: 'Caddebostan Sahil Yolu', icon: '🏖', unlock: { gold: 9000, after: 'ortakoy' }, spawn: { x: -270, z: 5, a: Math.PI / 2 }, build: buildCaddebostan }
+      { id: 'caddebostan', name: 'Caddebostan Sahil Yolu', icon: '🏖', unlock: { gold: 10000, after: 'ortakoy' }, spawn: { x: -270, z: 5, a: Math.PI / 2 }, build: buildCaddebostan }
     ];
     const def = id => DEFS.find(d => d.id === id);
     /* bölgeler yalnızca altınla açılır; unlock.after verilmişse önce o bölge açık olmalı. Eskiden görevle açılmış bölgeler kayıtlı kalır. */
@@ -457,9 +449,9 @@
       if (!isUnlocked(id) && !(trial === true && !P.tried[id])) { IST.toast('Bu bölge kilitli'); return false; }
       world.trial = 0; if (trial === true && !isUnlocked(id)) { P.tried[id] = 1; save(); world.trial = TRIAL; }
       world.hidden = []; scene.children.forEach(o => { if (o.isLight || o === car3 || (o.userData && o.userData.__ist)) return; world.hidden.push([o, o.visible]); o.visible = false; });
-      const sv = world.saved = { arr: {}, C: C.slice(), SH: SH.slice(), DK: DK.slice() };
+      const sv = world.saved = { arr: {}, C: C.slice(), DK: DK.slice() };
       [['rects', rects], ['ints', ints], ['peds', peds], ['ais', ais], ['coins', coins]].forEach(p => { sv.arr[p[0]] = p[1].splice(0); });
-      for (let i = 0; i < C.length; i++) C[i] = 1e6; SH[0] = SH[1] = 1e6; DK[0] = DK[1] = 1e6;
+      for (let i = 0; i < C.length; i++) C[i] = 1e6; DK[0] = DK[1] = 1e6;
       let gr = world.group[id];
       if (!gr) { const B = Builder(); d.build(B); gr = world.group[id] = { g: B.finish(), rects: B.rects, net: B.net, peds: B.peds }; scene.add(gr.g); }
       if (!gr.cars) gr.cars = makeCars(gr);
@@ -477,7 +469,7 @@
       const id = world.cur.id, gr = world.group[id], sv = world.saved;
       if (gr) gr.g.visible = false;
       [['rects', rects], ['ints', ints], ['peds', peds], ['ais', ais], ['coins', coins]].forEach(p => { p[1].splice(0); sv.arr[p[0]].forEach(x => p[1].push(x)); });
-      for (let i = 0; i < C.length; i++) C[i] = sv.C[i]; SH[0] = sv.SH[0]; SH[1] = sv.SH[1]; DK[0] = sv.DK[0]; DK[1] = sv.DK[1];
+      for (let i = 0; i < C.length; i++) C[i] = sv.C[i]; DK[0] = sv.DK[0]; DK[1] = sv.DK[1];
       world.hidden.forEach(h => { h[0].visible = h[1]; }); world.hidden = [];
       if (!silent && world.ret) { car.x = world.ret.x; car.z = world.ret.z; car.a = world.ret.a; car.v = 0; }
       world.cur = null; world.saved = null;

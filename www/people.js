@@ -141,14 +141,12 @@
     return bg;
   }
 
-  let pedM = null, umbM = [], umbG = null;
+  let pedM = null;
   function makePed(kind) {
     const phone = kind === 'walk' ? Math.random() < .2 : Math.random() < .35;
     const A = build({ phone });
     if (!pedM) {
       pedM = new R.MeshLambertMaterial({ vertexColors: true, skinning: true });
-      umbG = new R.Group();
-      [0x111114, 0x1d2c4f, 0x7a1f2a, 0x2f4f3a, 0x5a5a60].forEach(c => umbM.push(new R.MeshLambertMaterial({ color: c, side: R.DoubleSide })));
     }
     const mesh = new R.SkinnedMesh(skinGeo(A.parts), pedM), bones = {}, list = [];
     for (const [n, par, x, y, z] of BONES) { const b = new R.Bone(); b.name = n; const pa = par ? ABS[par] : [0, 0, 0]; b.position.set(x - pa[0], y - pa[1], z - pa[2]); bones[n] = b; list.push(b); if (par) bones[par].add(b); }
@@ -157,12 +155,7 @@
     const grp = new R.Group(); grp.add(mesh); grp.rotation.order = 'YXZ'; grp.scale.setScalar(A.sc);
     const p = { kind, m: grp, mesh, B: bones, fem: A.fem, elder: A.elder, phone, x: 0, z: 0, y: .3, yaw: 0, ko: 0, kof: 0, vx: 0, vz: 0,
       cx: 0, cz: 0, s: 0, dir: 1, lat: 0, latT: 0, base: rr(-.35, .55), sp: A.elder ? rr(.8, 1.05) : rr(1.15, 1.6), v: 0, ph: rr(0, 6.28), st: kind, tSt: 0,
-      look: null, lookT: 0, headY: 0, react: null, rt: 0, idle: (Math.random() * 3) | 0, seed: Math.random() * 100, umb: null, umbOn: Math.random() < .6, talkAmp: 0 };
-    // şemsiye (göğüs kemiğine bağlı, yalnız yağmurda görünür)
-    const u = new R.Group(), um = pk(umbM);
-    const cn = new R.Mesh(new R.ConeGeometry(.56, .24, 10, 1, true), um); cn.position.set(-.1, .84, .2); u.add(cn);
-    const sh = new R.Mesh(new R.CylinderGeometry(.011, .011, .95, 5), umbM[0]); sh.position.set(-.1, .38, .22); u.add(sh);
-    u.visible = false; bones.chest.add(u); p.umb = u;
+      look: null, lookT: 0, headY: 0, react: null, rt: 0, idle: (Math.random() * 3) | 0, seed: Math.random() * 100, talkAmp: 0 };
     return p;
   }
 
@@ -185,7 +178,7 @@
   /* ---------- sokak mobilyası: bank + otobüs durağı ---------- */
   const FURN = {}, BENCH = [], STOP = [];
   function furniture(scene, rects) {
-    const VE = window.VEH, P = [], hs = (i, j, k) => { const x = Math.sin(i * 12.9898 + j * 78.233 + k * 37.719) * 43758.5453; return x - Math.floor(x); };
+    const VE = window.VEH, hs = (i, j, k) => { const x = Math.sin(i * 12.9898 + j * 78.233 + k * 37.719) * 43758.5453; return x - Math.floor(x); };
     for (let i = -5; i <= 5; i++) for (let j = -5; j <= 5; j++) for (let sd = 0; sd < 4; sd++) {
       const cx = i * 54, cz = j * 54, [ox, oz] = NB[sd]; if (!blockOK(cx + ox, cz + oz) && hs(i, j, sd + 9) > .3) continue;
       const h = hs(i, j, sd);
@@ -228,7 +221,6 @@
 
   /* ---------- oluşturma ---------- */
   const GROUPS = [];
-  let N0 = 0;
   PE.build = function (scene, peds, rects) {
     furniture(scene, rects);
     const n = [40, 80, 115, 145][FX.q] || 80;
@@ -237,7 +229,7 @@
     for (let i = 0; i < nT;) { const k = Math.min(nT - i, Math.random() < .55 ? 2 : 3); const gr = { members: [], x: 0, z: 0, sp: 0, tN: 0 }; for (let j = 0; j < k; j++) { const p = makePed('talk'); p.grp = gr; gr.members.push(p); peds.push(p); } GROUPS.push(gr); i += k; }
     for (let i = 0; i < nS; i++) peds.push(makePed('sit'));
     for (let i = 0; i < nB; i++) peds.push(makePed('stop'));
-    peds.forEach(p => scene.add(p.m)); PE.list = peds.slice(); N0 = peds.length;
+    peds.forEach(p => scene.add(p.m)); PE.list = peds.slice();
     PE.reset(peds, true);
   };
   PE.reset = function (peds, any) { GROUPS.forEach(g => g.placed = false); BENCH.forEach(b => b.occ = null); STOP.forEach(b => b.occ = null); peds.forEach(p => place(p, any)); };
@@ -349,7 +341,6 @@
   PE.update = function (peds, dt, now) {
     CUR = peds;
     const t = now / 1000, horn = (typeof hn !== 'undefined' && hn) ? 1 : 0, cs = Math.abs(car.v), fx = Math.sin(car.a), fz = Math.cos(car.a);
-    const rain = FX.weather === 'rain';
     const hornNew = horn && !lastHorn; lastHorn = horn;
     for (const gr of GROUPS) gr.done = false;
     for (const p of peds) {
@@ -374,7 +365,7 @@
       if (p.rt > 0) { p.rt -= dt; if (p.rt <= 0) p.react = null; }
       // durumlar
       if (p.ko > 0) koStep(p, dt);
-      else if (p.st === 'walk') walkStep(p, dt, t, rain);
+      else if (p.st === 'walk') walkStep(p, dt, t);
       else if (p.st === 'wait') waitStep(p, dt, t);
       else if (p.st === 'cross') crossStep(p, dt, t);
       else if (p.st === 'stand') { p.tSt -= dt; p.v = Math.max(0, p.v - dt * 3); if (p.tSt <= 0) { p.st = 'walk'; } }
@@ -388,15 +379,14 @@
       }
       // yerleştir + canlandır
       p.m.position.set(p.x, p.y, p.z); p.m.rotation.y = p.yaw;
-      if (p.umb) p.umb.visible = rain && p.umbOn && p.ko <= 0 && p.st !== 'sit' && vis;
-      if (vis) animate(p, dt, t, rain);
+      if (vis) animate(p, dt, t);
     }
   };
 
-  function walkStep(p, dt, t, rain) {
+  function walkStep(p, dt, t) {
     const cr = crowd(p, perim(p.cx, p.cz, p.s, p.lat, PA));
     if (cr.blk) { p.blkT = (p.blkT || 0) + dt; if (p.blkT > 1.5) { p.dir = -p.dir; p.blkT = 0; } } else p.blkT = 0;   // yol kapalıysa geri dön
-    let sp = p.sp * (rain ? 1.15 : 1) * (p.phone && p.st === 'walk' ? .85 : 1);
+    let sp = p.sp * (p.phone && p.st === 'walk' ? .85 : 1);
     if (cr.fv !== null) sp = Math.min(sp, cr.fv);
     p.v += (sp - p.v) * Math.min(1, dt * (cr.fv !== null ? 4 : 2));
     const s0 = p.s; p.s += p.dir * p.v * dt;
@@ -469,14 +459,14 @@
   }
 
   /* ---------- poz ---------- */
-  function animate(p, dt, t, rain) {
+  function animate(p, dt, t) {
     const B = p.B, run = p.run || 0;
     // bacak/kol kemikleri yaya başına bir kez bulunur (eskiden her karede 'th' + L gibi metin birleştirilip aranıyordu → bellek çöpü)
     const LG = p.LG || (p.LG = ['L', 'R'].map(L => ({ th: B['th' + L], kn: B['kn' + L], ft: B['ft' + L], ua: B['ua' + L], fa: B['fa' + L] })));
     for (const k in B) B[k].rotation.set(0, 0, 0);
     B.hips.position.set(0, HY, 0);
     const moving = (p.st === 'walk' || p.st === 'cross' || (p.st === 'wait' && p.v > .5)) && p.ko <= 0;
-    const old = p.elder ? 1 : 0, umb = p.umb && p.umb.visible;
+    const old = p.elder ? 1 : 0;
     if (p.ko > 0) {
       const f = p.kof; B.uaL.rotation.z = 1.3 * f; B.uaR.rotation.z = -1.3 * f; B.thL.rotation.z = .18 * f; B.thR.rotation.z = -.18 * f; B.knL.rotation.x = .25 * f; B.head.rotation.y = .4 * f;
       return;
@@ -493,7 +483,7 @@
       B.hips.position.y = HY - .012 - run * .04 + (.02 + run * .03) * Math.cos(2 * ph);
       B.hips.rotation.y = .09 * s; B.hips.rotation.z = .03 * Math.cos(2 * ph + .5);
       B.spine.rotation.x = .04 + run * .2 + old * .16; B.chest.rotation.y = -.13 * s; B.head.rotation.y = .04 * s; B.head.rotation.x = -.02 - old * .1;
-      if (p.phone && !run && !umb) { B.uaL.rotation.x = -.25; B.faL.rotation.x = -1.3; B.faL.rotation.y = -.25; B.head.rotation.x = .42; }
+      if (p.phone && !run) { B.uaL.rotation.x = -.25; B.faL.rotation.x = -1.3; B.faL.rotation.y = -.25; B.head.rotation.x = .42; }
     } else if (p.st === 'sit') {
       B.hips.position.set(0, .47, -.08);
       for (let k = 0; k < 2; k++) { const g = LG[k]; g.th.rotation.x = -1.48; g.kn.rotation.x = 1.42 + (k === 0 ? .08 : -.05); g.ft.rotation.x = .06; }
@@ -528,7 +518,6 @@
       }
     }
     // şemsiye tutuşu
-    if (umb) { B.uaR.rotation.x = -.55; B.uaR.rotation.z = .1; B.faR.rotation.x = -1.25; B.faR.rotation.y = .2; B.haR.rotation.x = .3; }
     // tepki pozları
     if (p.react === 'jump') {
       const k = Math.sin(Math.min(1, (.9 - p.rt) / .9) * Math.PI);

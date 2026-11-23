@@ -24,12 +24,12 @@
     ['Paylaşılamadı — ekran görüntüsü alabilirsin', 'Could not share — you can take a screenshot'], ['Fotoğraf indirildi ✓', 'Photo downloaded ✓'],
     ['Kaydetmek için telefonunun ekran görüntüsü tuşlarını kullan', 'Use your phone\'s screenshot buttons to save'],
     ['Kaydedilemedi — ekran görüntüsü alabilirsin', 'Could not save — you can take a screenshot'],
-    ['Kuru yol', 'Dry road'], ['Islak asfalt', 'Wet asphalt'],
+    
     ['Gezdiğin her yeni sokak küçük haritada kırmızı olur ve', 'Every new street you explore turns red on the mini map and gives'],
     ['altın kazandırır ve haritada yeşil işaretlenir.', 'gold and is marked green on the map.'],
     ['altın kazandırır', 'gold'], ['Altın topla, görevleri yap', 'Collect gold, complete missions'],
     ['Yayaya çarptın', 'You hit a pedestrian'], ['Kırmızıda geçtin', 'You ran a red light'], ['Çarptın', 'You crashed'],
-    ['⚠ Araba çok hasarlı! Mağazadan ücretsiz yenile', '⚠ Car badly damaged! Repair it for free in the shop'],
+    
     ['🚚 Çekici geldi', '🚚 Tow truck came'], ['altın borç yazıldı, kazancından düşülecek', 'gold added as debt, it will be taken from your earnings'],
     ['🚚 Çekici borcu', '🚚 Tow debt'], ['Puanın:', 'Score:'], ['Kazanç:', 'Earned:'],
     ['⛴ Tekneye bin', '⛴ Board the boat'], ['🚗 Karaya çık', '🚗 Go ashore'], ['Tekneden çık', 'Leave the boat'],
@@ -38,7 +38,7 @@
     ['🔧 Tamir et —', '🔧 Repair —'], ['ÜCRETSİZ', 'FREE'], ['📺 Reklam izle → ücretsiz tamir', '📺 Watch ad → free repair'],
     ['Araba sağlam ✓', 'Car is fine ✓'], ['🔧 Araba sağlam ✓', '🔧 Car is fine ✓'], ['Reklam tamamlanmadı, tamir yapılmadı', 'Ad not finished, no repair'],
     ['Araba zaten sağlam', 'Car is already fine'], ['reklam izleyerek ücretsiz tamir edebilirsin', 'you can repair for free by watching an ad'],
-    ['Araba yenilendi', 'Car repaired'], ['🔧 Arabayı yenile', '🔧 Repair car'], ['📺 reklamla ücretsiz', '📺 free with ad'], ['🔧 Tamir dükkanı', '🔧 Repair shop'],
+    ['Araba yenilendi', 'Car repaired'], ['🔧 Arabayı yenile', '🔧 Repair car'], ['📺 reklamla ücretsiz', '📺 free with ad'], 
     /* garaj */
     ['Arabayı döndürmek için sol tarafı parmağınla sürükle', 'Drag the left side to rotate the car'],
     ['🛒 Mağaza: kaplama, korna', '🛒 Shop: wraps, horns'], ['önce Yarış görevini bitir', 'finish the Race mission first'],
@@ -83,7 +83,7 @@
     ['Not: Google Play ödemesi bu cihazda hazır değil (eklenti/ürünler eksik).', 'Note: Google Play billing isn\'t ready on this device.'],
     ['Sahipsin ✓', 'Owned ✓'], ['Satın alımları geri yükle', 'Restore purchases'], ['Satın al', 'Buy'], ['Geri yükleme istendi', 'Restore requested'],
     ['Takılı', 'Equipped'], ['Çıkar', 'Remove'], ['Premium gerekli', 'Premium required'], ['Başlangıç Paketi gerekli', 'Starter Pack required'],
-    ['🔥 Günün fırsatı:', '🔥 Deal of the day:'], ['indirimde', 'on sale'], ['🔥 İndirimde', '🔥 On sale'], ['Normal fiyat', 'Normal price'], ['normal fiyat', 'normal price'], ['bugün geçerli', 'today only'], ['normal', 'normally'],
+    ['🔥 Günün fırsatı:', '🔥 Deal of the day:'], ['🔥 İndirimde', '🔥 On sale'], ['Normal fiyat', 'Normal price'], ['normal fiyat', 'normal price'], ['bugün geçerli', 'today only'], ['normal', 'normally'],
     ['satın alınsın mı? (gerçek ödeme yok)', 'buy? (no real payment)'], ['İptal edildi', 'Cancelled'], ['Ürün bulunamadı', 'Product not found'],
     ['Satın alma tamamlanmadı', 'Purchase not completed'], ['Satın alma başarısız', 'Purchase failed'], ['Altın eklenemedi, tekrar dene', 'Could not add gold, try again'],
     ['etkinleştirildi', 'activated'], ['geri yüklendi', 'restored'], ['Mağaza bu cihazda bağlı değil', 'Shop is not connected on this device'],
@@ -113,7 +113,7 @@
     /* bölgeler */
     ['🏙 Bölgeler', '🏙 Districts'], ['🎯 Bölge görevi', '🎯 District mission'], ['Boğaziçi Köprüsü', 'Bosphorus Bridge'], ['Anadolu Yakası', 'Asian Side'],
     ['Caddebostan Sahil Yolu', 'Caddebostan Coastal Road'], ['🌉 Köprü turu', '🌉 Bridge tour'], ['🏖 Sahil turu', '🏖 Coast tour'],
-    ['Boğaziçi Köprüsü dahil 3 kontrol noktasından geç', 'Pass 3 checkpoints, including the Bosphorus Bridge'], ['Bosphorus Bridge dahil 3 kontrol noktasından geç', 'Pass 3 checkpoints, including the Bosphorus Bridge'],
+    ['Boğaziçi Köprüsü dahil 3 kontrol noktasından geç', 'Pass 3 checkpoints, including the Bosphorus Bridge'], 
     ['Sahil yolu boyunca 3 kontrol noktasından geç', 'Pass 3 checkpoints along the coastal road'], ['Önce görevi bitir', 'Finish the mission first'],
     ['Görev başlatılamadı', 'Could not start the mission'], ['⏱ Süre doldu — tekrar dene', '⏱ Time\'s up — try again'], ['🚗 Deneme sürüşü', '🚗 Test drive'],
     ['Deneme bitti!', 'Test drive over!'], ['bölgesini açmak için 🏙 Bölgeler menüsüne bak', ': unlock it in the 🏙 Districts menu'], ['Bu bölge kilitli', 'This district is locked'],
@@ -122,10 +122,10 @@
     ['Devam ediyor', 'In progress'], ['Görev devam ediyor', 'Mission in progress'], ['Başlat', 'Start'], ['Buradasın', 'You are here'], ['Açık', 'Unlocked'], ['Git', 'Go'],
     /* tek kelimeler (en sona; yalnızca tam kelime olarak) */
     ['Ayarlar', 'Settings'], ['⚙ Ayarlar', '⚙ Settings'], ['Menü', 'Menu'], ['Mod', 'Mode'], ['Zaman', 'Time'], ['Gündüz', 'Day'], ['Akşam', 'Evening'], ['Gece', 'Night'],
-    ['Hava', 'Weather'], ['Kuru', 'Dry'], ['Islak', 'Wet'], ['Yağmur', 'Rain'], ['Trafik', 'Traffic'], ['Renk', 'Color'], ['Sol', 'Left'], ['Sağ', 'Right'],
-    ['Korna', 'Horn'], ['Fren', 'Brake'], ['Gaz', 'Gas'], ['Kapat ✕', 'Close ✕'], ['Kapat', 'Close'], ['🔧 Garaj', '🔧 Garage'], ['Garaj', 'Garage'],
+    ['Hava', 'Weather'], ['Trafik', 'Traffic'], ['Renk', 'Color'], ['Sol', 'Left'], ['Sağ', 'Right'],
+    ['Korna', 'Horn'], ['Fren', 'Brake'], ['Gaz', 'Gas'], ['Kapat', 'Close'], ['🔧 Garaj', '🔧 Garage'], ['Garaj', 'Garage'],
     ['Model', 'Model'], ['Motor', 'Engine'], ['Seviye', 'Level'], ['Jant', 'Rims'], ['Boya', 'Paint'], ['Başla', 'Start'], ['Hasar:', 'Damage:'], ['Yol:', 'Distance:'],
-    ['Çarpışma', 'Crash'], ['tamir', 'repair'], ['bonus', 'bonus'], ['altın', 'gold'], ['Altın', 'Gold'], ['sn', 's'], ['Bölge', 'District'], ['TAMİR &', 'REPAIR &'], ['YENİLE', 'SHOP']
+    ['Çarpışma', 'Crash'], ['tamir', 'repair'], ['bonus', 'bonus'], ['altın', 'gold'], ['Altın', 'Gold'], ['sn', 's'], ['Bölge', 'District'], 
   ];
   var L = 'A-Za-zÇĞİÖŞÜçğıöşü', esc = function (s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); };
   W.sort(function (a, b) { return b[0].length - a[0].length; });

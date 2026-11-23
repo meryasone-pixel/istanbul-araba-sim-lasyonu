@@ -48,7 +48,6 @@
 
     const isVip = () => !!S.iap[IAP[0].id];
     const isAdFree = () => isVip() || !!S.iap.remove_ads;   // Premium reklamları da kapatır
-    const gameFree = () => typeof freeMode !== 'undefined' && freeMode === true;   // oyunun 'let freeMode' değişkeni (ortak global kapsam)
 
     /* ---------------- ödeme sağlayıcıları ---------------- */
     const providers = {

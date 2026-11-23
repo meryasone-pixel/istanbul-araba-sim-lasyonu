@@ -84,8 +84,7 @@
       if (!inGame && sm) { b.className = ''; sm.appendChild(b); }
       else if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(b, anchor); else document.body.appendChild(b);
       return b;
-    },
-    esc: s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+    }
   };
 
   /* ---- modül kaydı ---- */

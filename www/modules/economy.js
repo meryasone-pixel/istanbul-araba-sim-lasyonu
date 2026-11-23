@@ -14,7 +14,6 @@
 
     const fmt = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
     const today = () => fmt(new Date());
-    const yesterday = () => { const d = new Date(); d.setDate(d.getDate() - 1); return fmt(d); };
     const gap = (a, b) => Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 864e5);
     const vip = () => !!(IST.shop && IST.shop.isVip && IST.shop.isVip());
     const reward = n => Math.round(REW[n - 1] * (vip() ? 1.5 : 1));
