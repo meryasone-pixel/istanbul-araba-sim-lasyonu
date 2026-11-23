@@ -60,7 +60,7 @@
     }
     btn = IST.ui.menuButton('bDaily', '🎁 Günlük', () => panel.open());
     label();
-    IST.bus.on('ready', () => setTimeout(() => { label(); if (state().ready) IST.toast('🎁 Günlük ödülün hazır! Ana ekranda ☰ Menü → 🎁 Günlük'); }, 3000));
+    IST.bus.on('ready', () => setTimeout(() => { label(); if (state().ready) IST.toast('🎁 Günlük ödülün hazır! Ana ekrandaki 🎁 Günlük düğmesine bas'); }, 3000));
     IST.economy = { state, claim, progress: E };
   });
 })();

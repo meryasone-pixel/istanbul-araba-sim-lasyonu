@@ -75,7 +75,7 @@
     ['🎁 Günlük Ödül', '🎁 Daily Reward'], ['🎁 Günlük', '🎁 Daily'], ['🔥 Seri:', '🔥 Streak:'], ['7. günde özel korna seni bekliyor', 'a special horn awaits you on day 7'],
     ['Yeni bir seri başlıyor 🙂 1. günden devam.', 'A new streak begins 🙂 back to day 1.'], ['🎵 Özel korna: Melodi', '🎵 Special horn: Melody'],
     ['🎁 7. gün hediyesi: Melodi kornası! (Mağaza → Korna)', '🎁 Day 7 gift: Melody horn! (Shop → Horn)'], ['Ödül eklenemedi', 'Could not add reward'],
-    ['🎁 Günlük ödül', '🎁 Daily reward'], ['🎁 Günlük ödülün hazır! Ana ekranda ☰ Menü → 🎁 Günlük', '🎁 Your daily reward is ready! On the main screen: 🎁 Daily'],
+    ['🎁 Günlük ödül', '🎁 Daily reward'], ['🎁 Günlük ödülün hazır! Ana ekrandaki 🎁 Günlük düğmesine bas', '🎁 Your daily reward is ready! Tap 🎁 Daily on the main screen'],
     ['Premium bonus', 'Premium bonus'],
     /* mağaza */
     ['🛒 Mağaza', '🛒 Shop'], ['💰 Altın & Premium', '💰 Gold & Premium'], ['🎨 Kaplama', '🎨 Wraps'], ['📯 Korna', '📯 Horns'],
