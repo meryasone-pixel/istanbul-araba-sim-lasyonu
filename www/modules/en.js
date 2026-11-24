@@ -25,8 +25,8 @@
     ['Kaydetmek için telefonunun ekran görüntüsü tuşlarını kullan', 'Use your phone\'s screenshot buttons to save'],
     ['Kaydedilemedi — ekran görüntüsü alabilirsin', 'Could not save — you can take a screenshot'],
     
-    ['Küçük haritada kırmızı yollar henüz gezmediğin sokaklar; her yeni sokak', 'Red roads on the mini map are streets you have not explored yet; each new street gives'],
-    ['altın kazandırır ve küçük haritadaki kırmızısı silinir.', 'gold and its red line disappears from the mini map.'],
+    ['Gezdiğin her yeni sokak küçük haritada kırmızı olur ve', 'Every new street you explore turns red on the mini map and gives'],
+    ['altın kazandırır ve küçük haritada kırmızı olur.', 'gold and turns red on the mini map.'],
     ['altın kazandırır', 'gold'], ['Altın topla, görevleri yap', 'Collect gold, complete missions'],
     ['Yayaya çarptın', 'You hit a pedestrian'], ['Kırmızıda geçtin', 'You ran a red light'], ['Çarptın', 'You crashed'],
     
