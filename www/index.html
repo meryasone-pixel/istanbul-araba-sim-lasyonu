@@ -579,7 +579,7 @@ function repairCar(byAd){if(!needRp()){msg('Araba zaten sağlam');return false;}
 const gbt=(k,t,on,bg)=>'<button data-k="'+k+'" style="margin:3px;padding:8px 11px;border-radius:9px;border:2px solid '+(on?'#ffd54a':'#555')+';background:'+(bg||'#33336a')+';color:#fff;font:inherit">'+t+'</button>';
 let fineT=0;function fine(n,f){if(freeMode)return;const t=performance.now();if(!f&&t<fineT)return;if(!f)fineT=t+1200;G.money=Math.max(0,G.money-n);mon.textContent='💰 '+G.money;saveG();}
 function saveG(){if(window.noSv||devAll())return;   /* deneme modunda (her şey açık) kayıt yok: kapatınca eski garaj geri gelir */try{G.dmg=Math.round(dmg);localStorage.setItem('ist-gar',JSON.stringify(G));}catch(e){}}
-addEventListener('pagehide',saveG);document.addEventListener('visibilitychange',()=>{if(document.hidden)saveG();});
+addEventListener('pagehide',saveG);let lastSv='';setInterval(()=>{if(window.noSv||devAll())return;const j=JSON.stringify(G)+Math.round(dmg);if(j!==lastSv){lastSv=j;saveG();}},400);   /* anlık kayıt: telefonda uygulama hızlı kapatılınca çıkış kaydı kaçabiliyor; değişiklik olur olmaz (en geç 0,4 sn) kaydet */document.addEventListener('visibilitychange',()=>{if(document.hidden)saveG();});
 /* uygulama arka plana geçince (ana ekran, telefon araması, kilit) ses tamamen dursun; dönünce oyun sürüyorsa devam etsin */
 document.addEventListener('visibilitychange',()=>{try{if(!ac)return;if(document.hidden){if(hn)hornOff();ac.suspend();}else if(playing&&!ended)ac.resume();}catch(e){}});
 /* arka plana geçerken basılı tuşlar sıfırlanır: parmak kalkma olayı gelmeyebiliyor, dönünce araba kendi kendine gaz/direksiyon yapıyordu */
