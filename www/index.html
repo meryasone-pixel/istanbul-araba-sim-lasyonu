@@ -150,6 +150,8 @@ body .ist-row{flex-wrap:wrap}body .ist-row>div{flex:1 1 140px;min-width:140px}
  #gear,#smenu button,#rs,#lang{padding:7px 12px!important;font-size:13px!important;margin-top:4px!important;margin-bottom:4px!important}
 }
 @media (max-height:400px){ #start p{display:none} }
+/* telefonda görev yön rozeti küçük: yolu kapatmasın */
+@media (max-height:520px){ #navb{transform:scale(.6);transform-origin:50% 0} }
 /* tablet: daha büyük ekranda menü ve yazılar biraz büyür */
 @media (min-width:900px) and (min-height:700px){
  #start .card{zoom:1.35}
@@ -628,7 +630,7 @@ let selM=-1,cm=null;
 const beam=new R.Mesh(new R.CylinderGeometry(3,3,40,16,1,true),new R.MeshBasicMaterial({color:0x2ee06b,transparent:true,opacity:.25,side:R.DoubleSide,depthWrite:false}));beam.visible=false;scene.add(beam);
 const mh=document.createElement('div');mh.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:72px;z-index:5;color:#fff;font:700 15px system-ui;text-shadow:0 1px 3px #000;pointer-events:none';document.body.appendChild(mh);mh.id='mh';
 function drawMs(){const mb=G.mb||{};$('ms').innerHTML=dHtml()+MS.map((m,i)=>'<button data-v="'+i+'" style="display:block;width:100%;text-align:left;margin:4px 0;padding:10px 12px;border-radius:10px;border:2px solid '+(selM===i?'#ffd54a':'transparent')+';background:var(--glass);color:var(--ink);font-size:14px">'+m[0]+(mb[i]?' '+starTxt(mb[i]):'')+' — '+m[1]+' · '+(m[3]&&!G.rc&&!own('m4')?m[3]:m[2]+'–'+m[2]*2+' altın')+(i===3?' · 3 farklı pist':'')+'</button>').join('');$('ms').querySelectorAll('button').forEach(b=>b.onclick=()=>{selM=+b.dataset.v;drawMs();});}
-seg('md',v=>{const bs=$('md').children;if(v==='1'&&!G.unl&&!devAll()){bs[0].classList.add('on');bs[1].classList.remove('on');freeMode=true;selM=-1;$('ms').style.display='block';$('ms').innerHTML='🔒 Görevleri açmak için serbest sürüşte şehrin üçte birini gez (%'+Math.min(100,Math.floor(visS.size/(RT*UNL_K)*100))+'). Gezdiğin her yeni sokak +'+FREE_SEG+' altın kazandırır ve haritada yeşil işaretlenir.';return;}
+seg('md',v=>{const bs=$('md').children;if(v==='1'&&!G.unl&&!devAll()){bs[0].classList.add('on');bs[1].classList.remove('on');freeMode=true;selM=-1;$('ms').style.display='block';$('ms').innerHTML='🔒 Görevleri açmak için serbest sürüşte şehrin üçte birini gez (%'+Math.min(100,Math.floor(visS.size/(RT*UNL_K)*100))+'). Gezdiğin her yeni sokak +'+FREE_SEG+' altın kazandırır ve küçük haritadaki kırmızısı silinir.';return;}
  freeMode=v!=='1';$('ms').style.display=freeMode?'none':'block';if(!freeMode){if(selM<0)selM=0;drawMs();}else selM=-1;});
 const DK=[300,27];
 const nav=document.createElement('div');/* yön göstergesi: lacivert yuvarlak rozet + altın çerçeve, içinde hedefi gösteren büyük ok; altında 'Hedef' ve mesafe */nav.style.cssText='position:fixed;left:50%;top:92px;width:120px;margin-left:-60px;z-index:5;display:none;text-align:center;pointer-events:none;font-family:system-ui,sans-serif';nav.innerHTML='<div style="width:74px;height:74px;margin:0 auto;border-radius:50%;background:rgba(14,22,42,.82);border:3px solid #c9a14a;box-shadow:0 3px 10px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center"><svg id="na" width="54" height="54" viewBox="0 0 54 54" style="transition:transform .12s linear"><path d="M27 3 L48 25 L35 25 L35 51 L19 51 L19 25 L6 25 Z" fill="#ffd75a" stroke="#14213d" stroke-width="3" stroke-linejoin="round"/></svg></div><div style="display:inline-block;margin-top:6px;padding:3px 10px;border-radius:999px;background:rgba(14,22,42,.82);border:1px solid rgba(201,161,74,.6);color:#fff4e6;font-weight:700;font-size:14px;white-space:nowrap">🎯 Hedef · <span id="nd"></span></div>';document.body.appendChild(nav);nav.id='navb';
@@ -728,7 +730,7 @@ function showMap(){const c=$('mpc').getContext('2d'),q=312/648,X=x=>(x+324)*q,Z=
  $('mpt').textContent='Yeşil: gezdiğin sokaklar';mp.style.display='flex';}
 $('gm').onclick=()=>openG();
 /* oyun içi ☰ menüsünde garaj (mağaza garajın içinde): sürüş durur, garaj kapanınca devam edilir; görevde açılmaz */
-{const b=document.createElement('button');b.className='tb';b.id='bGar';b.textContent='🔧 Garaj / Mağaza';b.onclick=()=>{if(!freeMode){msg('Görev sırasında garaj açılmaz');return;}document.body.classList.remove('mn');openG();};$('bEng').parentNode.insertBefore(b,$('bEng'));}
+{const b=document.createElement('button');b.className='tb';b.id='bGar';b.textContent='🔧 Garaj / Mağaza';b.onclick=()=>{if(cm||(window.IST&&IST.districts&&IST.districts.missionOn)){msg('Görev sırasında garaj açılmaz');return;}   /* yalnızca görev sürerken engelle (eskiden Görevler modunda hiç açılmıyordu) */document.body.classList.remove('mn');openG();};$('bEng').parentNode.insertBefore(b,$('bEng'));}
 function ignite(){try{startAudio();}catch(e){}if(!ac)return;const t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain(),f=ac.createBiquadFilter();o.type='sawtooth';f.type='lowpass';f.frequency.value=500;o.frequency.setValueAtTime(40,t);o.frequency.linearRampToValueAtTime(70,t+.5);o.frequency.linearRampToValueAtTime(55,t+.7);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.05,t+.05);g.gain.linearRampToValueAtTime(.0001,t+.75);o.connect(f);f.connect(g);g.connect(aOut());o.start(t);o.stop(t+.8);}
 $('bEng').onclick=()=>{engineOn=!engineOn;$('bEng').textContent=engineOn?'🔑 Motoru durdur':'🔑 Arabayı çalıştır';if(engineOn)ignite();msg(engineOn?'Motor çalıştı':'Motor kapatıldı');};
 $('bM').onclick=showMap;
@@ -738,7 +740,7 @@ $('rs').onclick=()=>{cf.style.display='flex';};$('cfn').onclick=()=>{cf.style.di
 $('cfy').onclick=()=>{window.noSv=true;try{localStorage.removeItem('ist-gar');}catch(e){}location.reload();};
 $('md').addEventListener('click',()=>setTimeout(refreshGo,0));$('ms').addEventListener('click',()=>setTimeout(refreshGo,0));
 setCol(baseCol);applyMode();
-setTimeout(()=>msg(freeMode?'Gezdiğin her yeni sokak küçük haritada kırmızı olur ve +'+FREE_SEG+' altın kazandırır':'Altın topla, görevleri yap'),2500);
+setTimeout(()=>msg(freeMode?(G.unl?'Gezdiğin her yeni sokak +'+FREE_SEG+' altın kazandırır':'Küçük haritada kırmızı yollar henüz gezmediğin sokaklar; her yeni sokak +'+FREE_SEG+' altın kazandırır'):'Altın topla, görevleri yap'),2500);
 function step(dt){if(gOpen)return 0;gStep();mStep(dt);
   const up=keys.up&&!totaled&&engineOn, dn=keys.down, vmax=totaled?0:(boatM?28:carKmh()/3.6)*(1-dmg/150); dist+=Math.abs(car.v)*dt;if(keys.up&&!engineOn&&!totaled&&performance.now()>engT){msg('Motor kapalı — ☰ menüden 🔑 ile çalıştır');engT=performance.now()+3000;}
   if(up)car.v+=(car.v<0?30:(boatM?9:(GM[G.model][1]===4?28:19)))*dt;
@@ -805,7 +807,9 @@ function drawMini(){
   mc.strokeStyle='#8a8794'; mc.lineWidth=14*k; mc.beginPath();
   for(const c of C){mc.moveTo(X(c),Z(-320));mc.lineTo(X(c),Z(320));mc.moveTo(X(-320),Z(c));mc.lineTo(X(320),Z(c));}
   mc.stroke();
-  mc.strokeStyle='#ff3b30';mc.lineWidth=11*k;mc.beginPath();for(const id of G.s2){const ax=id>=864?1:0,q2=id-ax*864,r=Math.floor(q2/72),t=q2%72,p0=-324+t*9;if(!ax){mc.moveTo(X(p0),Z(C[r]));mc.lineTo(X(p0+9),Z(C[r]));}else{mc.moveTo(X(C[r]),Z(p0));mc.lineTo(X(C[r]),Z(p0+9));}}mc.stroke();
+  /* serbest sürüşte henüz gezilmemiş yollar kırmızı; gezilen yolun kırmızısı silinir; görevler açılınca (şehrin %35'i) hiç kırmızı kalmaz */
+  if(freeMode&&!G.unl&&visS.size<RT*UNL_K){if(!window.__allSeg){__allSeg=[];for(let j=0;j<12;j++)for(let u=0;u<72;u++){if(rlOK(0,u))__allSeg.push(j*72+u);if(rlOK(1,u))__allSeg.push(864+j*72+u);}}
+   mc.strokeStyle='#ff3b30';mc.lineWidth=8*k;mc.beginPath();for(const id of __allSeg){if(visS.has(id))continue;const ax=id>=864?1:0,q2=id-ax*864,r=Math.floor(q2/72),t=q2%72,p0=-324+t*9;if(!ax){mc.moveTo(X(p0),Z(C[r]));mc.lineTo(X(p0+9),Z(C[r]));}else{mc.moveTo(X(C[r]),Z(p0));mc.lineTo(X(C[r]),Z(p0+9));}}mc.stroke();}
   mc.fillStyle='#ffd54a'; for(const c of ais)if(c.on){const x=X(c.x),z=Z(c.z);if(x>0&&x<W&&z>0&&z<W)mc.fillRect(x-1.5,z-1.5,3,3);}
   if(cm&&cm.i===0){const tx=clamp(X(cm.x),6,W-6),tz=clamp(Z(cm.z),6,W-6);mc.fillStyle='#2ee06b';mc.beginPath();mc.arc(tx,tz,4.5,0,7);mc.fill();mc.strokeStyle='#fff';mc.lineWidth=1.5;mc.stroke();}
   mc.save();mc.translate(W/2,W/2);mc.rotate(Math.PI-car.a);mc.fillStyle='#ffd75a';mc.beginPath();mc.moveTo(0,-6);mc.lineTo(4.5,5);mc.lineTo(-4.5,5);mc.closePath();mc.fill();mc.restore();

@@ -601,6 +601,6 @@
     /* bölge görevi düğmesi: yalnızca bir bölgedeyken (deneme sürüşü hariç) görünür */
     dmBtn = IST.ui.menuButton('bDM', '🎯 Bölge görevi', () => { if (dm.on) return IST.toast('Görev devam ediyor'); document.body.classList.remove('mn'); startDM(); }, { inGame: true, before: 'bDist' });
     refreshBtn();
-    IST.districts = { DEFS, enter, exit, _tick: tickPeds, isUnlocked, progress: P, get current() { return world.cur; }, _world: world };
+    IST.districts = { DEFS, enter, exit, _tick: tickPeds, isUnlocked, progress: P, get current() { return world.cur; }, get missionOn() { return !!dm.on; }, _world: world };
   });
 })();
