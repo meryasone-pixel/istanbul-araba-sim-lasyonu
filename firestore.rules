@@ -17,6 +17,17 @@ service cloud.firestore {
         && request.resource.data.v is int;
       allow list, delete: if false;
     }
+    // Google hesabıyla giriş yapan oyuncunun yedeği: yalnızca hesabın sahibi okuyup yazabilir ve silebilir
+    match /users/{uid} {
+      allow get, delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['data', 'ts', 'v'])
+        && request.resource.data.data is string
+        && request.resource.data.data.size() < 200000
+        && request.resource.data.ts is int
+        && request.resource.data.v is int;
+      allow list: if false;
+    }
     match /{document=**} {
       allow read, write: if false;
     }
