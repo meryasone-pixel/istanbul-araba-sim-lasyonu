@@ -751,6 +751,7 @@ function step(dt){if(gOpen)return 0;gStep();mStep(dt);
   car.v=clamp(car.v,-8,vmax);
   const steer=(keys.left?1:0)-(keys.right?1:0);if(window.pSig&&pSig.moto)pcur.rotation.z+=(-steer*.38*Math.min(1,Math.abs(car.v)/10)-pcur.rotation.z)*Math.min(1,dt*8);for(let i=0;i<2;i++)wh[i].rotation.y+=(steer*.5-wh[i].rotation.y)*Math.min(1,dt*10);{const bo=((performance.now()/350)|0)%2;if(window.pSig){pSig.mL.color.setHex(steer>0&&bo?0xffa000:0x4a2c00);pSig.mR.color.setHex(steer<0&&bo?0xffa000:0x4a2c00);}}
   car.a+=(steer*1.9*clamp(car.v/6,-1,1)*(1-Math.min(Math.abs(car.v)/70,.5))+(dmg>50?.06*(dmg-50)/50*car.v/36:0))*dt; /* hasarlı araba bir yana çeker: %50'den sonra, hasarla artarak (eskiden %30'da birden ve iki kat güçlüydü) */
+  if(!steer&&Math.abs(car.v)>2){const q=Math.PI/2,df=Math.round(car.a/q)*q-car.a;if(Math.abs(df)<.26)car.a+=df*Math.min(1,dt*2.2);}   /* yön tuşuna basılmıyorsa ve araba yola neredeyse paralelse (15°'den az) kendiliğinden yolla aynı hizaya gelir: dönüşten sonra yamuk kalıp sağa/sola kaymaz (yollar hep düz) */
   car.x+=Math.sin(car.a)*car.v*dt; car.z+=Math.cos(car.a)*car.v*dt;
   if(!boatM&&car.x<-320){car.x=-320;car.v*=.6;}
   if(boatM){car.z=clamp(car.z,-700,700);if(car.x<314){car.x=314;car.v*=.6;}if(car.x>1000){car.x=1000;car.v*=.6;}}else{car.z=clamp(car.z,-320,320);car.x=Math.min(car.x,305);}
