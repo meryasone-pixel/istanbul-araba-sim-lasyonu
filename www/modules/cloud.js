@@ -34,7 +34,7 @@
     const hash = s => { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return h + ':' + s.length; };
 
     async function upload(force, leaving) {      // yalnızca Google hesabıyla giriş yapılmışsa yedekler
-      if (!on || !S.g || busy || restoring) return false;
+      if (!on || !S.g || busy || restoring || window.noSv) return false;   // noSv: oyun sıfırlanıyor/geri yükleniyor, yarım veriyi hesaba yazma
       const data = snapshot(), h = hash(data); if (!force && h === S.hash) return true;
       busy = true;
       try {
@@ -67,19 +67,24 @@
           body: JSON.stringify({ postBody: 'id_token=' + encodeURIComponent(idt) + '&providerId=google.com', requestUri: 'http://localhost', returnSecureToken: true }) });
         if (!r.ok) throw new Error('giriş ' + r.status);
         const j = await r.json(), pf = rr.profile || {};
-        await link(j.localId, j.refreshToken, j.idToken, +j.expiresIn, j.email || pf.email, j.displayName || pf.name);
+        await link(j.localId, j.refreshToken, j.idToken, +j.expiresIn, j.email || pf.email, j.displayName || pf.name, j.photoUrl || pf.imageUrl);
       } catch (e) { const m = String((e && e.message) || e); IST.toast(/cancel|iptal/i.test(m) ? 'Giriş iptal edildi' : 'Google ile giriş yapılamadı — internet bağlantısını kontrol et'); }
       finally { gBusy = false; refresh(); }
     }
-    async function link(uid, rt, idTok, exp, email, name) {   // hesabı bu telefona bağla; hesapta eski ilerleme varsa sor
-      S.g = { uid, email: email || '', name: name || '', rt }; gtok = idTok; gExp = Date.now() + (exp || 3600) * 1000; save();
-      const r = await fetch(userUrl(uid), { headers: { Authorization: 'Bearer ' + gtok } });
-      if (r.ok) {
-        const j = await r.json(); let o = null; try { o = JSON.parse(j.fields.data.stringValue); } catch (e) {}
+    async function link(uid, rt, idTok, exp, email, name, photo) {   // hesabı bu telefona bağla; hesapta eski ilerleme varsa sor
+      // Hesap, karar verilene kadar S.g'ye yazılmaz: aksi halde otomatik yedek bu telefondaki (yeni kurulumda boş) ilerlemeyi
+      // hesaptaki eski ilerlemenin üstüne yazabilir.
+      const acc = { uid, email: email || '', name: name || '', photo: String(photo || '').indexOf('https://') === 0 ? photo : '', rt };
+      const r = await fetch(userUrl(uid), { headers: { Authorization: 'Bearer ' + idTok } });
+      let o = null;
+      if (r.ok) { const j = await r.json(); try { o = JSON.parse(j.fields.data.stringValue); } catch (e) {} }
+      else if (r.status !== 404) throw new Error('okuma ' + r.status);
+      S.g = acc; gtok = idTok; gExp = Date.now() + (exp || 3600) * 1000; S.hash = ''; save();
+      if (o) {
         let en = false; try { en = localStorage.getItem('ist-lang') === 'en'; } catch (e) {}
-        if (o && confirm(en ? 'This Google account already has saved progress.\n\nOK: load the account\'s progress onto this phone.\nCancel: save this phone\'s progress to the account.'
-                            : 'Bu Google hesabında kayıtlı bir ilerleme var.\n\nTamam: hesaptaki ilerleme bu telefona yüklenir.\nİptal: bu telefondaki ilerleme hesaba kaydedilir.')) { apply(o); return; }
-      } else if (r.status !== 404) throw new Error('okuma ' + r.status);
+        if (confirm(en ? 'This Google account already has saved progress.\n\nOK: load the account\'s progress onto this phone.\nCancel: save this phone\'s progress to the account.'
+                       : 'Bu Google hesabında kayıtlı bir ilerleme var.\n\nTamam: hesaptaki ilerleme bu telefona yüklenir.\nİptal: bu telefondaki ilerleme hesaba kaydedilir.')) { apply(o); return; }
+      }
       IST.toast('✅ Google hesabına bağlandı'); await upload(true);
     }
     function gSignOut() {
@@ -112,6 +117,11 @@
       }
       const gn = document.createElement('b'); gn.textContent = '✅ ' + (S.g.name || 'Google hesabı'); const ge = document.createElement('small'); ge.textContent = S.g.email; ge.style.display = 'block';
       gd.append(gn, ge);
+      if (S.g.photo) {                            // Google profil resmi (yüklenemezse gizlenir)
+        const im = document.createElement('img'); im.src = S.g.photo; im.alt = ''; im.referrerPolicy = 'no-referrer';
+        im.style.cssText = 'width:44px;height:44px;border-radius:50%;object-fit:cover;flex:0 0 44px;margin-right:10px;border:2px solid #d4a84b';
+        im.onerror = () => im.remove(); gr.appendChild(im);
+      }
       const go = document.createElement('button'); go.className = 'ist-btn'; go.textContent = 'Çıkış yap'; go.onclick = gSignOut;
       gr.append(gd, go); b.appendChild(gr);
       const p = document.createElement('small'); p.textContent = 'İlerlemen (altın, arabalar, parçalar, bölgeler, görevler) otomatik olarak Google hesabına yedeklenir.'; b.appendChild(p);
