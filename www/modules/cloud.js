@@ -60,7 +60,7 @@
       try {
         const P = SL();
         if (!slInit) { await P.initialize({ google: { webClientId: GCID } }); slInit = true; }
-        const res = await P.login({ provider: 'google', options: { scopes: ['email', 'profile'] } });
+        const res = await P.login({ provider: 'google', options: {} });   // ek izin (scopes) isteme: Android'de ana aktivite değişikliği ister; e-posta ve ad zaten varsayılan olarak gelir
         const rr = (res && res.result) || {}, idt = rr.idToken;
         if (!idt) throw new Error('Google girişi tamamlanmadı');
         const r = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key=' + cfg.apiKey, { method: 'POST', headers: { 'Content-Type': 'application/json' },
