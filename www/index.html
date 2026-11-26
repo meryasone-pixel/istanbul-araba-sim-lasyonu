@@ -483,7 +483,7 @@ function impact(vn){
   if(vn<1.2||hitCd>0)return; hitCd=.3; const k=clamp(vn/18,.12,1);
   crash(k); dmg=Math.min(100,dmg+vn*1.6*(boatM?1:DR[G.model])); const p=Math.max(1,Math.round(vn*.6)); pts(-p); fine(5); msg(freeMode?'Çarpışma':'Çarpışma −5 altın');
   shake=Math.max(shake,k); twY=clamp(twY+rnd(-.02,.02)*k*3,-.04,.04); twZ=clamp(twZ+rnd(-.03,.03)*k*3,-.06,.06); /* çarpışma sonrası gövde eğikliği: yana dönük durunca araba yan yan gidiyormuş gibi görünüyordu (eskiden 8,6°'ye kadar) */ look();
-  if(dmg>=100&&!totaled){totaled=true;}
+  if(dmg>=100&&!totaled){totaled=true;setTimeout(showWreck,700);}   /* araba hurda: ne yapacağını soran pencere (reklamla tamir / altınla tamir / çekici) */
 }
 
 // Kontroller
@@ -581,6 +581,17 @@ const RP_FREE=30, TOW=50, rpBase=()=>Math.max(150,Math.round(GM[G.model][2]*.07)
 async function adRepair(){if(!needRp()||!adOk())return false;const ok=await IST.ads.watch();if(ok)return repairCar(true);msg('Reklam tamamlanmadı, tamir yapılmadı');return false;}
 function restoreParts(){shedD=dmg;for(const q of sheds){const p=q.p,h=p.userData.home;q.par.add(p);if(h){p.position.copy(h.pos);p.rotation.copy(h.rot);p.scale.copy(h.sc);p.visible=h.vis;delete p.userData.home;}else{p.position.copy(q.pos);p.rotation.copy(q.rot);}}}
 function fixParts(){restoreParts();debris.length=0;buildPlayer();look();}
+function towCar(){dmg=75;totaled=false;twY=twZ=0;fixParts();if(freeMode){msg('🚚 Çekici geldi · hasar %75');}else if(G.money>=TOW){G.money-=TOW;msg('🚚 Çekici geldi −'+TOW+' altın · hasar %75');}else{G.debt=(G.debt||0)+TOW;msg('🚚 Çekici geldi · '+TOW+' altın borç yazıldı, kazancından düşülecek');}mon.textContent='💰 '+G.money;saveG();hideWreck();}
+/* hurda penceresi: araba parçalanınca oyuncu takılıp kalmasın; reklamla tamir en üstte (reklam yoksa gizli) */
+function hideWreck(){const w=document.getElementById('wreck');if(w)w.remove();}
+function showWreck(){if(!totaled||!playing)return;hideWreck();const w=document.createElement('div');w.id='wreck';w.style.cssText='position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:#0008';
+  const c=document.createElement('div');c.style.cssText='background:#14213d;border:2px solid #d4a84b;border-radius:18px;padding:16px;width:min(92vw,360px);color:#fff;font:600 15px system-ui;text-align:center;box-shadow:0 10px 30px #0009';
+  const h=document.createElement('div');h.textContent='💥 Araba hurda oldu!';h.style.cssText='font:800 20px system-ui;margin-bottom:12px;color:#ffd166';c.appendChild(h);
+  const B=(t,bg,fn,dis)=>{const b=document.createElement('button');b.className='ist-btn';b.textContent=t;b.style.cssText='display:block;width:100%;margin:8px 0;padding:13px 10px;font:700 15px system-ui;border-radius:14px;'+(bg?'background:'+bg+';':'');b.disabled=!!dis;b.onclick=fn;c.appendChild(b);return b;};
+  if(adOk())B('📺 Reklam izle → ücretsiz tamir','#2e9e5b',async e=>{e.target.disabled=true;const ok=await adRepair();if(ok)hideWreck();else e.target.disabled=false;});
+  const rc=rpCost();B('🔧 Altınla tamir et — '+rc+' altın'+(G.money<rc?' (yetersiz)':''),'',()=>{if(repairCar(false))hideWreck();},G.money<rc);
+  B('🚚 Çekici çağır — '+(freeMode?'ücretsiz':TOW+' altın')+' · hasar %75','#555',towCar);
+  w.appendChild(c);document.body.appendChild(w);const iv=setInterval(()=>{if(!document.getElementById('wreck')){clearInterval(iv);return;}if(!totaled||!playing){clearInterval(iv);hideWreck();}},400);}
 function repairCar(byAd){if(!needRp()){msg('Araba zaten sağlam');return false;}const fr=byAd===true||repFree(),c=rpCost();if(!fr&&G.money<c){msg('Yetersiz altın — tamir '+c+' altın'+(adOk()?' · 📺 reklam izleyerek ücretsiz tamir edebilirsin':''));return false;}
  if(!fr)G.money-=c;dmg=0;totaled=false;twY=twZ=0;score=100;$('score').textContent=100;fixParts();mon.textContent='💰 '+G.money;saveG();msg('Araba yenilendi');return true;}
 const gbt=(k,t,on,bg)=>'<button data-k="'+k+'" style="margin:3px;padding:8px 11px;border-radius:9px;border:2px solid '+(on?'#ffd54a':'#555')+';background:'+(bg||'#33336a')+';color:#fff;font:inherit">'+t+'</button>';
