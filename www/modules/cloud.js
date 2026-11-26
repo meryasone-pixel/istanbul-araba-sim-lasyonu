@@ -13,7 +13,7 @@
     const SKIP = { 'ist-cloud': 1, 'ist-chat': 1 };   // bulut bilgisi ve eski sohbet ayarı yedeklenmez
     const GCID = cfg.googleWebClientId || '', SL = () => (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.SocialLogin) || null;
     const gOn = () => on && !!GCID && !!SL();
-    let gtok = null, gExp = 0, gBusy = false, slInit = false, busy = false, restoring = false, err = '';
+    let gtok = null, gExp = 0, gBusy = false, slInit = false, busy = false, restoring = false, err = '', gErr = '';
 
     /* ---------- Firebase: oturum + belge okuma/yazma ---------- */
     const base = 'https://firestore.googleapis.com/v1/projects/' + encodeURIComponent(cfg.projectId) + '/databases/(default)/documents/';
@@ -56,7 +56,7 @@
     /* ---------- Google ile giriş ---------- */
     async function gSignIn() {
       if (!gOn() || gBusy) return;
-      gBusy = true; S.asked = 1; save(); refresh();
+      gBusy = true; gErr = ''; S.asked = 1; save(); refresh();
       try {
         const P = SL();
         if (!slInit) { await P.initialize({ google: { webClientId: GCID } }); slInit = true; }
@@ -68,7 +68,7 @@
         if (!r.ok) throw new Error('giriş ' + r.status);
         const j = await r.json(), pf = rr.profile || {};
         await link(j.localId, j.refreshToken, j.idToken, +j.expiresIn, j.email || pf.email, j.displayName || pf.name, j.photoUrl || pf.imageUrl);
-      } catch (e) { const m = String((e && e.message) || e); IST.toast(/cancel|iptal/i.test(m) ? 'Giriş iptal edildi' : 'Google ile giriş yapılamadı — internet bağlantısını kontrol et'); }
+      } catch (e) { const m = String((e && (e.message || e.code)) || e); const c = /cancel|iptal/i.test(m); gErr = (c ? 'Giriş iptal edildi' : 'Giriş yapılamadı') + ' (' + m.slice(0, 90) + ')'; IST.toast(c ? 'Giriş iptal edildi' : 'Google ile giriş yapılamadı — internet bağlantısını kontrol et'); }   /* hata sebebi pencerede de görünür (bildirim pencerenin arkasında kalıyordu) */
       finally { gBusy = false; refresh(); }
     }
     async function link(uid, rt, idTok, exp, email, name, photo) {   // hesabı bu telefona bağla; hesapta eski ilerleme varsa sor
@@ -113,7 +113,9 @@
       if (!S.g) {
         const gt = document.createElement('small'); gt.textContent = 'Google hesabınla giriş yap: telefon değiştirsen ya da oyunu silsen bile aynı hesapla girince ilerlemen geri gelir.'; gd.appendChild(gt);
         const gb = document.createElement('button'); gb.className = 'ist-btn'; gb.textContent = gBusy ? 'Bağlanıyor…' : 'Google ile giriş yap'; gb.disabled = gBusy; gb.onclick = gSignIn;
-        gr.append(gd, gb); b.appendChild(gr); return;
+        gr.append(gd, gb); b.appendChild(gr);
+        if (gErr) { const ge = document.createElement('small'); ge.textContent = '⚠ ' + gErr; ge.style.cssText = 'display:block;color:#ffb4a8;margin-top:6px'; b.appendChild(ge); }
+        return;
       }
       const gn = document.createElement('b'); gn.textContent = '✅ ' + (S.g.name || 'Google hesabı'); const ge = document.createElement('small'); ge.textContent = S.g.email; ge.style.display = 'block';
       gd.append(gn, ge);
